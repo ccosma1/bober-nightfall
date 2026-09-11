@@ -155,6 +155,9 @@
     #btn-sword { background: var(--yellow); color: var(--ink); }
     #btn-sword.charged { box-shadow: 0 0 0 4px #F5C40088, 0 4px 0 #8a6a00; }
     #btn-dodge.cd { opacity: 0.45; }
+    #btn-bomb { background: #2a1c4e; color: var(--cream); }
+    #btn-bomb:disabled { opacity: 0.4; }
+    .chip.hidden { display: none !important; }
     footer {
       flex: 0 0 auto; text-align: center; font-size: 10px; font-weight: 700;
       color: #cbbda0; padding: 0 8px 2px; background: #1A1028; z-index: 20;
@@ -240,7 +243,8 @@
         <div class="chips">
           <div id="hearts" aria-label="Hearts"></div>
           <div class="chip wood" id="chip-wood">W 0</div>
-          <div class="chip" id="chip-lv">L 1/5</div>
+          <div class="chip wood hidden" id="chip-bomb">B 0</div>
+          <div class="chip" id="chip-lv">L 1/10</div>
           <div class="chip" id="chip-act">Ember Woods</div>
         </div>
         <div class="btns">
@@ -270,6 +274,7 @@
     <div id="dock">
       <div id="stick" aria-label="Move"><div id="knob"></div></div>
       <div id="actions">
+        <button class="act" id="btn-bomb" type="button">BOMB</button>
         <button class="act" id="btn-dodge" type="button">ROLL</button>
         <button class="act" id="btn-sword" type="button">SLASH</button>
       </div>
@@ -1728,8 +1733,10 @@
   document.getElementById("btn-shop2").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
   document.getElementById("btn-shop-close").addEventListener("click", function () { document.getElementById("shop").classList.add("hidden"); });
   document.getElementById("shop-piece").addEventListener("click", buyPiece);
-  document.getElementById("shop-bomb").addEventListener("click", buyBomb);
-  document.getElementById("btn-bomb").addEventListener("pointerdown", function (ev) { ev.preventDefault(); Sfx.ensure(); placeBomb(); });
+  var shopBomb = document.getElementById("shop-bomb");
+  if (shopBomb) shopBomb.addEventListener("click", buyBomb);
+  var bombBtn = document.getElementById("btn-bomb");
+  if (bombBtn) bombBtn.addEventListener("pointerdown", function (ev) { ev.preventDefault(); Sfx.ensure(); placeBomb(); });
   document.getElementById("btn-rest").addEventListener("click", doRest);
   document.getElementById("btn-warm").addEventListener("click", doWarm);
   document.getElementById("btn-mute").addEventListener("click", toggleMute);
