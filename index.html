@@ -363,7 +363,7 @@
   var mode = "splash", paused = false, lastTs = 0, hitstop = 0, shake = 0, fadeT = 0;
   var sayT = 0, ghostT = 0, clearFade = 0;
   var trails = [], pops = [], flakes = [];
-  var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false;
+  var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false, levelTransit = false;
   var chips = 0, hasHat = false, introAfter = null;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
 
@@ -630,6 +630,8 @@
   }
 
   function buildLevel(n) {
+    levelTransit = false;
+    n = Math.max(1, Math.min(5, n | 0 || 1));
     enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
     john = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
     levelN = n;
@@ -640,7 +642,7 @@
       hurt: 0, keys: 0, bob: 0
     };
     if (player.hp <= 0) player.hp = 6;
-    exitDoor = { x: 180, y: 48, locked: n === 4, open: n === 1, r: 22 };
+    exitDoor = { x: 180, y: 48, locked: n === 4, open: false, r: 22 };
     if (n === 1) {
       addSolid("pine", 52, 90, 22, 28); addSolid("pine", 308, 96, 22, 28);
       addSolid("pine", 46, 260, 22, 28); addSolid("pine", 314, 270, 22, 28);
@@ -707,18 +709,25 @@
   }
 
   function tryExit() {
+    if (levelTransit) return;
     if (!exitDoor.open || exitDoor.locked) return;
     if (Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 30) return;
+    levelTransit = true;
+    exitDoor.open = false;
+    exitDoor.locked = true;
+    var next = levelN + 1;
     Sfx.door();
-    if (levelN >= 5) {
-      mode = "end";
-      patchSave({ act1Held: true, level: 5, chips: chips, hp: player.hp });
-      document.getElementById("endcard").classList.remove("hidden");
-      app.classList.add("booting");
-      return;
-    }
     fadeEl.classList.add("on");
-    setTimeout(function () { buildLevel(levelN + 1); }, 280);
+    setTimeout(function () {
+      if (next > 5) {
+        mode = "end";
+        patchSave({ act1Held: true, level: 5, chips: chips, hp: player.hp });
+        document.getElementById("endcard").classList.remove("hidden");
+        app.classList.add("booting");
+      } else {
+        buildLevel(next);
+      }
+    }, 280);
   }
 
   function updateEnemy(e, dt) {
@@ -1214,7 +1223,8 @@
     if (s.act1Held) {
       hideMenus(); document.getElementById("endcard").classList.remove("hidden"); mode = "end"; return;
     }
-    startPlay(s.level || 1, true);
+    var lv = Math.max(1, Math.min(5, s.level | 0 || 1));
+    startPlay(lv, true);
   });
   document.getElementById("btn-intro").addEventListener("click", function () { Sfx.ensure(); playIntro(null); });
   document.getElementById("btn-shop").addEventListener("click", function () { document.getElementById("shop").classList.remove("hidden"); });

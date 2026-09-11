@@ -128,6 +128,14 @@ def main() -> int:
         errors.append("L4 grunt missing")
     if 'spawnEnemy("brute"' not in text:
         errors.append("L5 brute missing")
+    if "levelTransit" not in text:
+        errors.append("missing levelTransit latch")
+    if "buildLevel(levelN + 1)" in text:
+        errors.append("live levelN+1 still in timeout")
+    if "var next = levelN + 1" not in text:
+        errors.append("tryExit must capture next")
+    if "open: n === 1" in text:
+        errors.append("L1 door still open at spawn")
 
     if errors:
         print("FAIL")
