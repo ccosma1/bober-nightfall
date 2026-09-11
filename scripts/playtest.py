@@ -16,12 +16,25 @@ NEED = [
     "bober-nightfall-v1",
     "ACT I HELD",
     "John Snow from the white",
-    "Green home fades. Nightfall begins.",
-    "The Frost King wore winter like a crown — and never took it off.",
-    "John Snow walked out of the white. This time he stayed.",
-    "Something heavy can wait. This crown can’t.",
-    "Blade up. Fire low. Real cold.",
-    "END THE FROST KING.",
+    "First he yeeted.",
+    "Then he held the dam.",
+    "Then he held the fire.",
+    "Winter cracked. Green home stayed.",
+    "One crown left: the Frost King.",
+    "Bring the summer.",
+    "Lodge fire held. Now end the winter.",
+    "Ember Woods",
+    "REST 5W",
+    "WARM 12W",
+    "Heart Piece",
+    "hpMax",
+    "heartPieces",
+    "Desktop: WASD · LMB slash · RMB roll",
+    "More Bober games",
+    "https://ccosma1.github.io/boberverse/",
+    "exitArmed",
+    "levelTimer",
+    "newGameWipe",
     "CHARGE_HOLD = 0.25",
     "SLASH_REC = 0.18",
     "HITSTOP = 2 / 60",
@@ -148,6 +161,14 @@ def main() -> int:
         errors.append("missing new-game wipe")
     if "localStorage.removeItem(SAVE_KEY)" not in text:
         errors.append("FACE THE FROST must wipe save")
+    if "fillText" in text and "LOCKED" in text:
+        errors.append("door still uses fillText LOCKED/OPEN")
+    if "https://ccosma1.github.io/bober-yeet/" in text.split("id=\"splash\"")[1].split("id=\"history\"")[0]:
+        errors.append("splash still piles sibling URLs")
+    if "min-height: 56px" not in text:
+        errors.append("intro caption bar < 56px")
+    if "font-size: 16px" not in text:
+        errors.append("intro caption not ≥16px")
 
     if errors:
         print("FAIL")

@@ -14,11 +14,11 @@ Run `START.bat` or open `index.html` in a browser.
 
 ## How to play
 
-1. Skip or watch the silent intro stills.
-2. Move with the stick or **WASD / arrows**.
+1. Skip or watch the silent intro stills (Yeet → Dam → Lodge → Nightfall).
+2. Move with the stick or **WASD / arrows**. Desktop: **LMB** slash, **RMB** roll.
 3. **Tap** slash. **Hold** ≥0.25s then release for a charged slash.
-4. **Roll** (button or double-tap the stick) through snowballs.
-5. Flank or charge Shield Grunts. Punish the Ice Brute after the slam.
+4. **Roll** through snowballs. Flank or charge Shield Grunts. Punish the Ice Brute after the slam.
+5. On **CLEAR**, **REST 5W** heals a heart. **Heart Piece** (25W or first L5 clear; two pieces → +1 heart max). Act I is **Ember Woods**.
 
 Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1`.
 
