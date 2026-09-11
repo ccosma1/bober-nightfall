@@ -34,9 +34,22 @@ NEED = [
     "https://ccosma1.github.io/green-home-games/",
     "ICE APPROACHES",
     "ACT II HELD",
+    "ACT III HELD",
+    "BONE CAMP",
+    "Bone Camp",
+    "Ice that used to walk.",
     "spawnEnemy(\"hound\"",
+    "spawnEnemy(\"skull\"",
+    "spawnEnemy(\"rib\"",
+    "spawnEnemy(\"ash\"",
+    "spawnEnemy(\"warden\"",
     "placeBomb",
     "Ice Approaches",
+    "MAX_LV = 15",
+    "act3Held",
+    "bomb-badge",
+    "min-width: 44px",
+    "min-height: 44px",
     "exitArmed",
     "levelTimer",
     "newGameWipe",
@@ -50,6 +63,8 @@ NEED = [
     "e.hp = 2",
     "e.hp = 3",
     "e.hp = 12",
+    "e.hp = 4",
+    "e.hp = 14",
     "min-height: 55dvh",
     "font-size: 14px",
     "font-size: 13px",
@@ -162,14 +177,29 @@ def main() -> int:
         errors.append("L1 door still open at spawn")
     if "LEVEL " not in text or "lv-banner" not in text:
         errors.append("missing LEVEL banner")
-    if "Math.min(10" not in text and "Math.min(10," not in text:
-        errors.append("levels not clamped to 10")
+    if "MAX_LV = 15" not in text:
+        errors.append("levels not clamped to 15")
+    if "Math.min(10, s.level" in text or "Math.min(10, n" in text:
+        errors.append("old level clamp 10 still present")
+    if "buildLevel(16" in text or "n === 16" in text or "n === 25" in text:
+        errors.append("L16-25 must not ship yet")
     if 'href="https://ccosma1.github.io/boberverse/"' in text:
         errors.append("old hub URL still present")
-    sprites_extra = ["frost-hound.png", "frost-hound-dash.png", "bomb.png", "ice-block.png"]
+    sprites_extra = [
+        "frost-hound.png", "frost-hound-dash.png", "bomb.png", "ice-block.png",
+        "rime-skull.png", "rime-skull-lunge.png", "rib-guard.png",
+        "ash-archer.png", "ash-archer-draw.png",
+        "tomb-warden.png", "tomb-warden-swipe.png", "bone-pile.png",
+    ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
             errors.append("missing sprite " + name)
+    if 'id="btn-bomb"' not in text.split('id="actions"')[1].split("</div>")[0]:
+        errors.append("BOMB not in right action cluster")
+    if "bottom-left" in text.lower() and "btn-bomb" in text.lower():
+        pass
+    if "#bomb-badge" in text and "font-size: 13px" not in text.split("#bomb-badge")[1][:400]:
+        errors.append("bomb badge font-size not 13px")
     if "newGameWipe" not in text:
         errors.append("missing new-game wipe")
     if "localStorage.removeItem(SAVE_KEY)" not in text:

@@ -18,9 +18,9 @@ Run `START.bat` or open `index.html` in a browser.
 2. Move with the stick or **WASD / arrows**. Desktop: **LMB** slash, **RMB** roll.
 3. **Tap** slash. **Hold** ≥0.25s then release for a charged slash.
 4. **Roll** through snowballs. Flank or charge Shield Grunts. Punish the Ice Brute after the slam.
-5. On **CLEAR**, **REST 5W** heals a heart. **Heart Piece** (25W or first L5 clear; two pieces → +1 heart max). Act I is **Ember Woods**. Act II (**Ice Approaches**, L6–10) adds bombs (40W, **B** / BOMB) and the Frost Hound.
+5. On **CLEAR**, **REST 5W** heals a heart. **Heart Piece** (25W or first L5 clear; two pieces → +1 heart max). Act I is **Ember Woods**. Act II (**Ice Approaches**, L6–10) adds bombs (40W, **B** / BOMB) and the Frost Hound. Act III (**Bone Camp**, L11–15) is ice-bone camp: Rime Skull, Rib Guard, Ash Archer, Tomb Warden. No new tool.
 
-Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1`.
+Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1` (levels 1–15).
 
 Shop is a stub in Act I. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
 

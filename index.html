@@ -99,13 +99,18 @@
     #fade.on { opacity: 1; }
     #lv-banner {
       position: absolute; inset: 0; z-index: 9;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; pointer-events: none;
       font-size: clamp(32px, 10vw, 52px); font-weight: 900;
       color: var(--yellow); letter-spacing: 0.06em;
       text-shadow: 0 3px 0 #1A1028, 0 8px 20px #000;
     }
     #lv-banner.hidden { display: none !important; }
+    #lv-ban-sub {
+      font-size: clamp(13px, 3.6vw, 16px); font-weight: 800; letter-spacing: 0.04em;
+      color: var(--cream); text-shadow: 0 2px 0 #1A1028, 0 4px 12px #000;
+    }
+    #lv-ban-sub.hidden { display: none !important; }
     #clear-flash {
       position: absolute; inset: 0; z-index: 8;
       display: flex; align-items: center; justify-content: center;
@@ -126,13 +131,16 @@
     }
     #clear-bar button:disabled { opacity: 0.4; cursor: default; filter: grayscale(0.3); }
     #clear-bar button.ghost { background: #1A1028; color: var(--cream); border-color: var(--cream); }
-    #app.fine #dock { opacity: 0.42; }
-    #app.fine #stick, #app.fine .act { transform: scale(0.78); transform-origin: bottom center; }
+    #app.fine #dock { opacity: 1; }
+    #app.fine #stick, #app.fine #btn-dodge, #app.fine #btn-sword {
+      opacity: 0.42; transform: scale(0.78); transform-origin: bottom center;
+    }
+    #app.fine #btn-bomb { opacity: 1; transform: none; }
     #dock {
       flex: 0 0 auto; z-index: 20; position: relative; background: #1A1028;
       display: flex; justify-content: space-between; align-items: flex-end;
       gap: 10px; padding: 6px 10px max(10px, env(safe-area-inset-bottom));
-      min-height: 124px; pointer-events: auto;
+      min-height: 124px; pointer-events: auto; flex-wrap: nowrap;
     }
     #stick {
       width: 112px; height: 112px; border-radius: 50%;
@@ -144,19 +152,37 @@
       border: 3px solid #1A1028; position: absolute; left: 32px; top: 32px;
       pointer-events: none; box-shadow: 0 3px 0 #8a6a00;
     }
-    #actions { display: flex; gap: 6px; align-items: flex-end; padding-bottom: 4px; flex: 0 0 auto; }
+    #actions { display: flex; gap: 6px; align-items: flex-end; padding-bottom: 4px; flex: 0 0 auto; flex-wrap: nowrap; }
     .act {
-      width: 52px; height: 52px; min-width: 52px; border-radius: 50%;
+      width: 52px; height: 52px; min-width: 44px; min-height: 44px; border-radius: 50%;
       border: 3px solid var(--yellow); background: var(--fur); color: var(--ink);
       font-weight: 900; font-size: 11px; letter-spacing: 0.02em; cursor: pointer;
-      box-shadow: 0 4px 0 #3a2410;
+      box-shadow: 0 4px 0 #3a2410; position: relative;
     }
     .act:active, .act.held { transform: translateY(2px); box-shadow: 0 2px 0 #3a2410; filter: brightness(0.9); }
     #btn-sword { background: var(--yellow); color: var(--ink); }
     #btn-sword.charged { box-shadow: 0 0 0 4px #F5C40088, 0 4px 0 #8a6a00; }
     #btn-dodge.cd { opacity: 0.45; }
-    #btn-bomb { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
-    #btn-bomb:disabled { opacity: 0.55; }
+    #btn-bomb {
+      width: 52px; height: 52px; min-width: 44px; min-height: 44px;
+      background: #2a1c4e; color: #8aa7c4; border-color: #5C3A1A;
+      font-size: 12px; flex: 0 0 auto;
+    }
+    #btn-bomb.armed {
+      background: #F5C400; color: #1A1028; border-color: #F4E6C3;
+      box-shadow: 0 4px 0 #8a6a00;
+    }
+    #btn-bomb:disabled { opacity: 1; filter: none; cursor: default; }
+    #bomb-badge {
+      position: absolute; top: -6px; right: -6px; z-index: 2;
+      min-width: 18px; height: 18px; padding: 0 4px;
+      border-radius: 999px; background: #3A2A6A; color: #F4E6C3;
+      border: 2px solid #1A1028;
+      font-size: 13px; font-weight: 900; line-height: 14px;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    #btn-bomb.armed #bomb-badge { background: #F5C400; color: #1A1028; }
     .chip.hidden { display: none !important; }
     footer {
       flex: 0 0 auto; text-align: center; font-size: 10px; font-weight: 700;
@@ -244,7 +270,7 @@
           <div id="hearts" aria-label="Hearts"></div>
           <div class="chip wood" id="chip-wood">W 0</div>
           <div class="chip wood hidden" id="chip-bomb">B 0</div>
-          <div class="chip" id="chip-lv">L 1/10</div>
+          <div class="chip" id="chip-lv">L 1/15</div>
           <div class="chip" id="chip-act">Ember Woods</div>
         </div>
         <div class="btns">
@@ -264,7 +290,7 @@
         <div class="hint">WASD · ARROWS</div>
       </div>
       <div id="fade"></div>
-      <div id="lv-banner" class="hidden">LEVEL 1/5</div>
+      <div id="lv-banner" class="hidden"><span id="lv-ban-main">LEVEL 1/15</span><span id="lv-ban-sub" class="hidden">Ice that used to walk.</span></div>
       <div id="clear-flash" class="hidden">CLEAR</div>
       <div id="clear-bar" class="hidden">
         <button type="button" id="btn-rest">REST 5W</button>
@@ -274,7 +300,7 @@
     <div id="dock">
       <div id="stick" aria-label="Move"><div id="knob"></div></div>
       <div id="actions">
-        <button class="act" id="btn-bomb" type="button">BOMB</button>
+        <button class="act" id="btn-bomb" type="button" aria-label="Bomb">BOMB<span id="bomb-badge">0</span></button>
         <button class="act" id="btn-dodge" type="button">ROLL</button>
         <button class="act" id="btn-sword" type="button">SLASH</button>
       </div>
@@ -321,7 +347,7 @@
     <div id="shop" class="overlay hidden">
       <div class="tip-card">
         <h2>WOODCHIP SHOP</h2>
-        <p class="how" id="shop-how">Spend wood. Ember Woods / Ice Approaches.</p>
+        <p class="how" id="shop-how">Spend wood. Ember Woods / Ice Approaches / Bone Camp.</p>
         <button type="button" class="shop-item" id="shop-piece">Heart Piece<small>25W · 2 pieces → +1 heart max</small></button>
         <button type="button" class="shop-item" id="shop-bomb">Bomb<small>40W · carry 1–3</small></button>
         <div class="shop-item locked">Warm tunic<small>Act III · 60W</small></div>
@@ -395,7 +421,15 @@
     hound: "assets/sprites/frost-hound.png",
     houndDash: "assets/sprites/frost-hound-dash.png",
     bomb: "assets/sprites/bomb.png",
-    ice: "assets/sprites/ice-block.png"
+    ice: "assets/sprites/ice-block.png",
+    skull: "assets/sprites/rime-skull.png",
+    skullLunge: "assets/sprites/rime-skull-lunge.png",
+    rib: "assets/sprites/rib-guard.png",
+    ash: "assets/sprites/ash-archer.png",
+    ashDraw: "assets/sprites/ash-archer-draw.png",
+    warden: "assets/sprites/tomb-warden.png",
+    wardenSwipe: "assets/sprites/tomb-warden-swipe.png",
+    bones: "assets/sprites/bone-pile.png"
   };
   var SPR = {}, snowTile = new Image();
   snowTile.src = "assets/tiles/snow.png";
@@ -411,7 +445,7 @@
     { src: "assets/intro/n4.jpg", line: "One crown left: the Frost King." },
     { src: "assets/intro/n5.jpg", line: "Bring the summer." }
   ];
-  var HP_CAP_ACT1 = 8, HP_CAP = 12;
+  var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 15;
 
   var keys = Object.create(null);
   var stick = { x: 0, y: 0, id: null, lastTap: 0 };
@@ -423,7 +457,7 @@
   var levelTransit = false, levelTimer = null, exitArmed = true;
   var lvBannerT = 0;
   var chips = 0, hpMax = 6, heartPieces = 0, pieceBought = false, l5Piece = false, l10Piece = false;
-  var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, iceSeen = false;
+  var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, act3Held = false, iceSeen = false, boneSeen = false;
   var liveBomb = null, hasHat = false, introAfter = null;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
@@ -474,7 +508,7 @@
     return {
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
-      bombs: 0, iceSeen: false, mute: false, act1Held: false, act2Held: false, introSeen: false
+      bombs: 0, iceSeen: false, boneSeen: false, mute: false, act1Held: false, act2Held: false, act3Held: false, introSeen: false
     };
   }
   function loadSave() {
@@ -483,7 +517,7 @@
       var raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return d;
       var s = JSON.parse(raw);
-      d.level = Math.max(1, Math.min(10, s.level || 1));
+      d.level = Math.max(1, Math.min(MAX_LV, s.level || 1));
       d.chips = Math.max(0, s.chips | 0);
       d.hpMax = Math.max(6, Math.min(HP_CAP, s.hpMax == null ? 6 : s.hpMax | 0));
       if (d.hpMax % 2) d.hpMax += 1;
@@ -496,9 +530,11 @@
       d.warmMask = s.warmMask | 0;
       d.bombs = Math.max(0, Math.min(3, s.bombs | 0));
       d.iceSeen = !!s.iceSeen;
+      d.boneSeen = !!s.boneSeen;
       d.mute = !!s.mute;
       d.act1Held = !!s.act1Held;
       d.act2Held = !!s.act2Held;
+      d.act3Held = !!s.act3Held;
       d.introSeen = !!s.introSeen;
       return d;
     } catch (e) {
@@ -516,14 +552,16 @@
     warmMask = s.warmMask | 0;
     bombs = s.bombs | 0;
     iceSeen = !!s.iceSeen;
+    boneSeen = !!s.boneSeen;
     act2Held = !!s.act2Held;
+    act3Held = !!s.act3Held;
     Sfx.muted = !!s.mute;
   }
   function persist() {
     var s = loadSave();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        level: Math.max(1, Math.min(10, levelN | 0 || 1)),
+        level: Math.max(1, Math.min(MAX_LV, levelN | 0 || 1)),
         chips: chips,
         hp: player ? player.hp : hpMax,
         hpMax: hpMax,
@@ -535,9 +573,11 @@
         warmMask: warmMask,
         bombs: bombs,
         iceSeen: iceSeen,
+        boneSeen: boneSeen,
         mute: Sfx.muted,
         act1Held: !!s.act1Held,
         act2Held: !!s.act2Held || act2Held,
+        act3Held: !!s.act3Held || act3Held,
         introSeen: !!s.introSeen
       }));
     } catch (e) {}
@@ -551,7 +591,8 @@
     } catch (e) {}
     try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
-    restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; act2Held = false; liveBomb = null;
+    restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false;
+    act2Held = false; act3Held = false; liveBomb = null;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
@@ -559,7 +600,7 @@
     patchSave({
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
-      bombs: 0, iceSeen: false, act1Held: false, act2Held: false, introSeen: seen, mute: mute
+      bombs: 0, iceSeen: false, boneSeen: false, act1Held: false, act2Held: false, act3Held: false, introSeen: seen, mute: mute
     });
   }
   function patchSave(p) {
@@ -599,14 +640,19 @@
     }
     heartsEl.innerHTML = h;
     chipWood.textContent = "W " + chips;
-    chipLv.textContent = "L " + levelN + "/10";
+    chipLv.textContent = "L " + levelN + "/" + MAX_LV;
     var act = document.getElementById("chip-act");
-    var actName = levelN >= 6 ? "Ice Approaches" : "Ember Woods";
+    var actName = levelN >= 11 ? "Bone Camp" : levelN >= 6 ? "Ice Approaches" : "Ember Woods";
     if (act) act.textContent = heartPieces ? actName + " · ◆" + heartPieces + "/2" : actName;
     var cb = document.getElementById("chip-bomb");
     if (cb) { cb.textContent = "B " + bombs; cb.classList.toggle("hidden", bombs <= 0 && !liveBomb); }
     var bb = document.getElementById("btn-bomb");
-    if (bb) bb.disabled = bombs <= 0;
+    if (bb) {
+      bb.disabled = bombs <= 0;
+      bb.classList.toggle("armed", bombs > 0);
+      var badge = document.getElementById("bomb-badge");
+      if (badge) badge.textContent = String(bombs);
+    }
     btnMute.textContent = Sfx.muted ? "🔇" : "🔊";
     btnMute.classList.toggle("on", Sfx.muted);
     btnDodge.classList.toggle("cd", player && player.rollCd > 0 && player.roll <= 0);
@@ -614,6 +660,7 @@
     btnSword.classList.toggle("held", swordHeld);
   }
   function heartCap() {
+    if (levelN >= 11 || act3Held) return HP_CAP;
     return (levelN >= 6 || iceSeen || act2Held) ? Math.min(HP_CAP, 10) : HP_CAP_ACT1;
   }
   function addHeartPiece() {
@@ -726,7 +773,11 @@
     Sfx.hit();
     if (p.kind === "pot") {
       if (p.hasKey) drop(p.x, p.y, "key");
-      else if (Math.random() < 0.55) drop(p.x, p.y, "heart");
+      else if (p.hasHeart) drop(p.x, p.y, "heart");
+      else if (levelN >= 11) {
+        if (Math.random() < 0.28) drop(p.x, p.y, "heart");
+        else { chips += 1 + (Math.random() < 0.55 ? 1 : 0); drop(p.x, p.y, "chip"); }
+      } else if (Math.random() < 0.55) drop(p.x, p.y, "heart");
       else { chips += 1 + (Math.random() < 0.5 ? 1 : 0); drop(p.x, p.y, "chip"); }
     } else if (p.kind === "bush" && Math.random() < 0.35) {
       chips += 1; drop(p.x, p.y, "chip");
@@ -756,10 +807,10 @@
 
   function hitEnemy(e, dmg, kforce, ang, charge) {
     if (e.dead) return;
-    if (e.kind === "grunt") {
+    if (e.kind === "grunt" || e.kind === "rib") {
       var facing = Math.atan2(e.fy, e.fx);
       var toP = Math.atan2(player.y - e.y, player.x - e.x);
-      var front = angDiff(facing, toP) < 0.95;
+      var front = angDiff(facing, toP) < (e.kind === "rib" ? 1.05 : 0.95);
       if (front && !charge) {
         addPop(e.x, e.y, "spark");
         Sfx.block();
@@ -774,6 +825,11 @@
       return;
     }
     if (e.kind === "hound" && (e.state === "tele" || e.state === "dash")) {
+      addPop(e.x, e.y, "spark");
+      Sfx.block();
+      return;
+    }
+    if (e.kind === "warden" && (e.state === "tele" || e.state === "swipe")) {
       addPop(e.x, e.y, "spark");
       Sfx.block();
       return;
@@ -796,9 +852,18 @@
       chips += 2; drop(e.x, e.y, "chip");
     } else if (e.kind === "hound") {
       chips += 4; drop(e.x, e.y, "chip");
+    } else if (e.kind === "skull") {
+      chips += 2; drop(e.x, e.y, "chip");
+    } else if (e.kind === "rib") {
+      chips += 3; drop(e.x, e.y, "chip");
+    } else if (e.kind === "ash") {
+      chips += 3; drop(e.x, e.y, "chip");
     } else if (e.kind === "brute") {
       chips += 5; drop(e.x, e.y, "chip");
       if (Math.random() < 0.8) drop(e.x + 16, e.y, "heart");
+    } else if (e.kind === "warden") {
+      chips += 6; drop(e.x, e.y, "chip");
+      if (Math.random() < 0.85) drop(e.x + 16, e.y, "heart");
     }
     persist();
   }
@@ -852,35 +917,50 @@
     else if (kind === "spit") { e.hp = 2; e.r = 18; e.spd = 38; e.cd = 0.6; }
     else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 1.6; }
     else if (kind === "hound") { e.hp = 9; e.r = 26; e.spd = 86; e.state = "idle"; e.st = 0.7; e.dx = 1; e.dy = 0; }
+    else if (kind === "skull") { e.hp = 2; e.r = 15; e.spd = 44; e.state = "drift"; e.st = 0.45 + Math.random() * 0.4; e.bob = Math.random() * 6; e.dx = 1; e.dy = 0; }
+    else if (kind === "rib") { e.hp = 4; e.r = 22; e.spd = 34; e.fx = 0; e.fy = 1; e.turn = 1.9; }
+    else if (kind === "ash") { e.hp = 3; e.r = 18; e.spd = 32; e.cd = 0.9; }
+    else if (kind === "warden") { e.hp = 14; e.r = 32; e.spd = 40; e.state = "idle"; e.st = 0.8; e.summoned = false; e.hit = false; e.dx = 0; e.dy = 1; }
     else { e.hp = 12; e.r = 34; e.spd = 46; e.state = "idle"; e.st = 0.9; }
     enemies.push(e);
   }
   function addSolid(kind, x, y, hw, hh) {
     var p = { kind: kind, x: x, y: y, hw: hw, hh: hh, r: Math.max(hw, hh), alive: true, hasKey: false };
     props.push(p);
-    if (kind === "pine" || kind === "block" || kind === "ice" || kind === "fence") solids.push(p);
+    if (kind === "pine" || kind === "block" || kind === "ice" || kind === "fence" || kind === "bones") solids.push(p);
     else if (kind === "bush" || kind === "pot" || kind === "frostBush") solids.push(p);
     return p;
   }
 
   function flashLevel(n) {
     var el = document.getElementById("lv-banner");
-    if (!el) return;
-    if (n >= 6 && !iceSeen) {
-      el.textContent = "ICE APPROACHES";
+    var main = document.getElementById("lv-ban-main");
+    var sub = document.getElementById("lv-ban-sub");
+    if (!el || !main) return;
+    if (n >= 11 && !boneSeen) {
+      main.textContent = "BONE CAMP";
+      if (sub) { sub.textContent = "Ice that used to walk."; sub.classList.remove("hidden"); }
+      boneSeen = true;
+      persist();
+      lvBannerT = 1.55;
+    } else if (n >= 6 && !iceSeen) {
+      main.textContent = "ICE APPROACHES";
+      if (sub) sub.classList.add("hidden");
       iceSeen = true;
       persist();
+      lvBannerT = 1.35;
     } else {
-      el.textContent = "LEVEL " + n + "/10";
+      main.textContent = "LEVEL " + n + "/" + MAX_LV;
+      if (sub) sub.classList.add("hidden");
+      lvBannerT = 1;
     }
     el.classList.remove("hidden");
-    lvBannerT = n >= 6 && el.textContent === "ICE APPROACHES" ? 1.35 : 1;
   }
 
   function buildLevel(n) {
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
-    n = Math.max(1, Math.min(10, n | 0 || 1));
+    n = Math.max(1, Math.min(MAX_LV, n | 0 || 1));
     liveBomb = null;
     enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
     john = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
@@ -895,7 +975,7 @@
     };
     if (player.hp <= 0) player.hp = hpMax;
     exitArmed = false;
-    exitDoor = { x: 180, y: 48, locked: n === 4 || n === 9, open: false, r: 22 };
+    exitDoor = { x: 180, y: 48, locked: n === 4 || n === 9 || n === 14, open: false, r: 22 };
     if (n === 1) {
       addSolid("pine", 52, 90, 22, 28); addSolid("pine", 308, 96, 22, 28);
       addSolid("pine", 46, 260, 22, 28); addSolid("pine", 314, 270, 22, 28);
@@ -943,9 +1023,34 @@
       drop(300, 320, "bomb");
       spawnEnemy("rat", 200, 250);
       exitDoor.locked = true; exitDoor.open = false;
-    } else {
+    } else if (n === 10) {
       spawnEnemy("hound", 180, 200);
       addSolid("ice", 50, 90, 18, 18); addSolid("ice", 310, 96, 18, 18);
+    } else if (n === 11) {
+      addSolid("pot", 70, 320, 14, 14).hasHeart = true;
+      addSolid("bones", 48, 90, 22, 16); addSolid("bones", 312, 96, 22, 16);
+      spawnEnemy("skull", 100, 150); spawnEnemy("skull", 260, 145); spawnEnemy("skull", 180, 210);
+    } else if (n === 12) {
+      addSolid("block", 118, 220, 28, 52); addSolid("block", 242, 220, 28, 52);
+      addSolid("pot", 56, 340, 14, 14);
+      spawnEnemy("skull", 90, 155); spawnEnemy("skull", 270, 165);
+      spawnEnemy("spit", 180, 130);
+    } else if (n === 13) {
+      addSolid("bones", 64, 250, 22, 16); addSolid("bones", 296, 255, 22, 16);
+      addSolid("pot", 300, 350, 14, 14);
+      spawnEnemy("rib", 180, 200); spawnEnemy("skull", 80, 150);
+    } else if (n === 14) {
+      addSolid("bones", 180, 168, 36, 18);
+      addSolid("ice", 148, 92, 20, 20); addSolid("ice", 212, 92, 20, 20);
+      addSolid("pot", 64, 310, 14, 14).hasKey = true;
+      spawnEnemy("ash", 180, 138);
+      spawnEnemy("skull", 86, 260);
+      if (bombs < 1) drop(300, 340, "bomb");
+      exitDoor.locked = true; exitDoor.open = false;
+    } else {
+      spawnEnemy("warden", 180, 200);
+      addSolid("pot", 56, 330, 14, 14);
+      addSolid("pot", 304, 336, 14, 14);
     }
     var i;
     flakes = [];
@@ -958,7 +1063,7 @@
       say("JOHN SNOW", "John Snow from the white…", 3.4);
       ghostT = 13.4;
     }
-    patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, act1Held: n >= 6 });
+    patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, act1Held: n >= 6, act2Held: n >= 11 || act2Held });
   }
 
   function maybeClear() {
@@ -972,7 +1077,7 @@
       if (left) return;
     }
     cleared = true;
-    clearFade = levelN === 10 ? 2.4 : 0.55;
+    clearFade = (levelN === 10 || levelN === 15) ? 2.4 : 0.55;
     Sfx.win();
     if (levelN === 5 && !l5Piece) { l5Piece = true; addHeartPiece(); }
     if (levelN === 10 && !l10Piece && (heartPieces === 1 || hpMax < heartCap())) {
@@ -983,13 +1088,13 @@
       john.said = true;
       say("JOHN SNOW", "Door’s yours.", 2.8);
       exitDoor.open = true;
-    } else if (levelN !== 4 && levelN !== 9) {
+    } else if (levelN !== 4 && levelN !== 9 && levelN !== 14) {
       exitDoor.open = true; exitDoor.locked = false;
     }
-    if ((levelN === 4 || levelN === 9) && player.keys > 0) {
+    if ((levelN === 4 || levelN === 9 || levelN === 14) && player.keys > 0) {
       exitDoor.locked = false; exitDoor.open = true;
     }
-    if (levelN === 9) {
+    if (levelN === 9 || levelN === 14) {
       var iceN = 0, ii;
       for (ii = 0; ii < props.length; ii++) if (props[ii].kind === "ice" && props[ii].alive) iceN++;
       if (iceN === 0) { exitDoor.locked = false; exitDoor.open = true; }
@@ -1010,10 +1115,11 @@
     fadeEl.classList.add("on");
     levelTimer = setTimeout(function () {
       levelTimer = null;
-      if (next > 10) {
-        showActEnd(2);
+      if (next > MAX_LV) {
+        showActEnd(3);
       } else {
         if (next === 6) patchSave({ act1Held: true });
+        if (next === 11) patchSave({ act2Held: true });
         buildLevel(next);
       }
     }, 280);
@@ -1041,11 +1147,39 @@
         e.cd = 1.45;
         shots.push({ x: e.x, y: e.y, vx: ux * 132, vy: uy * 132, r: 8, t: 2.4, dead: false });
       }
-    } else if (e.kind === "grunt") {
+    } else if (e.kind === "grunt" || e.kind === "rib") {
       e.turn -= dt;
-      if (e.turn <= 0) { e.turn = 1.65; e.fx = ux; e.fy = uy; }
+      if (e.turn <= 0) { e.turn = e.kind === "rib" ? 2.05 : 1.65; e.fx = ux; e.fy = uy; }
       moveEnt(e, e.fx * e.spd * dt, e.fy * e.spd * dt);
       if (d < e.r + player.r - 2) hurtPlayer(e, 210);
+    } else if (e.kind === "skull") {
+      e.bob += dt * 5;
+      e.fx = ux; e.fy = uy;
+      if (e.state === "drift") {
+        var sx = -uy, sy = ux;
+        moveEnt(e, (ux * 0.32 + sx * 0.88) * e.spd * dt, (uy * 0.32 + sy * 0.88) * e.spd * dt);
+        e.st -= dt;
+        if (e.st <= 0) { e.state = "tele"; e.st = 0.42; e.dx = ux; e.dy = uy; }
+        if (d < e.r + player.r - 4) hurtPlayer(e, 160);
+      } else if (e.state === "tele") {
+        e.dx = ux; e.dy = uy;
+        e.st -= dt;
+        if (e.st <= 0) { e.state = "lunge"; e.st = 0.28; }
+      } else if (e.state === "lunge") {
+        moveEnt(e, e.dx * 300 * dt, e.dy * 300 * dt);
+        if (Math.hypot(player.x - e.x, player.y - e.y) < e.r + player.r) hurtPlayer(e, 210);
+        e.st -= dt;
+        if (e.st <= 0) { e.state = "drift"; e.st = 0.7 + Math.random() * 0.45; }
+      }
+    } else if (e.kind === "ash") {
+      e.fx = ux; e.fy = uy;
+      if (d < 140) moveEnt(e, -ux * e.spd * dt, -uy * e.spd * dt);
+      else if (d > 200) moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+      e.cd -= dt;
+      if (e.cd <= 0 && d < 240) {
+        e.cd = 2.05;
+        shots.push({ x: e.x, y: e.y - 8, vx: ux * 86, vy: uy * 86, r: 7, t: 2.9, dead: false, kind: "bolt" });
+      }
     } else if (e.kind === "brute") {
       e.st -= dt;
       if (e.state === "idle") {
@@ -1062,6 +1196,7 @@
         if (e.st <= 0) { e.state = "chase"; e.t = 0; }
       }
     } else if (e.kind === "hound") {
+      e.st -= dt;
       e.fx = ux; e.fy = uy;
       if (e.state === "idle") {
         if (e.st <= 0) e.state = "chase";
@@ -1080,6 +1215,37 @@
         }
         if (e.st <= 0) {
           if (!e.hit) { e.state = "stun"; e.st = 1.12; }
+          else { e.state = "chase"; e.t = 0; }
+        }
+      } else if (e.state === "stun") {
+        if (e.st <= 0) { e.state = "chase"; e.t = 0; }
+      }
+    } else if (e.kind === "warden") {
+      e.st -= dt;
+      e.fx = ux; e.fy = uy;
+      if (e.hp <= 7 && !e.summoned) {
+        e.summoned = true;
+        spawnEnemy("skull", clamp(e.x - 54, WALL + 24, W - WALL - 24), clamp(e.y + 16, WALL + 40, H - WALL - 40));
+        spawnEnemy("skull", clamp(e.x + 54, WALL + 24, W - WALL - 24), clamp(e.y + 16, WALL + 40, H - WALL - 40));
+        addPop(e.x, e.y, "spark");
+        Sfx.slam();
+      }
+      if (e.state === "idle") {
+        if (e.st <= 0) e.state = "chase";
+      } else if (e.state === "chase") {
+        moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+        if (d < 88 || e.t > 2.0) {
+          e.state = "tele"; e.st = 0.72; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
+        }
+        if (d < e.r + player.r - 2) hurtPlayer(e, 200);
+      } else if (e.state === "tele") {
+        if (e.st <= 0) { e.state = "swipe"; e.st = 0.3; Sfx.slam(); }
+      } else if (e.state === "swipe") {
+        var swipeD = Math.hypot(player.x - e.x, player.y - e.y);
+        var swipeA = angDiff(Math.atan2(player.y - e.y, player.x - e.x), Math.atan2(e.dy, e.dx));
+        if (swipeD < 92 && swipeA < 1.15 && player.roll <= 0) { e.hit = true; hurtPlayer(e, 250); }
+        if (e.st <= 0) {
+          if (!e.hit) { e.state = "stun"; e.st = 1.35; }
           else { e.state = "chase"; e.t = 0; }
         }
       } else if (e.state === "stun") {
@@ -1106,7 +1272,7 @@
     for (i = 0; i < props.length; i++) {
       p = props[i];
       if (!p.alive) continue;
-      if (p.kind !== "ice" && p.kind !== "frostBush" && p.kind !== "bush") continue;
+      if (p.kind !== "ice" && p.kind !== "frostBush" && p.kind !== "bush" && p.kind !== "bones") continue;
       if (Math.hypot(p.x - b.x, p.y - b.y) < 62) breakProp(p, false);
     }
     for (i = 0; i < enemies.length; i++) {
@@ -1121,7 +1287,7 @@
         if (e.hp <= 0) killEnemy(e);
       }
     }
-    if (levelN === 9) {
+    if (levelN === 9 || levelN === 14) {
       var iceN = 0;
       for (i = 0; i < props.length; i++) if (props[i].kind === "ice" && props[i].alive) iceN++;
       if (iceN === 0) { exitDoor.locked = false; if (cleared) exitDoor.open = true; Sfx.door(); }
@@ -1129,14 +1295,17 @@
   }
   function showActEnd(act) {
     mode = "end";
-    if (act === 2) act2Held = true;
+    if (act === 3) act3Held = true;
+    else if (act === 2) act2Held = true;
     persist();
-    patchSave(act === 2 ? { act2Held: true, level: 10 } : { act1Held: true, level: 5 });
+    if (act === 3) patchSave({ act3Held: true, act2Held: true, level: 15 });
+    else if (act === 2) patchSave({ act2Held: true, level: 10 });
+    else patchSave({ act1Held: true, level: 5 });
     hideClearSpend();
     var t = document.getElementById("end-title");
     var g = document.getElementById("end-tag");
-    if (t) t.textContent = act === 2 ? "ACT II HELD" : "ACT I HELD";
-    if (g) g.textContent = act === 2 ? "Ice Approaches held. The crown still waits." : "Ember Woods. The Ice Brute is down. The crown still waits.";
+    if (t) t.textContent = act === 3 ? "ACT III HELD" : act === 2 ? "ACT II HELD" : "ACT I HELD";
+    if (g) g.textContent = act === 3 ? "Bone Camp held. Ice that used to walk. The crown still waits." : act === 2 ? "Ice Approaches held. The crown still waits." : "Ember Woods. The Ice Brute is down. The crown still waits.";
     document.getElementById("endcard").classList.remove("hidden");
     app.classList.add("booting");
   }
@@ -1208,7 +1377,7 @@
       }
     }
     shots = shots.filter(function (q) { return !q.dead; });
-    enemies = enemies.filter(function (e) { return !e.dead || e.kind === "brute"; });
+    enemies = enemies.filter(function (e) { return !e.dead || e.kind === "brute" || e.kind === "warden"; });
 
     for (i = pickups.length - 1; i >= 0; i--) {
       p = pickups[i]; p.bob += dt * 6;
@@ -1225,12 +1394,12 @@
 
     if (player.keys > 0 && exitDoor.locked && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) < 36) {
       exitDoor.locked = false; exitDoor.open = true; player.keys -= 1; Sfx.door();
-      if (levelN === 9) {
+      if (levelN === 9 || levelN === 14) {
         for (i = 0; i < props.length; i++) if (props[i].kind === "ice" && props[i].alive) { props[i].alive = false; addPop(props[i].x, props[i].y, "snow"); }
       }
     }
     solids = props.filter(function (q) {
-      return q.alive && (q.kind === "pine" || q.kind === "block" || q.kind === "bush" || q.kind === "pot" || q.kind === "ice" || q.kind === "fence" || q.kind === "frostBush");
+      return q.alive && (q.kind === "pine" || q.kind === "block" || q.kind === "bush" || q.kind === "pot" || q.kind === "ice" || q.kind === "fence" || q.kind === "frostBush" || q.kind === "bones");
     });
 
     if (sayT > 0) { sayT -= dt; if (sayT <= 0) hideSay(); }
@@ -1245,8 +1414,12 @@
       lvBannerT -= dt;
       if (lvBannerT <= 0) {
         var ban = document.getElementById("lv-banner");
-        if (ban && ban.textContent === "ICE APPROACHES") {
-          ban.textContent = "LEVEL " + levelN + "/10";
+        var main = document.getElementById("lv-ban-main");
+        var sub = document.getElementById("lv-ban-sub");
+        var title = main ? main.textContent : (ban ? ban.textContent : "");
+        if (title === "BONE CAMP" || title === "ICE APPROACHES") {
+          if (main) main.textContent = "LEVEL " + levelN + "/" + MAX_LV;
+          if (sub) sub.classList.add("hidden");
           lvBannerT = 1;
         } else if (ban) ban.classList.add("hidden");
       }
@@ -1261,9 +1434,9 @@
     if (!exitArmed && exitDoor && player && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 64) {
       exitArmed = true;
     }
-    if (levelN === 10 && cleared) {
+    if ((levelN === 10 || levelN === 15) && cleared) {
       clearFade -= dt;
-      if (clearFade <= 0 && mode === "play") showActEnd(2);
+      if (clearFade <= 0 && mode === "play") showActEnd(levelN === 15 ? 3 : 2);
     } else if (exitArmed && !levelTransit) {
       tryExit();
     }
@@ -1308,53 +1481,79 @@
   }
   function paintFloor() {
     var t = themeT();
-    ctx.fillStyle = lerpC("#3d6b38", "#c8d8ea", t);
-    ctx.fillRect(0, 0, W, H);
-    if (t > 0.35 && snowTile.naturalWidth) {
-      ctx.save(); ctx.globalAlpha = (t - 0.35) / 0.65 * 0.85;
-      ctx.drawImage(snowTile, 0, 0, W, H); ctx.restore();
-    }
-    var i, s = 37;
-    ctx.fillStyle = "rgba(20,40,16," + (0.18 - t * 0.12) + ")";
-    for (i = 0; i < 90; i++) {
-      var x = (i * 97 + levelN * 13) % (W - 20) + 10;
-      var y = (i * 53 + levelN * 29) % (H - 20) + 10;
-      ctx.beginPath(); ctx.ellipse(x, y, 3 + (i % 3), 2, 0, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.fillStyle = lerpC("#2a4a28", "#8aa7c4", t);
-    ctx.fillRect(0, 0, W, WALL); ctx.fillRect(0, H - WALL, W, WALL);
-    ctx.fillRect(0, 0, WALL, H); ctx.fillRect(W - WALL, 0, WALL, H);
-    ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 3;
-    ctx.strokeRect(WALL - 1, WALL - 1, W - WALL * 2 + 2, H - WALL * 2 + 2);
-    if (levelN >= 6) {
+    var i, s, x, y, lg;
+    if (levelN >= 11) {
+      ctx.fillStyle = "#241848";
+      ctx.fillRect(0, 0, W, H);
+      if (snowTile.naturalWidth) {
+        ctx.save(); ctx.globalAlpha = 0.22;
+        ctx.drawImage(snowTile, 0, 0, W, H); ctx.restore();
+      }
+      ctx.fillStyle = "rgba(244,230,195,0.07)";
+      for (i = 0; i < 70; i++) {
+        x = (i * 91 + levelN * 17) % (W - 20) + 10;
+        y = (i * 47 + levelN * 23) % (H - 20) + 10;
+        ctx.beginPath(); ctx.ellipse(x, y, 4 + (i % 3), 2, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = "#3A2A6A";
+      ctx.fillRect(0, 0, W, WALL); ctx.fillRect(0, H - WALL, W, WALL);
+      ctx.fillRect(0, 0, WALL, H); ctx.fillRect(W - WALL, 0, WALL, H);
+      ctx.strokeStyle = "#F4E6C3"; ctx.lineWidth = 2; ctx.globalAlpha = 0.4;
+      ctx.strokeRect(WALL - 1, WALL - 1, W - WALL * 2 + 2, H - WALL * 2 + 2);
+      ctx.globalAlpha = 1;
       ctx.save();
+      ctx.fillStyle = "rgba(138,167,196,0.18)";
+      ctx.beginPath(); ctx.ellipse(180, 270, 80, 20, 0, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 0.14;
-      ctx.fillStyle = "#4a3420";
-      var lg;
-      for (lg = 0; lg < 4; lg++) ctx.fillRect(24, 70 + lg * 7, 88, 5);
-      ctx.fillStyle = "rgba(168,196,232,0.35)";
-      ctx.beginPath(); ctx.ellipse(180, 260, 70, 18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#F4E6C3";
+      for (lg = 0; lg < 6; lg++) ctx.fillRect(28 + lg * 7, 78, 4, 16);
       ctx.restore();
-    }
-    if (levelN === 1) {
-      ctx.save();
-      ctx.globalAlpha = 0.2;
-      ctx.fillStyle = "#5C3A1A";
-      var lg;
-      for (lg = 0; lg < 5; lg++) ctx.fillRect(28, 300 + lg * 9, 70, 6);
-      ctx.fillStyle = "#8B5A2B";
-      ctx.fillRect(28, 348, 70, 8);
-      var g = ctx.createRadialGradient(300, 400, 4, 300, 400, 70);
-      g.addColorStop(0, "rgba(245,196,0,0.55)");
-      g.addColorStop(1, "rgba(232,106,42,0)");
-      ctx.globalAlpha = 0.35;
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(300, 400, 70, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
+    } else {
+      ctx.fillStyle = lerpC("#3d6b38", "#c8d8ea", t);
+      ctx.fillRect(0, 0, W, H);
+      if (t > 0.35 && snowTile.naturalWidth) {
+        ctx.save(); ctx.globalAlpha = (t - 0.35) / 0.65 * 0.85;
+        ctx.drawImage(snowTile, 0, 0, W, H); ctx.restore();
+      }
+      ctx.fillStyle = "rgba(20,40,16," + (0.18 - t * 0.12) + ")";
+      for (i = 0; i < 90; i++) {
+        x = (i * 97 + levelN * 13) % (W - 20) + 10;
+        y = (i * 53 + levelN * 29) % (H - 20) + 10;
+        ctx.beginPath(); ctx.ellipse(x, y, 3 + (i % 3), 2, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = lerpC("#2a4a28", "#8aa7c4", t);
+      ctx.fillRect(0, 0, W, WALL); ctx.fillRect(0, H - WALL, W, WALL);
+      ctx.fillRect(0, 0, WALL, H); ctx.fillRect(W - WALL, 0, WALL, H);
+      ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 3;
+      ctx.strokeRect(WALL - 1, WALL - 1, W - WALL * 2 + 2, H - WALL * 2 + 2);
+      if (levelN >= 6) {
+        ctx.save();
+        ctx.globalAlpha = 0.14;
+        ctx.fillStyle = "#4a3420";
+        for (lg = 0; lg < 4; lg++) ctx.fillRect(24, 70 + lg * 7, 88, 5);
+        ctx.fillStyle = "rgba(168,196,232,0.35)";
+        ctx.beginPath(); ctx.ellipse(180, 260, 70, 18, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      if (levelN === 1) {
+        ctx.save();
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = "#5C3A1A";
+        for (lg = 0; lg < 5; lg++) ctx.fillRect(28, 300 + lg * 9, 70, 6);
+        ctx.fillStyle = "#8B5A2B";
+        ctx.fillRect(28, 348, 70, 8);
+        var g = ctx.createRadialGradient(300, 400, 4, 300, 400, 70);
+        g.addColorStop(0, "rgba(245,196,0,0.55)");
+        g.addColorStop(1, "rgba(232,106,42,0)");
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(300, 400, 70, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
     }
     for (i = 0; i < flakes.length; i++) {
       s = flakes[i];
-      ctx.fillStyle = "rgba(244,230,195," + (0.35 + t * 0.4) + ")";
+      ctx.fillStyle = levelN >= 11 ? "rgba(244,230,195,0.5)" : "rgba(244,230,195," + (0.35 + t * 0.4) + ")";
       ctx.fillRect(s.x, s.y, s.s, s.s);
     }
   }
@@ -1413,6 +1612,7 @@
           else if (p.kind === "pot") drawSpr(SPR.pot, p.x, p.y, 32, 30, false, 1);
           else if (p.kind === "pine") drawSpr(levelN >= 4 ? SPR.pineSnow : SPR.pine, p.x, p.y, 56, 78, false, 1);
           else if (p.kind === "ice") drawSpr(SPR.ice, p.x, p.y, 44, 42, false, 1);
+          else if (p.kind === "bones") drawSpr(SPR.bones, p.x, p.y, 52, 42, false, 1);
           else if (p.kind === "fence") {
             ctx.fillStyle = "#5C3A1A"; ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 2;
             ctx.fillRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2); ctx.strokeRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2);
@@ -1440,14 +1640,24 @@
       e = shots[i];
       (function (e) {
         push(e.y, function () {
-          ctx.fillStyle = "#E8F4FF"; ctx.strokeStyle = "#A8C4E8"; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          if (e.kind === "bolt") {
+            ctx.save();
+            ctx.translate(e.x, e.y);
+            ctx.rotate(Math.atan2(e.vy, e.vx));
+            ctx.fillStyle = "#F4E6C3"; ctx.strokeStyle = "#8aa7c4"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(-8, 3.5); ctx.lineTo(-6, 0); ctx.lineTo(-8, -3.5);
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.fillStyle = "#E8F4FF"; ctx.strokeStyle = "#A8C4E8"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          }
         });
       })(e);
     }
     for (i = 0; i < enemies.length; i++) {
       e = enemies[i];
-      if (e.dead && e.kind !== "brute") continue;
+      if (e.dead && e.kind !== "brute" && e.kind !== "warden") continue;
       (function (e) {
         push(e.y, function () {
           if (e.dead) return;
@@ -1457,6 +1667,17 @@
           if (e.kind === "rat") drawSpr(SPR.rat, e.x, e.y, 42, 34, flip, alpha);
           else if (e.kind === "spit") drawSpr(e.cd < 0.2 ? SPR.spitAtk : SPR.spit, e.x, e.y, 48, 46, flip, alpha);
           else if (e.kind === "grunt") drawSpr(SPR.grunt, e.x, e.y, 58, 56, flip, alpha);
+          else if (e.kind === "rib") drawSpr(SPR.rib, e.x, e.y, 64, 62, flip, alpha);
+          else if (e.kind === "ash") drawSpr(e.cd < 0.35 ? SPR.ashDraw : SPR.ash, e.x, e.y, 58, 64, flip, alpha);
+          else if (e.kind === "skull") {
+            var bobY = Math.sin(e.bob || 0) * 5;
+            if (e.state === "tele") {
+              ctx.strokeStyle = "rgba(244,230,195," + (0.45 + Math.sin(performance.now() / 70) * 0.3) + ")";
+              ctx.lineWidth = 3; ctx.beginPath();
+              ctx.moveTo(e.x, e.y + bobY); ctx.lineTo(e.x + e.dx * 70, e.y + e.dy * 70); ctx.stroke();
+            }
+            drawSpr(e.state === "lunge" || e.state === "tele" ? SPR.skullLunge : SPR.skull, e.x, e.y + bobY, 44, 42, flip, alpha);
+          }
           else if (e.kind === "hound") {
             if (e.state === "tele") {
               ctx.strokeStyle = "rgba(168,196,232," + (0.45 + Math.sin(performance.now() / 70) * 0.3) + ")";
@@ -1467,6 +1688,21 @@
             ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 22, e.y - 78, 44, 6);
             ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
             ctx.fillRect(e.x - 22, e.y - 78, 44 * (e.hp / 9), 6);
+          }
+          else if (e.kind === "warden") {
+            if (e.state === "tele") {
+              ctx.strokeStyle = "rgba(232,93,76," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")";
+              ctx.lineWidth = 4; ctx.beginPath();
+              ctx.arc(e.x, e.y - 8, 84, 0, Math.PI * 2); ctx.stroke();
+            }
+            if (e.state === "swipe") {
+              ctx.fillStyle = "rgba(244,230,195,0.22)";
+              ctx.beginPath(); ctx.arc(e.x, e.y, 88, 0, Math.PI * 2); ctx.fill();
+            }
+            drawSpr(e.state === "tele" || e.state === "swipe" ? SPR.wardenSwipe : SPR.warden, e.x, e.y, 96, 96, e.fx < 0, alpha);
+            ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 26, e.y - 108, 52, 6);
+            ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
+            ctx.fillRect(e.x - 26, e.y - 108, 52 * (e.hp / 14), 6);
           }
           else {
             if (e.state === "tele") {
@@ -1660,7 +1896,7 @@
     document.getElementById("history").classList.add("hidden");
     app.classList.add("booting");
     var s = loadSave();
-    document.getElementById("btn-continue").hidden = !(s.level > 1 || s.act1Held || s.act2Held);
+    document.getElementById("btn-continue").hidden = !(s.level > 1 || s.act1Held || s.act2Held || s.act3Held);
     document.getElementById("hat-tip").classList.toggle("hidden", !hasHat);
   }
   function startPlay(n, skipIntro) {
@@ -1723,9 +1959,10 @@
   });
   document.getElementById("btn-continue").addEventListener("click", function () {
     var s = loadSave();
-    if (s.act2Held) { applySaveMeta(s); showActEnd(2); return; }
-    var lv = Math.max(1, Math.min(10, s.level | 0 || 1));
-    if (s.act1Held && lv < 6) lv = 6;
+    if (s.act3Held) { applySaveMeta(s); showActEnd(3); return; }
+    var lv = Math.max(1, Math.min(MAX_LV, s.level | 0 || 1));
+    if (s.act2Held && lv < 11) lv = 11;
+    else if (s.act1Held && lv < 6) lv = 6;
     startPlay(lv, true);
   });
   document.getElementById("btn-intro").addEventListener("click", function () { Sfx.ensure(); playIntro(null); });
