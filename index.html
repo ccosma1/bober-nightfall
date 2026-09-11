@@ -144,19 +144,19 @@
       border: 3px solid #1A1028; position: absolute; left: 32px; top: 32px;
       pointer-events: none; box-shadow: 0 3px 0 #8a6a00;
     }
-    #actions { display: flex; gap: 10px; align-items: flex-end; padding-bottom: 4px; }
+    #actions { display: flex; gap: 6px; align-items: flex-end; padding-bottom: 4px; flex: 0 0 auto; }
     .act {
-      width: 64px; height: 64px; border-radius: 50%;
-      border: 3px solid var(--yellow); background: var(--fur); color: var(--cream);
-      font-weight: 900; font-size: 13px; letter-spacing: 0.02em; cursor: pointer;
+      width: 52px; height: 52px; min-width: 52px; border-radius: 50%;
+      border: 3px solid var(--yellow); background: var(--fur); color: var(--ink);
+      font-weight: 900; font-size: 11px; letter-spacing: 0.02em; cursor: pointer;
       box-shadow: 0 4px 0 #3a2410;
     }
     .act:active, .act.held { transform: translateY(2px); box-shadow: 0 2px 0 #3a2410; filter: brightness(0.9); }
     #btn-sword { background: var(--yellow); color: var(--ink); }
     #btn-sword.charged { box-shadow: 0 0 0 4px #F5C40088, 0 4px 0 #8a6a00; }
     #btn-dodge.cd { opacity: 0.45; }
-    #btn-bomb { background: #2a1c4e; color: var(--cream); }
-    #btn-bomb:disabled { opacity: 0.4; }
+    #btn-bomb { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
+    #btn-bomb:disabled { opacity: 0.55; }
     .chip.hidden { display: none !important; }
     footer {
       flex: 0 0 auto; text-align: center; font-size: 10px; font-weight: 700;
@@ -1629,7 +1629,7 @@
     keys[ev.code] = true;
     if (ev.code === "Space" || ev.code === "KeyJ" || ev.code === "KeyZ") { if (!swordHeld) startHold(); ev.preventDefault(); }
     if (ev.code === "ShiftLeft" || ev.code === "ShiftRight" || ev.code === "KeyK" || ev.code === "KeyC") { doRoll(); ev.preventDefault(); }
-    if (ev.code === "KeyB") { placeBomb(); ev.preventDefault(); }
+    if (ev.code === "KeyB" || ev.code === "KeyX") { placeBomb(); ev.preventDefault(); }
     if (ev.code === "KeyP" || ev.code === "Escape") togglePause();
     if (ev.code === "KeyM") toggleMute();
   });
