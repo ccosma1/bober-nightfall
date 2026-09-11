@@ -349,7 +349,7 @@
         <h2>WOODCHIP SHOP</h2>
         <p class="how" id="shop-how">Spend wood. Ember Woods / Ice Approaches / Bone Camp.</p>
         <button type="button" class="shop-item" id="shop-piece">Heart Piece<small>25W · 2 pieces → +1 heart max</small></button>
-        <button type="button" class="shop-item" id="shop-bomb">Bomb<small>40W · carry 1–3</small></button>
+        <button type="button" class="shop-item" id="shop-bomb">Bomb<small>25W · carry 1–3</small></button>
         <div class="shop-item locked">Warm tunic<small>Act III · 60W</small></div>
         <button class="play" id="btn-shop-close" type="button">CLOSE</button>
       </div>
@@ -445,7 +445,7 @@
     { src: "assets/intro/n4.jpg", line: "One crown left: the Frost King." },
     { src: "assets/intro/n5.jpg", line: "Bring the summer." }
   ];
-  var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 15;
+  var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 15, BOMB_COST = 25;
 
   var keys = Object.create(null);
   var stick = { x: 0, y: 0, id: null, lastTap: 0 };
@@ -457,7 +457,7 @@
   var levelTransit = false, levelTimer = null, exitArmed = true;
   var lvBannerT = 0;
   var chips = 0, hpMax = 6, heartPieces = 0, pieceBought = false, l5Piece = false, l10Piece = false;
-  var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, act3Held = false, iceSeen = false, boneSeen = false;
+  var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, act3Held = false, iceSeen = false, boneSeen = false, act2Wood = false;
   var liveBomb = null, hasHat = false, introAfter = null;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
@@ -508,7 +508,7 @@
     return {
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
-      bombs: 0, iceSeen: false, boneSeen: false, mute: false, act1Held: false, act2Held: false, act3Held: false, introSeen: false
+      bombs: 0, iceSeen: false, boneSeen: false, act2Wood: false, mute: false, act1Held: false, act2Held: false, act3Held: false, introSeen: false
     };
   }
   function loadSave() {
@@ -531,6 +531,7 @@
       d.bombs = Math.max(0, Math.min(3, s.bombs | 0));
       d.iceSeen = !!s.iceSeen;
       d.boneSeen = !!s.boneSeen;
+      d.act2Wood = !!s.act2Wood;
       d.mute = !!s.mute;
       d.act1Held = !!s.act1Held;
       d.act2Held = !!s.act2Held;
@@ -553,6 +554,7 @@
     bombs = s.bombs | 0;
     iceSeen = !!s.iceSeen;
     boneSeen = !!s.boneSeen;
+    act2Wood = !!s.act2Wood;
     act2Held = !!s.act2Held;
     act3Held = !!s.act3Held;
     Sfx.muted = !!s.mute;
@@ -574,6 +576,7 @@
         bombs: bombs,
         iceSeen: iceSeen,
         boneSeen: boneSeen,
+        act2Wood: act2Wood,
         mute: Sfx.muted,
         act1Held: !!s.act1Held,
         act2Held: !!s.act2Held || act2Held,
@@ -591,7 +594,7 @@
     } catch (e) {}
     try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
-    restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false;
+    restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false; act2Wood = false;
     act2Held = false; act3Held = false; liveBomb = null;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
@@ -600,7 +603,7 @@
     patchSave({
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
-      bombs: 0, iceSeen: false, boneSeen: false, act1Held: false, act2Held: false, act3Held: false, introSeen: seen, mute: mute
+      bombs: 0, iceSeen: false, boneSeen: false, act2Wood: false, act1Held: false, act2Held: false, act3Held: false, introSeen: seen, mute: mute
     });
   }
   function patchSave(p) {
@@ -733,9 +736,9 @@
       }
     }
     if (bombBtn) {
-      bombBtn.disabled = bombs >= 3 || chips < 40;
-      bombBtn.classList.toggle("locked", bombs >= 3 || chips < 40);
-      bombBtn.innerHTML = bombs >= 3 ? "Bomb<small>Full · 3/3</small>" : "Bomb<small>40W · carry " + bombs + "/3</small>";
+      bombBtn.disabled = bombs >= 3 || chips < BOMB_COST;
+      bombBtn.classList.toggle("locked", bombs >= 3 || chips < BOMB_COST);
+      bombBtn.innerHTML = bombs >= 3 ? "Bomb<small>Full · 3/3</small>" : "Bomb<small>" + BOMB_COST + "W · carry " + bombs + "/3</small>";
     }
   }
   function buyPiece() {
@@ -746,8 +749,8 @@
     renderShop();
   }
   function buyBomb() {
-    if (bombs >= 3 || chips < 40) return;
-    chips -= 40;
+    if (bombs >= 3 || chips < BOMB_COST) return;
+    chips -= BOMB_COST;
     bombs += 1;
     persist(); hud(); renderShop();
   }
@@ -810,14 +813,14 @@
     if (e.kind === "grunt" || e.kind === "rib") {
       var facing = Math.atan2(e.fy, e.fx);
       var toP = Math.atan2(player.y - e.y, player.x - e.x);
-      var front = angDiff(facing, toP) < (e.kind === "rib" ? 1.05 : 0.95);
+      var front = angDiff(facing, toP) < (e.kind === "rib" ? 1.05 : 0.7);
       if (front && !charge) {
         addPop(e.x, e.y, "spark");
         Sfx.block();
         e.kx = Math.cos(ang) * 40; e.ky = Math.sin(ang) * 40;
         return;
       }
-      if (front && charge) { dmg = 1; e.stagger = 0.45; }
+      if (front && charge && e.kind === "rib") { dmg = 1; e.stagger = 0.45; }
     }
     if (e.kind === "brute" && e.state !== "stun" && e.state !== "idle") {
       addPop(e.x, e.y, "spark");
@@ -846,10 +849,10 @@
   function killEnemy(e) {
     e.dead = true;
     addPop(e.x, e.y, e.kind);
-    if (e.kind === "rat") { chips += 1; drop(e.x, e.y, "chip"); }
-    else if (e.kind === "spit") { chips += 2; drop(e.x, e.y, "chip"); }
+    if (e.kind === "rat") { chips += 2; drop(e.x, e.y, "chip"); }
+    else if (e.kind === "spit") { chips += 3; drop(e.x, e.y, "chip"); }
     else if (e.kind === "grunt") {
-      chips += 2; drop(e.x, e.y, "chip");
+      chips += 3; drop(e.x, e.y, "chip");
     } else if (e.kind === "hound") {
       chips += 4; drop(e.x, e.y, "chip");
     } else if (e.kind === "skull") {
@@ -915,7 +918,7 @@
     var e = { kind: kind, x: x, y: y, dead: false, kx: 0, ky: 0, flash: 0, t: 0, fx: 0, fy: 1, stagger: 0 };
     if (kind === "rat") { e.hp = 1; e.r = 14; e.spd = 92; }
     else if (kind === "spit") { e.hp = 2; e.r = 18; e.spd = 38; e.cd = 0.6; }
-    else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 1.6; }
+    else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 2.6; }
     else if (kind === "hound") { e.hp = 9; e.r = 26; e.spd = 86; e.state = "idle"; e.st = 0.7; e.dx = 1; e.dy = 0; }
     else if (kind === "skull") { e.hp = 2; e.r = 15; e.spd = 44; e.state = "drift"; e.st = 0.45 + Math.random() * 0.4; e.bob = Math.random() * 6; e.dx = 1; e.dy = 0; }
     else if (kind === "rib") { e.hp = 4; e.r = 22; e.spd = 34; e.fx = 0; e.fy = 1; e.turn = 1.9; }
@@ -1014,13 +1017,13 @@
       addSolid("bush", 180, 300, 16, 14); addSolid("frostBush", 180, 200, 16, 14);
       spawnEnemy("spit", 80, 140); spawnEnemy("spit", 280, 150);
     } else if (n === 8) {
-      addSolid("fence", 90, 220, 40, 10); addSolid("fence", 270, 220, 40, 10);
-      addSolid("fence", 180, 320, 50, 10);
+      addSolid("fence", 90, 220, 28, 8); addSolid("fence", 270, 220, 28, 8);
+      addSolid("pot", 56, 368, 14, 14);
       spawnEnemy("grunt", 180, 200); spawnEnemy("spit", 80, 140);
     } else if (n === 9) {
       addSolid("ice", 130, 130, 22, 22); addSolid("ice", 180, 128, 22, 22); addSolid("ice", 230, 130, 22, 22);
       addSolid("pot", 64, 280, 14, 14).hasKey = true;
-      drop(300, 320, "bomb");
+      if (bombs < 1) drop(300, 360, "bomb");
       spawnEnemy("rat", 200, 250);
       exitDoor.locked = true; exitDoor.open = false;
     } else if (n === 10) {
@@ -1052,9 +1055,13 @@
       addSolid("pot", 56, 330, 14, 14);
       addSolid("pot", 304, 336, 14, 14);
     }
-    var i;
+    var i, granted = false;
     flakes = [];
     for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
+    if (n === 6 && !act2Wood) {
+      act2Wood = true;
+      if (bombs < 1 && chips < BOMB_COST) { chips += 15; granted = true; }
+    }
     hud();
     flashLevel(n);
     fadeEl.classList.add("on");
@@ -1062,8 +1069,12 @@
     if (n === 1) {
       say("JOHN SNOW", "John Snow from the white…", 3.4);
       ghostT = 13.4;
+    } else if (n === 8) {
+      say("TIP", "Roll past the shield. Hit his back. No bomb needed.", 3.6);
+    } else if (granted) {
+      say("CAMP", "+15 wood. Shop bomb is 25W.", 2.6);
     }
-    patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, act1Held: n >= 6, act2Held: n >= 11 || act2Held });
+    patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, act2Wood: act2Wood, act1Held: n >= 6, act2Held: n >= 11 || act2Held });
   }
 
   function maybeClear() {
@@ -1149,7 +1160,7 @@
       }
     } else if (e.kind === "grunt" || e.kind === "rib") {
       e.turn -= dt;
-      if (e.turn <= 0) { e.turn = e.kind === "rib" ? 2.05 : 1.65; e.fx = ux; e.fy = uy; }
+      if (e.turn <= 0) { e.turn = e.kind === "rib" ? 2.05 : 2.6; e.fx = ux; e.fy = uy; }
       moveEnt(e, e.fx * e.spd * dt, e.fy * e.spd * dt);
       if (d < e.r + player.r - 2) hurtPlayer(e, 210);
     } else if (e.kind === "skull") {

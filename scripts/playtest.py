@@ -76,6 +76,10 @@ NEED = [
     "boberverse-v1",
     "bober-frost-lodge-v1",
     "bober-history-v1",
+    "BOMB_COST = 25",
+    "act2Wood",
+    "Roll past the shield. Hit his back. No bomb needed.",
+    "e.turn = 2.6",
 ]
 
 FORBID_UI = [
@@ -183,6 +187,12 @@ def main() -> int:
         errors.append("old level clamp 10 still present")
     if "buildLevel(16" in text or "n === 16" in text or "n === 25" in text:
         errors.append("L16-25 must not ship yet")
+    if 'addSolid("fence", 180, 320' in text:
+        errors.append("L8 center fence still blocks the flank lane")
+    if "chips < 40" in text or "chips -= 40" in text:
+        errors.append("shop bomb still 40W")
+    if "BOMB_COST = 25" not in text:
+        errors.append("bomb cost not 25W")
     if 'href="https://ccosma1.github.io/boberverse/"' in text:
         errors.append("old hub URL still present")
     sprites_extra = [
