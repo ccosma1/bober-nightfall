@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Prompt 0 checks for Bober Nightfall. No browser required."""
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+HTML = ROOT / "index.html"
+
+NEED = [
+    "BOBER NIGHTFALL",
+    "Face the Frost King.",
+    "Fan game by a holder.",
+    "bober-nightfall-v1",
+    "ACT I HELD",
+    "John Snow from the white",
+    "Green home fades. Nightfall begins.",
+    "The Frost King wore winter like a crown — and never took it off.",
+    "John Snow walked out of the white. This time he stayed.",
+    "Something heavy can wait. This crown can’t.",
+    "Blade up. Fire low. Real cold.",
+    "END THE FROST KING.",
+    "CHARGE_HOLD = 0.25",
+    "SLASH_REC = 0.18",
+    "HITSTOP = 2 / 60",
+    "ROLL_T = 0.28",
+    "ROLL_CD = 0.55",
+    "INVULN = 0.35",
+    "e.hp = 1",
+    "e.hp = 2",
+    "e.hp = 3",
+    "e.hp = 12",
+    "min-height: 55dvh",
+    "font-size: 14px",
+    "font-size: 13px",
+    "WASD",
+    "WOODCHIP SHOP",
+    "Door’s yours.",
+    "assets/intro/n0.jpg",
+    "assets/intro/n5.jpg",
+    "boberverse-v1",
+    "bober-frost-lodge-v1",
+    "bober-history-v1",
+]
+
+FORBID_UI = [
+    "Night King",
+    "Hobbit",
+    "Shire",
+    "Gandalf",
+    "Mordor",
+]
+
+
+def brute_windows() -> list[str]:
+    errs: list[str] = []
+    stun = 1.28
+    rec = 0.18
+    slashes = int(stun / rec)
+    slash_dmg = slashes * 1
+    charge_cycle = 0.25 + 0.18
+    charges = int(stun / charge_cycle)
+    charge_dmg = charges * 2
+    if slash_dmg < 6:
+        errs.append(f"stun window slash dmg {slash_dmg} too low")
+    if slash_dmg + charge_dmg < 12 and slash_dmg * 2 < 12:
+        errs.append("Ice Brute 12HP not clearable in two stun windows")
+    return errs
+
+
+def main() -> int:
+    errors: list[str] = []
+    if not HTML.exists():
+        print("FAIL: index.html missing")
+        return 1
+    text = HTML.read_text(encoding="utf-8")
+    for s in NEED:
+        if s not in text:
+            errors.append("missing: " + s)
+    for s in FORBID_UI:
+        if s in text:
+            errors.append("forbidden UI word: " + s)
+    if re.search(r"\bRing\b", text):
+        errors.append("forbidden UI word: Ring")
+    if "wallet" in text.lower() and "No wallet" not in text:
+        errors.append("wallet mention without denial")
+    if "gacha" in text.lower() and "No gacha" not in text and "no gacha" not in text:
+        errors.append("gacha mention")
+
+    sprites = [
+        "bober-idle.png", "bober-slash.png", "bober-roll.png",
+        "twig-rat.png", "snow-spitter.png", "shield-grunt.png",
+        "ice-brute.png", "ice-brute-slam.png", "john-snow.png",
+        "bush.png", "pot.png", "key.png", "door.png", "door-lock.png",
+    ]
+    for name in sprites:
+        p = ROOT / "assets" / "sprites" / name
+        if not p.exists():
+            errors.append("missing sprite " + name)
+    for i in range(6):
+        p = ROOT / "assets" / "intro" / f"n{i}.jpg"
+        if not p.exists():
+            errors.append("missing intro n" + str(i))
+    if not (ROOT / "assets" / "splash.jpg").exists():
+        errors.append("missing splash.jpg")
+    if not (ROOT / "assets" / "endcard.jpg").exists():
+        errors.append("missing endcard.jpg")
+
+    if "y-sort" not in text and "list.sort" not in text:
+        errors.append("no y-sort")
+    if "ellipse" not in text:
+        errors.append("no contact shadow ellipse")
+    if "#stick" not in text or "bottom-left" in text.lower():
+        pass
+    if "flex: 1 1 auto" not in text:
+        errors.append("stage not flex grow")
+
+    errors.extend(brute_windows())
+
+    if "spawnEnemy(\"rat\"" not in text and "spawnEnemy(\"rat\"" not in text:
+        if 'spawnEnemy("rat"' not in text:
+            errors.append("L2 rats missing")
+    if 'spawnEnemy("spit"' not in text:
+        errors.append("L3 spitters missing")
+    if 'spawnEnemy("grunt"' not in text:
+        errors.append("L4 grunt missing")
+    if 'spawnEnemy("brute"' not in text:
+        errors.append("L5 brute missing")
+
+    if errors:
+        print("FAIL")
+        for e in errors:
+            print(" -", e)
+        return 1
+    print("OK Prompt 0 Nightfall L1-5")
+    print(" stun slash window ~", int(1.28 / 0.18), "hits")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

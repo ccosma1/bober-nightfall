@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#3A2A6A" />
+  <meta name="description" content="Bober Nightfall — fan game by a holder. Face the Frost King." />
+  <title>Bober Nightfall · Face the Frost King</title>
+  <link rel="icon" href="assets/icons/bober-nightfall.ico" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root {
+      --sky: #3A2A6A; --ink: #1A1028; --fur: #8B5A2B; --fur-dark: #5C3A1A;
+      --yellow: #F5C400; --cream: #F4E6C3; --ice: #A8C4E8; --danger: #E85D4C;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; height: 100%; background: var(--ink); color: var(--cream);
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      user-select: none; overflow: hidden; touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+    #app {
+      display: flex; flex-direction: column; height: 100dvh; height: 100svh;
+      width: 100%; max-width: 430px; margin: 0 auto; background: var(--sky);
+      position: relative; overflow: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    }
+    #hud {
+      flex: 0 0 auto; z-index: 20; position: relative;
+      background: #1A1028; min-width: 0; pointer-events: auto;
+    }
+    header {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center; gap: 8px; padding: 6px 8px 4px; min-width: 0;
+    }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; min-width: 0; }
+    .chip {
+      background: #2a1c4e; border: 2px solid #F5C400; color: var(--cream);
+      border-radius: 999px; padding: 4px 10px; font-weight: 800; font-size: 14px;
+      line-height: 1.25; white-space: nowrap;
+    }
+    .chip.wood { color: var(--yellow); }
+    #hearts { display: flex; gap: 3px; align-items: center; height: 22px; }
+    #hearts i {
+      width: 18px; height: 16px; display: block; background: #4a1820;
+      clip-path: path("M9 15 L1.5 8 A4.2 4.2 0 0 1 9 3.2 A4.2 4.2 0 0 1 16.5 8 Z");
+    }
+    #hearts i.full { background: #E85D4C; }
+    #hearts i.half {
+      background: linear-gradient(90deg, #E85D4C 50%, #4a1820 50%);
+    }
+    .btns { display: flex; gap: 4px; }
+    .icon-btn {
+      width: 32px; height: 32px; border: 2px solid var(--cream);
+      background: rgba(139, 90, 43, 0.82); color: var(--cream);
+      border-radius: 9px; font-size: 13px; font-weight: 800; cursor: pointer; padding: 0;
+    }
+    .icon-btn:active { transform: translateY(1px); filter: brightness(0.85); }
+    .icon-btn.on { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
+    #stage {
+      flex: 1 1 auto; min-height: 55dvh; min-width: 0; width: 100%;
+      position: relative; z-index: 1; background: #12101c;
+      display: flex; align-items: center; justify-content: center;
+    }
+    canvas { display: block; width: 100%; height: 100%; object-fit: contain; touch-action: none; }
+    #say {
+      position: absolute; left: 10px; right: 10px; top: 8px; z-index: 6;
+      background: var(--cream); color: var(--ink); border: 3px solid var(--yellow);
+      border-radius: 14px; padding: 8px 10px; font-weight: 800; font-size: 14px;
+      line-height: 1.3; text-align: center; box-shadow: 0 6px 18px #0007;
+      pointer-events: none;
+    }
+    #say b { display: block; color: #5C3A1A; font-size: 11px; letter-spacing: 0.06em; margin-bottom: 2px; }
+    #say.hidden, #ghost.hidden, #fade.hidden { display: none !important; }
+    #ghost {
+      position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px; pointer-events: none;
+    }
+    #ghost .pad {
+      display: grid; grid-template-columns: 36px 36px 36px; gap: 4px;
+      opacity: 0.82; animation: ghostfade 10s linear forwards;
+    }
+    #ghost kbd {
+      width: 36px; height: 36px; border: 2px solid var(--cream); border-radius: 8px;
+      background: #1A1028cc; color: var(--yellow); font-weight: 900; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #ghost .hint { font-size: 13px; font-weight: 800; color: var(--cream); text-shadow: 0 2px 6px #000; }
+    @keyframes ghostfade { 0%, 70% { opacity: 0.85; } 100% { opacity: 0; } }
+    #fade {
+      position: absolute; inset: 0; z-index: 8; background: #1A1028; opacity: 0;
+      pointer-events: none; transition: opacity 0.35s ease;
+    }
+    #fade.on { opacity: 1; }
+    #dock {
+      flex: 0 0 auto; z-index: 20; position: relative; background: #1A1028;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      gap: 10px; padding: 6px 10px max(10px, env(safe-area-inset-bottom));
+      min-height: 124px; pointer-events: auto;
+    }
+    #stick {
+      width: 112px; height: 112px; border-radius: 50%;
+      background: #2a1c4e; border: 3px solid #5C3A1A; position: relative;
+      touch-action: none; flex: 0 0 auto;
+    }
+    #knob {
+      width: 48px; height: 48px; border-radius: 50%; background: var(--yellow);
+      border: 3px solid #1A1028; position: absolute; left: 32px; top: 32px;
+      pointer-events: none; box-shadow: 0 3px 0 #8a6a00;
+    }
+    #actions { display: flex; gap: 10px; align-items: flex-end; padding-bottom: 4px; }
+    .act {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 3px solid var(--yellow); background: var(--fur); color: var(--cream);
+      font-weight: 900; font-size: 13px; letter-spacing: 0.02em; cursor: pointer;
+      box-shadow: 0 4px 0 #3a2410;
+    }
+    .act:active, .act.held { transform: translateY(2px); box-shadow: 0 2px 0 #3a2410; filter: brightness(0.9); }
+    #btn-sword { background: var(--yellow); color: var(--ink); }
+    #btn-sword.charged { box-shadow: 0 0 0 4px #F5C40088, 0 4px 0 #8a6a00; }
+    #btn-dodge.cd { opacity: 0.45; }
+    footer {
+      flex: 0 0 auto; text-align: center; font-size: 10px; font-weight: 700;
+      color: #cbbda0; padding: 0 8px 2px; background: #1A1028; z-index: 20;
+    }
+    footer a { color: var(--cream); }
+    .overlay {
+      position: absolute; inset: 0; z-index: 12; display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end; padding: 18px 16px 22px;
+      background: linear-gradient(to top, #1a1028ee 0%, #1a102866 40%, #3A2A6A22 100%);
+      text-align: center;
+    }
+    .overlay.hidden { display: none !important; }
+    .overlay img.hero {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;
+    }
+    .overlay h1 {
+      margin: 0 0 6px; font-size: clamp(26px, 8vw, 38px); line-height: 0.95;
+      color: var(--yellow); text-shadow: 0 3px 0 #1A1028, 0 6px 16px #000;
+    }
+    .overlay h2 { margin: 0 0 8px; font-size: 26px; color: var(--yellow); text-shadow: 0 3px 0 #1A1028; }
+    .tagline { margin: 0 0 8px; font-size: 16px; font-weight: 700; color: var(--cream); text-shadow: 0 2px 8px #000; }
+    .how { margin: 0 0 12px; max-width: 24em; font-size: 13px; line-height: 1.35; color: var(--cream); text-shadow: 0 1px 6px #000; }
+    .play {
+      appearance: none; border: 3px solid #1A1028; background: var(--yellow); color: var(--ink);
+      font-weight: 900; font-size: 18px; letter-spacing: 0.06em; padding: 12px 22px;
+      border-radius: 16px; cursor: pointer; box-shadow: 0 4px 0 #8a6a00;
+    }
+    .play:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a6a00; }
+    .play.ghost { background: transparent; color: var(--cream); border-color: var(--cream); box-shadow: none; margin-top: 8px; }
+    .end-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    #paused, #shop, #dead { justify-content: center; background: #1a1028e8; }
+    .tip-card {
+      background: #3A2A6Aee; border: 3px solid var(--yellow); border-radius: 16px;
+      padding: 20px 18px 16px; max-width: 22em; box-shadow: 0 8px 28px #0008;
+    }
+    .shop-item {
+      width: 100%; margin: 0 0 8px; padding: 10px 12px; border: 3px solid #5C3A1A;
+      background: #4a3420; color: var(--cream); border-radius: 12px; font-weight: 800;
+      font-size: 15px; opacity: 0.55; text-align: left;
+    }
+    .shop-item small { display: block; color: var(--ice); font-size: 11px; margin-top: 2px; }
+    #history {
+      z-index: 21; justify-content: center; align-items: center; cursor: default;
+      background: rgba(26, 16, 40, 0.55); padding: 12px;
+    }
+    #history .hist-stage {
+      position: relative; display: flex; flex-direction: column;
+      width: min(960px, 92vw); height: min(78vh, 680px); overflow: hidden;
+      border-radius: 14px; box-shadow: 0 10px 36px #0009; background: #1A1028;
+    }
+    #history img { position: relative; flex: 1 1 auto; width: 100%; min-height: 0; object-fit: contain; background: #1A1028; }
+    #history .hist-bar {
+      flex: 0 0 auto; min-height: 96px; background: #3A2A6A;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 5px; padding: 10px 14px 12px;
+    }
+    #history .hist-sub { margin: 0; font-size: 11px; font-weight: 800; color: var(--cream); letter-spacing: 0.04em; }
+    #history .hist-line {
+      margin: 0; max-width: 30em; width: 100%;
+      font-size: clamp(13px, 3.2vw, 18px); font-weight: 900; line-height: 1.25;
+      color: var(--yellow); text-shadow: 0 2px 0 #1A1028; text-align: center;
+    }
+    #hist-skip {
+      appearance: none; border: 2px solid var(--cream); background: #1A1028; color: var(--cream);
+      font-family: inherit; font-weight: 800; font-size: 11px; letter-spacing: 0.04em;
+      padding: 5px 12px; border-radius: 10px; cursor: pointer;
+    }
+    #hist-skip:disabled { opacity: 0.35; cursor: default; }
+    #app.booting #hud, #app.booting #dock, #app.booting footer { visibility: hidden; }
+    #hat-tip { margin: 0 0 10px; font-size: 12px; font-weight: 800; color: var(--yellow); text-shadow: 0 2px 6px #000; }
+    #hat-tip.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="app" class="booting">
+    <div id="hud">
+      <header>
+        <div class="chips">
+          <div id="hearts" aria-label="Hearts"></div>
+          <div class="chip wood" id="chip-wood">W 0</div>
+          <div class="chip" id="chip-lv">L 1/5</div>
+        </div>
+        <div class="btns">
+          <button class="icon-btn" id="btn-mute" title="Mute" aria-label="Mute">🔊</button>
+          <button class="icon-btn" id="btn-pause" title="Pause" aria-label="Pause">⏸</button>
+        </div>
+      </header>
+    </div>
+    <div id="stage">
+      <canvas id="view" width="360" height="480"></canvas>
+      <div id="say" class="hidden"></div>
+      <div id="ghost" class="hidden">
+        <div class="pad">
+          <span></span><kbd>↑</kbd><span></span>
+          <kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>
+        </div>
+        <div class="hint">WASD · ARROWS</div>
+      </div>
+      <div id="fade"></div>
+    </div>
+    <div id="dock">
+      <div id="stick" aria-label="Move"><div id="knob"></div></div>
+      <div id="actions">
+        <button class="act" id="btn-dodge" type="button">ROLL</button>
+        <button class="act" id="btn-sword" type="button">SLASH</button>
+      </div>
+    </div>
+    <footer>Fan game by a holder. Also play · <a href="https://ccosma1.github.io/bober-yeet/">Yeet</a> · <a href="https://ccosma1.github.io/bober-dam-defense/">Dam</a> · <a href="https://ccosma1.github.io/bober-frost-lodge/">Lodge</a></footer>
+
+    <div id="splash" class="overlay">
+      <img class="hero" src="assets/splash.jpg" alt="" />
+      <h1>BOBER NIGHTFALL</h1>
+      <p class="tagline">Face the Frost King.</p>
+      <p class="tagline">Fan game by a holder.</p>
+      <p class="how">Tap slash. Hold to charge. Roll the snow. Flank the shield. Punish the slam.</p>
+      <p id="hat-tip" class="hidden">Lodge fire remembered — yellow hat on.</p>
+      <div class="end-actions">
+        <button class="play" id="btn-play" type="button">FACE THE FROST</button>
+        <button class="play ghost" id="btn-continue" type="button" hidden>CONTINUE</button>
+        <button class="play ghost" id="btn-intro" type="button">INTRO</button>
+        <button class="play ghost" id="btn-shop" type="button">SHOP</button>
+      </div>
+    </div>
+    <div id="history" class="overlay hidden" role="dialog" aria-label="Nightfall intro">
+      <div class="hist-stage">
+        <img id="hist-img" alt="" />
+        <div class="hist-bar">
+          <p class="hist-sub" id="hist-sub">Fan game by a holder.</p>
+          <p class="hist-line" id="hist-line"></p>
+          <button type="button" id="hist-skip" disabled>tap to skip</button>
+        </div>
+      </div>
+    </div>
+    <div id="paused" class="overlay hidden">
+      <div class="tip-card">
+        <h2>PAUSED</h2>
+        <p class="how">Stick · WASD. Tap slash. Hold charge. Roll.</p>
+        <div class="end-actions">
+          <button class="play" id="btn-resume" type="button">RESUME</button>
+          <button class="play ghost" id="btn-shop2" type="button">SHOP</button>
+          <button class="play ghost" id="btn-quit" type="button">SPLASH</button>
+        </div>
+      </div>
+    </div>
+    <div id="shop" class="overlay hidden">
+      <div class="tip-card">
+        <h2>WOODCHIP SHOP</h2>
+        <p class="how">Act II. Looking is free.</p>
+        <div class="shop-item">Bomb bush<small>Act II · 40W</small></div>
+        <div class="shop-item">Warm tunic<small>Act II · 60W</small></div>
+        <div class="shop-item">Extra heart<small>Act II · 80W</small></div>
+        <button class="play" id="btn-shop-close" type="button">CLOSE</button>
+      </div>
+    </div>
+    <div id="dead" class="overlay hidden">
+      <div class="tip-card">
+        <h2>FELL</h2>
+        <p class="how">Woodchips stay. Level restarts.</p>
+        <button class="play" id="btn-retry" type="button">RETRY LEVEL</button>
+      </div>
+    </div>
+    <div id="endcard" class="overlay hidden">
+      <img class="hero" src="assets/endcard.jpg" alt="" />
+      <h2>ACT I HELD</h2>
+      <p class="tagline">The Ice Brute is down. The crown still waits.</p>
+      <p class="how">Levels 6–25 later. No wallet. No gacha.</p>
+      <div class="end-actions">
+        <button class="play" id="btn-end-ok" type="button">SPLASH</button>
+        <button class="play ghost" id="btn-end-replay" type="button">REPLAY 1–5</button>
+      </div>
+    </div>
+  </div>
+  <script>
+(function () {
+  var SAVE_KEY = "bober-nightfall-v1";
+  var VERSE_KEY = "boberverse-v1";
+  var LODGE_KEY = "bober-frost-lodge-v1";
+  var LODGE_CLEARED = "bober-frost-cleared-v1";
+  var HIST_SEEN = "bober-history-v1";
+  var W = 360, H = 480, WALL = 26;
+  var SPEED = 138, ROLL_SPD = 310, ROLL_T = 0.28, ROLL_CD = 0.55;
+  var SLASH_REC = 0.18, CHARGE_HOLD = 0.25, HITSTOP = 2 / 60, INVULN = 0.35;
+  var canvas = document.getElementById("view");
+  var ctx = canvas.getContext("2d");
+  var app = document.getElementById("app");
+  var sayEl = document.getElementById("say");
+  var ghostEl = document.getElementById("ghost");
+  var fadeEl = document.getElementById("fade");
+  var stickEl = document.getElementById("stick");
+  var knobEl = document.getElementById("knob");
+  var btnSword = document.getElementById("btn-sword");
+  var btnDodge = document.getElementById("btn-dodge");
+  var heartsEl = document.getElementById("hearts");
+  var chipWood = document.getElementById("chip-wood");
+  var chipLv = document.getElementById("chip-lv");
+  var btnMute = document.getElementById("btn-mute");
+
+  var SPR_SRC = {
+    idle: "assets/sprites/bober-idle.png",
+    slash: "assets/sprites/bober-slash.png",
+    roll: "assets/sprites/bober-roll.png",
+    rat: "assets/sprites/twig-rat.png",
+    spit: "assets/sprites/snow-spitter.png",
+    spitAtk: "assets/sprites/snow-spitter-spit.png",
+    grunt: "assets/sprites/shield-grunt.png",
+    brute: "assets/sprites/ice-brute.png",
+    bruteSlam: "assets/sprites/ice-brute-slam.png",
+    john: "assets/sprites/john-snow.png",
+    bush: "assets/sprites/bush.png",
+    pot: "assets/sprites/pot.png",
+    key: "assets/sprites/key.png",
+    heart: "assets/sprites/heart.png",
+    chips: "assets/sprites/woodchips.png",
+    pine: "assets/sprites/pine.png",
+    pineSnow: "assets/sprites/pine-snow.png",
+    door: "assets/sprites/door.png",
+    doorLock: "assets/sprites/door-lock.png"
+  };
+  var SPR = {}, snowTile = new Image();
+  snowTile.src = "assets/tiles/snow.png";
+  Object.keys(SPR_SRC).forEach(function (k) {
+    var im = new Image(); im.src = SPR_SRC[k]; SPR[k] = im;
+  });
+
+  var INTRO = [
+    { src: "assets/intro/n0.jpg", line: "Green home fades. Nightfall begins." },
+    { src: "assets/intro/n1.jpg", line: "The Frost King wore winter like a crown — and never took it off." },
+    { src: "assets/intro/n2.jpg", line: "John Snow walked out of the white. This time he stayed." },
+    { src: "assets/intro/n3.jpg", line: "Something heavy can wait. This crown can’t." },
+    { src: "assets/intro/n4.jpg", line: "Blade up. Fire low. Real cold." },
+    { src: "assets/intro/n5.jpg", line: "END THE FROST KING." }
+  ];
+
+  var keys = Object.create(null);
+  var stick = { x: 0, y: 0, id: null, lastTap: 0 };
+  var swordHeld = false, holdT = 0;
+  var mode = "splash", paused = false, lastTs = 0, hitstop = 0, shake = 0, fadeT = 0;
+  var sayT = 0, ghostT = 0, clearFade = 0;
+  var trails = [], pops = [], flakes = [];
+  var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false;
+  var chips = 0, hasHat = false, introAfter = null;
+  var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
+
+  var Sfx = {
+    ctx: null, muted: false,
+    ensure: function () {
+      if (!this.ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
+    },
+    beep: function (freq, dur, type, gain, slide) {
+      if (this.muted || !this.ctx) return;
+      var t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type || "square"; o.frequency.setValueAtTime(freq, t);
+      if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, slide), t + dur);
+      g.gain.setValueAtTime(gain || 0.07, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + dur + 0.02);
+    },
+    slash: function (ch) { this.beep(ch ? 420 : 620, 0.07, "square", 0.06, ch ? 180 : 320); },
+    hit: function () { this.beep(220, 0.06, "sawtooth", 0.07, 90); },
+    block: function () { this.beep(160, 0.08, "triangle", 0.05); },
+    roll: function () { this.beep(300, 0.1, "triangle", 0.05, 140); },
+    hurt: function () { this.beep(180, 0.14, "sawtooth", 0.08, 70); },
+    pick: function () { this.beep(740, 0.07, "sine", 0.05, 980); },
+    door: function () { this.beep(392, 0.1, "square", 0.05); this.beep(523, 0.12, "square", 0.05); },
+    slam: function () { this.beep(70, 0.22, "sawtooth", 0.1, 40); },
+    win: function () { [523, 659, 784].forEach(function (f, i) { setTimeout(function () { Sfx.beep(f, 0.14, "square", 0.06); }, i * 80); }); }
+  };
+
+  function lodgeFlag() {
+    try {
+      if (localStorage.getItem(LODGE_KEY)) return true;
+      if (localStorage.getItem(LODGE_CLEARED) === "1") return true;
+      var h = localStorage.getItem(HIST_SEEN);
+      if (h && h !== "0") return true;
+      var v = localStorage.getItem(VERSE_KEY);
+      if (v) {
+        var o = JSON.parse(v);
+        if (o && o.frostLodge) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+  function loadSave() {
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return { level: 1, chips: 0, hp: 6, mute: false, act1Held: false, introSeen: false };
+      var s = JSON.parse(raw);
+      return {
+        level: Math.max(1, Math.min(5, s.level || 1)),
+        chips: Math.max(0, s.chips | 0),
+        hp: Math.max(1, Math.min(6, s.hp == null ? 6 : s.hp)),
+        mute: !!s.mute,
+        act1Held: !!s.act1Held,
+        introSeen: !!s.introSeen
+      };
+    } catch (e) {
+      return { level: 1, chips: 0, hp: 6, mute: false, act1Held: false, introSeen: false };
+    }
+  }
+  function persist() {
+    var s = loadSave();
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        level: levelN, chips: chips, hp: player ? player.hp : 6,
+        mute: Sfx.muted, act1Held: !!s.act1Held, introSeen: !!s.introSeen
+      }));
+    } catch (e) {}
+  }
+  function patchSave(p) {
+    var s = loadSave(), k;
+    for (k in p) if (Object.prototype.hasOwnProperty.call(p, k)) s[k] = p[k];
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function angDiff(a, b) {
+    var d = Math.abs(a - b) % (Math.PI * 2);
+    return d > Math.PI ? Math.PI * 2 - d : d;
+  }
+  function inWall(x, y, r) {
+    if (x - r < WALL || x + r > W - WALL || y - r < WALL || y + r > H - WALL) return true;
+    var i, s;
+    for (i = 0; i < solids.length; i++) {
+      s = solids[i];
+      if (!s.alive) continue;
+      if (Math.abs(x - s.x) < r + s.hw && Math.abs(y - s.y) < r + s.hh) return true;
+    }
+    return false;
+  }
+  function moveEnt(e, dx, dy) {
+    if (!inWall(e.x + dx, e.y, e.r)) e.x += dx;
+    if (!inWall(e.x, e.y + dy, e.r)) e.y += dy;
+    e.x = clamp(e.x, WALL + e.r, W - WALL - e.r);
+    e.y = clamp(e.y, WALL + e.r, H - WALL - e.r);
+  }
+
+  function hud() {
+    var h = "", i, hp = player ? player.hp : 6;
+    for (i = 0; i < 3; i++) {
+      var v = hp - i * 2;
+      h += '<i class="' + (v >= 2 ? "full" : v === 1 ? "half" : "") + '"></i>';
+    }
+    heartsEl.innerHTML = h;
+    chipWood.textContent = "W " + chips;
+    chipLv.textContent = "L " + levelN + "/5";
+    btnMute.textContent = Sfx.muted ? "🔇" : "🔊";
+    btnMute.classList.toggle("on", Sfx.muted);
+    btnDodge.classList.toggle("cd", player && player.rollCd > 0 && player.roll <= 0);
+    btnSword.classList.toggle("charged", swordHeld && holdT >= CHARGE_HOLD);
+    btnSword.classList.toggle("held", swordHeld);
+  }
+
+  function say(who, text, t) {
+    sayEl.innerHTML = "<b>" + who + "</b>" + text;
+    sayEl.classList.remove("hidden");
+    sayT = t || 3.2;
+  }
+  function hideSay() { sayEl.classList.add("hidden"); sayT = 0; }
+
+  function addPop(x, y, kind) { pops.push({ x: x, y: y, t: 0.45, kind: kind }); }
+  function addTrail(x, y) { trails.push({ x: x, y: y, t: 0.28 }); }
+
+  function drop(x, y, kind) {
+    pickups.push({ x: x, y: y, kind: kind, r: 12, bob: 0 });
+  }
+  function breakProp(p, fromSlash) {
+    if (!p.alive) return;
+    p.alive = false;
+    addPop(p.x, p.y, p.kind);
+    Sfx.hit();
+    if (p.kind === "pot") {
+      if (p.hasKey) drop(p.x, p.y, "key");
+      else if (Math.random() < 0.55) drop(p.x, p.y, "heart");
+      else { chips += 1 + (Math.random() < 0.5 ? 1 : 0); drop(p.x, p.y, "chip"); }
+    } else if (p.kind === "bush" && Math.random() < 0.35) {
+      chips += 1; drop(p.x, p.y, "chip");
+    }
+    persist();
+  }
+
+  function hurtPlayer(src, force) {
+    if (player.iframes > 0 || player.roll > 0 || player.hp <= 0) return;
+    player.hp = Math.max(0, player.hp - 2);
+    player.iframes = INVULN;
+    player.hurt = 0.2;
+    var dx = player.x - src.x, dy = player.y - src.y, L = Math.hypot(dx, dy) || 1;
+    player.kx = dx / L * (force || 220);
+    player.ky = dy / L * (force || 220);
+    shake = 0.18;
+    Sfx.hurt();
+    hud();
+    persist();
+    if (player.hp <= 0) die();
+  }
+  function die() {
+    mode = "dead";
+    document.getElementById("dead").classList.remove("hidden");
+    persist();
+  }
+
+  function hitEnemy(e, dmg, kforce, ang, charge) {
+    if (e.dead) return;
+    if (e.kind === "grunt") {
+      var facing = Math.atan2(e.fy, e.fx);
+      var toP = Math.atan2(player.y - e.y, player.x - e.x);
+      var front = angDiff(facing, toP) < 0.95;
+      if (front && !charge) {
+        addPop(e.x, e.y, "spark");
+        Sfx.block();
+        e.kx = Math.cos(ang) * 40; e.ky = Math.sin(ang) * 40;
+        return;
+      }
+      if (front && charge) { dmg = 1; e.stagger = 0.45; }
+    }
+    if (e.kind === "brute" && e.state !== "stun" && e.state !== "idle") {
+      addPop(e.x, e.y, "spark");
+      Sfx.block();
+      return;
+    }
+    e.hp -= dmg;
+    e.kx = Math.cos(ang) * kforce;
+    e.ky = Math.sin(ang) * kforce;
+    e.flash = 0.12;
+    hitstop = HITSTOP;
+    shake = 0.08;
+    Sfx.hit();
+    if (e.hp <= 0) killEnemy(e);
+  }
+  function killEnemy(e) {
+    e.dead = true;
+    addPop(e.x, e.y, e.kind);
+    if (e.kind === "rat") { chips += 1; drop(e.x, e.y, "chip"); }
+    else if (e.kind === "spit") { chips += 2; drop(e.x, e.y, "chip"); }
+    else if (e.kind === "grunt") {
+      chips += 2; drop(e.x, e.y, "chip");
+    } else if (e.kind === "brute") {
+      chips += 5; drop(e.x, e.y, "chip");
+      if (Math.random() < 0.8) drop(e.x + 16, e.y, "heart");
+    }
+    persist();
+  }
+
+  function doSlash(charge) {
+    if (player.slashing > 0 || player.roll > 0 || player.hp <= 0) return;
+    player.slashing = SLASH_REC;
+    player.charged = !!charge;
+    var ang = Math.atan2(player.ay, player.ax);
+    var range = charge ? 58 : 44;
+    var arc = charge ? 3.05 : 2.15;
+    var dmg = charge ? 2 : 1;
+    var kf = charge ? 280 : 160;
+    Sfx.slash(charge);
+    var i, e, d, a;
+    for (i = 0; i < enemies.length; i++) {
+      e = enemies[i];
+      if (e.dead) continue;
+      d = Math.hypot(e.x - player.x, e.y - player.y);
+      if (d > range + e.r) continue;
+      a = Math.atan2(e.y - player.y, e.x - player.x);
+      if (angDiff(a, ang) <= arc / 2) hitEnemy(e, dmg, kf, a, charge);
+    }
+    for (i = 0; i < props.length; i++) {
+      e = props[i];
+      if (!e.alive || (e.kind !== "bush" && e.kind !== "pot")) continue;
+      d = Math.hypot(e.x - player.x, e.y - player.y);
+      if (d > range + 18) continue;
+      a = Math.atan2(e.y - player.y, e.x - player.x);
+      if (angDiff(a, ang) <= arc / 2) breakProp(e, true);
+    }
+    for (i = 0; i < shots.length; i++) {
+      e = shots[i];
+      if (e.dead) continue;
+      d = Math.hypot(e.x - player.x, e.y - player.y);
+      if (d < range * 0.7) { e.dead = true; addPop(e.x, e.y, "snow"); }
+    }
+  }
+  function doRoll() {
+    if (!player || player.rollCd > 0 || player.hp <= 0) return;
+    var L = Math.hypot(player.ax, player.ay) || 1;
+    player.rdx = player.ax / L; player.rdy = player.ay / L;
+    player.roll = ROLL_T; player.rollCd = ROLL_CD; player.iframes = ROLL_T;
+    player.slashing = 0; swordHeld = false; holdT = 0;
+    Sfx.roll();
+  }
+
+  function spawnEnemy(kind, x, y) {
+    var e = { kind: kind, x: x, y: y, dead: false, kx: 0, ky: 0, flash: 0, t: 0, fx: 0, fy: 1, stagger: 0 };
+    if (kind === "rat") { e.hp = 1; e.r = 14; e.spd = 92; }
+    else if (kind === "spit") { e.hp = 2; e.r = 18; e.spd = 38; e.cd = 0.6; }
+    else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 1.6; }
+    else { e.hp = 12; e.r = 34; e.spd = 46; e.state = "idle"; e.st = 0.9; }
+    enemies.push(e);
+  }
+  function addSolid(kind, x, y, hw, hh) {
+    var p = { kind: kind, x: x, y: y, hw: hw, hh: hh, r: Math.max(hw, hh), alive: true, hasKey: false };
+    props.push(p);
+    if (kind === "pine" || kind === "block") solids.push(p);
+    else if (kind === "bush" || kind === "pot") solids.push(p);
+    return p;
+  }
+
+  function buildLevel(n) {
+    enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
+    john = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
+    levelN = n;
+    var theme = (n - 1) / 4;
+    player = {
+      x: 180, y: 400, r: 16, hp: loadSave().hp || 6, ax: 1, ay: 0, facing: 1,
+      kx: 0, ky: 0, slashing: 0, charged: false, roll: 0, rollCd: 0, iframes: 0,
+      hurt: 0, keys: 0, bob: 0
+    };
+    if (player.hp <= 0) player.hp = 6;
+    exitDoor = { x: 180, y: 48, locked: n === 4, open: n === 1, r: 22 };
+    if (n === 1) {
+      addSolid("pine", 52, 90, 22, 28); addSolid("pine", 308, 96, 22, 28);
+      addSolid("pine", 46, 260, 22, 28); addSolid("pine", 314, 270, 22, 28);
+      addSolid("bush", 52, 208, 18, 16); addSolid("bush", 96, 198, 18, 16);
+      addSolid("bush", 140, 194, 18, 16); addSolid("bush", 180, 190, 18, 16);
+      addSolid("bush", 220, 194, 18, 16); addSolid("bush", 264, 198, 18, 16);
+      addSolid("bush", 308, 208, 18, 16);
+      john = { x: 292, y: 340, said: false };
+    } else if (n === 2) {
+      addSolid("pine", 50, 80, 22, 28); addSolid("pine", 310, 86, 22, 28);
+      addSolid("bush", 90, 300, 16, 14); addSolid("bush", 270, 310, 16, 14);
+      addSolid("pot", 70, 160, 14, 14); addSolid("pot", 290, 170, 14, 14);
+      spawnEnemy("rat", 120, 160); spawnEnemy("rat", 240, 150); spawnEnemy("rat", 180, 220);
+    } else if (n === 3) {
+      addSolid("pine", 48, 88, 22, 28); addSolid("pine", 312, 92, 22, 28);
+      addSolid("pot", 64, 300, 14, 14);
+      spawnEnemy("spit", 90, 140); spawnEnemy("spit", 270, 150);
+      john = { x: 180, y: 86, said: false, door: true };
+      exitDoor.open = false;
+    } else if (n === 4) {
+      addSolid("block", 118, 240, 36, 70); addSolid("block", 242, 240, 36, 70);
+      addSolid("pot", 64, 236, 14, 14).hasKey = true;
+      addSolid("bush", 300, 360, 16, 14);
+      spawnEnemy("grunt", 180, 210);
+      exitDoor.locked = true; exitDoor.open = false;
+    } else {
+      spawnEnemy("brute", 180, 200);
+      addSolid("pine", 46, 80, 22, 28); addSolid("pine", 314, 84, 22, 28);
+    }
+    var i;
+    flakes = [];
+    for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
+    hud();
+    fadeEl.classList.add("on");
+    fadeT = 0.4;
+    if (n === 1) {
+      say("JOHN SNOW", "John Snow from the white…", 3.4);
+      ghostT = 13.4;
+    }
+    patchSave({ level: n, chips: chips, hp: player.hp });
+  }
+
+  function maybeClear() {
+    if (cleared) return;
+    var i, left = 0;
+    if (levelN === 1) {
+      for (i = 0; i < props.length; i++) if (props[i].kind === "bush" && props[i].alive) left++;
+      if (left) return;
+    } else {
+      for (i = 0; i < enemies.length; i++) if (!enemies[i].dead) left++;
+      if (left) return;
+    }
+    cleared = true;
+    clearFade = levelN === 5 ? 1.35 : 0.55;
+    Sfx.win();
+    if (levelN === 3 && john && !john.said) {
+      john.said = true;
+      say("JOHN SNOW", "Door’s yours.", 2.8);
+      exitDoor.open = true;
+    } else if (levelN !== 4) {
+      exitDoor.open = true; exitDoor.locked = false;
+    }
+    if (levelN === 4 && player.keys > 0) { exitDoor.locked = false; exitDoor.open = true; }
+  }
+
+  function tryExit() {
+    if (!exitDoor.open || exitDoor.locked) return;
+    if (Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 30) return;
+    Sfx.door();
+    if (levelN >= 5) {
+      mode = "end";
+      patchSave({ act1Held: true, level: 5, chips: chips, hp: player.hp });
+      document.getElementById("endcard").classList.remove("hidden");
+      app.classList.add("booting");
+      return;
+    }
+    fadeEl.classList.add("on");
+    setTimeout(function () { buildLevel(levelN + 1); }, 280);
+  }
+
+  function updateEnemy(e, dt) {
+    if (e.dead) return;
+    e.t += dt;
+    e.kx *= Math.pow(0.001, dt); e.ky *= Math.pow(0.001, dt);
+    moveEnt(e, e.kx * dt, e.ky * dt);
+    if (e.flash > 0) e.flash -= dt;
+    if (e.stagger > 0) { e.stagger -= dt; return; }
+    var dx = player.x - e.x, dy = player.y - e.y, d = Math.hypot(dx, dy) || 1;
+    var ux = dx / d, uy = dy / d;
+    if (e.kind === "rat") {
+      e.fx = ux; e.fy = uy;
+      moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+      if (d < e.r + player.r - 2) hurtPlayer(e, 200);
+    } else if (e.kind === "spit") {
+      e.fx = ux; e.fy = uy;
+      if (d < 120) moveEnt(e, -ux * e.spd * dt, -uy * e.spd * dt);
+      else if (d > 170) moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+      e.cd -= dt;
+      if (e.cd <= 0 && d < 220) {
+        e.cd = 1.45;
+        shots.push({ x: e.x, y: e.y, vx: ux * 132, vy: uy * 132, r: 8, t: 2.4, dead: false });
+      }
+    } else if (e.kind === "grunt") {
+      e.turn -= dt;
+      if (e.turn <= 0) { e.turn = 1.65; e.fx = ux; e.fy = uy; }
+      moveEnt(e, e.fx * e.spd * dt, e.fy * e.spd * dt);
+      if (d < e.r + player.r - 2) hurtPlayer(e, 210);
+    } else if (e.kind === "brute") {
+      e.st -= dt;
+      if (e.state === "idle") {
+        if (e.st <= 0) { e.state = "chase"; }
+      } else if (e.state === "chase") {
+        moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+        if (d < 96 || e.t > 2.2) { e.state = "tele"; e.st = 0.78; }
+      } else if (e.state === "tele") {
+        if (e.st <= 0) { e.state = "slam"; e.st = 0.26; shake = 0.28; Sfx.slam(); }
+      } else if (e.state === "slam") {
+        if (d < 82 && player.roll <= 0) hurtPlayer(e, 260);
+        if (e.st <= 0) { e.state = "stun"; e.st = 1.28; }
+      } else if (e.state === "stun") {
+        if (e.st <= 0) { e.state = "chase"; e.t = 0; }
+      }
+    }
+  }
+
+  function slashConeHit(px, py) {
+    if (player.slashing <= 0) return false;
+    var ang = Math.atan2(player.ay, player.ax);
+    var range = player.charged ? 58 : 44;
+    var arc = player.charged ? 3.05 : 2.15;
+    var d = Math.hypot(px - player.x, py - player.y);
+    if (d > range) return false;
+    return angDiff(Math.atan2(py - player.y, px - player.x), ang) <= arc / 2;
+  }
+
+  function update(dt) {
+    var mx = 0, my = 0;
+    if (keys.KeyW || keys.ArrowUp) my -= 1;
+    if (keys.KeyS || keys.ArrowDown) my += 1;
+    if (keys.KeyA || keys.ArrowLeft) mx -= 1;
+    if (keys.KeyD || keys.ArrowRight) mx += 1;
+    if (Math.abs(stick.x) > 0.18 || Math.abs(stick.y) > 0.18) { mx = stick.x; my = stick.y; }
+    var ml = Math.hypot(mx, my);
+    if (ml > 1) { mx /= ml; my /= ml; ml = 1; }
+    if (ml > 0.18 && player.roll <= 0) { player.ax = mx; player.ay = my; player.facing = mx < 0 ? -1 : (mx > 0 ? 1 : player.facing); }
+    if (swordHeld) holdT += dt;
+    if (player.slashing > 0) player.slashing -= dt;
+    if (player.roll > 0) player.roll -= dt;
+    if (player.rollCd > 0) player.rollCd -= dt;
+    if (player.iframes > 0) player.iframes -= dt;
+    if (player.hurt > 0) player.hurt -= dt;
+    player.bob += dt * (ml > 0.2 ? 10 : 4);
+    player.kx *= Math.pow(0.0008, dt); player.ky *= Math.pow(0.0008, dt);
+
+    var spd = SPEED;
+    if (player.roll > 0) {
+      spd = ROLL_SPD;
+      mx = player.rdx; my = player.rdy;
+      addTrail(player.x, player.y);
+    } else if (player.slashing > 0) spd *= 0.35;
+    else if (swordHeld && holdT >= CHARGE_HOLD) spd *= 0.55;
+    if (player.hp > 0) moveEnt(player, mx * spd * dt + player.kx * dt, my * spd * dt + player.ky * dt);
+
+    var i, s, p;
+    for (i = 0; i < enemies.length; i++) updateEnemy(enemies[i], dt);
+    for (i = shots.length - 1; i >= 0; i--) {
+      s = shots[i];
+      s.t -= dt; s.x += s.vx * dt; s.y += s.vy * dt;
+      if (s.t <= 0 || s.x < 0 || s.y < 0 || s.x > W || s.y > H) s.dead = true;
+      if (!s.dead && Math.hypot(s.x - player.x, s.y - player.y) < s.r + player.r) {
+        if (player.roll > 0 || slashConeHit(s.x, s.y)) { s.dead = true; addPop(s.x, s.y, "snow"); }
+        else { s.dead = true; hurtPlayer(s, 180); }
+      }
+    }
+    shots = shots.filter(function (q) { return !q.dead; });
+    enemies = enemies.filter(function (e) { return !e.dead || e.kind === "brute"; });
+
+    for (i = pickups.length - 1; i >= 0; i--) {
+      p = pickups[i]; p.bob += dt * 6;
+      if (Math.hypot(p.x - player.x, p.y - player.y) < 22) {
+        if (p.kind === "heart") player.hp = Math.min(6, player.hp + 2);
+        else if (p.kind === "key") player.keys += 1;
+        else if (p.kind === "chip") {}
+        Sfx.pick();
+        pickups.splice(i, 1);
+        hud(); persist();
+      }
+    }
+
+    if (player.keys > 0 && exitDoor.locked && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) < 36) {
+      exitDoor.locked = false; exitDoor.open = true; player.keys -= 1; Sfx.door();
+    }
+    solids = props.filter(function (q) { return q.alive && (q.kind === "pine" || q.kind === "block" || q.kind === "bush" || q.kind === "pot"); });
+
+    if (sayT > 0) { sayT -= dt; if (sayT <= 0) hideSay(); }
+    if (levelN === 1 && ghostT > 0) {
+      ghostT -= dt;
+      if (ghostT < 10.2 && ghostT > 0 && ghostEl.classList.contains("hidden") && sayT <= 0) ghostEl.classList.remove("hidden");
+      if (ghostT <= 0) ghostEl.classList.add("hidden");
+    }
+    if (john && !john.said && levelN === 1 && dist(player, john) < 50) john.said = true;
+    maybeClear();
+    if (levelN === 5 && cleared) {
+      clearFade -= dt;
+      if (clearFade <= 0 && mode === "play") {
+        mode = "end";
+        patchSave({ act1Held: true, level: 5, chips: chips, hp: player.hp });
+        document.getElementById("endcard").classList.remove("hidden");
+        app.classList.add("booting");
+      }
+    } else {
+      tryExit();
+    }
+    if (shake > 0) shake -= dt;
+    for (i = trails.length - 1; i >= 0; i--) { trails[i].t -= dt; if (trails[i].t <= 0) trails.splice(i, 1); }
+    for (i = pops.length - 1; i >= 0; i--) { pops[i].t -= dt; if (pops[i].t <= 0) pops.splice(i, 1); }
+    for (i = 0; i < flakes.length; i++) {
+      flakes[i].y += flakes[i].v * dt; flakes[i].x += Math.sin(flakes[i].y * 0.02) * 8 * dt;
+      if (flakes[i].y > H) { flakes[i].y = -6; flakes[i].x = Math.random() * W; }
+    }
+    if (fadeT > 0) {
+      fadeT -= dt;
+      fadeEl.style.opacity = String(clamp(fadeT / 0.4, 0, 1));
+      if (fadeT <= 0) fadeEl.classList.remove("on");
+    }
+    hud();
+  }
+
+  function shadow(x, y, rx, ry) {
+    ctx.save(); ctx.fillStyle = "rgba(16,10,22,0.38)";
+    ctx.beginPath(); ctx.ellipse(x, y + 2, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+  function drawSpr(img, x, y, w, h, flip, alpha) {
+    if (!img || !img.naturalWidth) return;
+    ctx.save();
+    if (alpha != null) ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.restore();
+  }
+  function themeT() { return (levelN - 1) / 4; }
+  function lerpC(a, b, t) {
+    var pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    var r = (pa >> 16) + ((pb >> 16) - (pa >> 16)) * t | 0;
+    var g = ((pa >> 8) & 255) + (((pb >> 8) & 255) - ((pa >> 8) & 255)) * t | 0;
+    var bl = (pa & 255) + ((pb & 255) - (pa & 255)) * t | 0;
+    return "rgb(" + r + "," + g + "," + bl + ")";
+  }
+  function paintFloor() {
+    var t = themeT();
+    ctx.fillStyle = lerpC("#3d6b38", "#c8d8ea", t);
+    ctx.fillRect(0, 0, W, H);
+    if (t > 0.35 && snowTile.naturalWidth) {
+      ctx.save(); ctx.globalAlpha = (t - 0.35) / 0.65 * 0.85;
+      ctx.drawImage(snowTile, 0, 0, W, H); ctx.restore();
+    }
+    var i, s = 37;
+    ctx.fillStyle = "rgba(20,40,16," + (0.18 - t * 0.12) + ")";
+    for (i = 0; i < 90; i++) {
+      var x = (i * 97 + levelN * 13) % (W - 20) + 10;
+      var y = (i * 53 + levelN * 29) % (H - 20) + 10;
+      ctx.beginPath(); ctx.ellipse(x, y, 3 + (i % 3), 2, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = lerpC("#2a4a28", "#8aa7c4", t);
+    ctx.fillRect(0, 0, W, WALL); ctx.fillRect(0, H - WALL, W, WALL);
+    ctx.fillRect(0, 0, WALL, H); ctx.fillRect(W - WALL, 0, WALL, H);
+    ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 3;
+    ctx.strokeRect(WALL - 1, WALL - 1, W - WALL * 2 + 2, H - WALL * 2 + 2);
+    for (i = 0; i < flakes.length; i++) {
+      s = flakes[i];
+      ctx.fillStyle = "rgba(244,230,195," + (0.35 + t * 0.4) + ")";
+      ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
+  }
+  function drawSlashArc() {
+    if (player.slashing <= 0) return;
+    var ang = Math.atan2(player.ay, player.ax);
+    var range = player.charged ? 58 : 44;
+    var arc = player.charged ? 3.05 : 2.15;
+    var a = 1 - player.slashing / SLASH_REC;
+    ctx.save();
+    ctx.translate(player.x, player.y - 10);
+    ctx.fillStyle = player.charged ? "rgba(245,196,0," + (0.45 - a * 0.3) + ")" : "rgba(244,230,195," + (0.4 - a * 0.3) + ")";
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.arc(0, 0, range, ang - arc / 2, ang + arc / 2);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function drawHat(x, y, flip) {
+    if (!hasHat) return;
+    ctx.save(); ctx.translate(x, y - 46);
+    ctx.fillStyle = "#F5C400"; ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 6, 14, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillRect(-8, -6, 16, 10); ctx.strokeRect(-8, -6, 16, 10);
+    ctx.restore();
+  }
+
+  function draw() {
+    var ox = 0, oy = 0;
+    if (shake > 0) { ox = (Math.random() - 0.5) * 8; oy = (Math.random() - 0.5) * 8; }
+    ctx.setTransform(1, 0, 0, 1, ox, oy);
+    paintFloor();
+    var list = [], i, p, e, img, w, h, flip, alpha;
+    function push(y, fn) { list.push({ y: y, fn: fn }); }
+    push(exitDoor.y, function () {
+      img = exitDoor.locked ? SPR.doorLock : SPR.door;
+      shadow(exitDoor.x, exitDoor.y + 4, 22, 8);
+      drawSpr(img, exitDoor.x, exitDoor.y + 8, 52, 58, false, exitDoor.open ? 1 : 0.7);
+      if (exitDoor.open && !exitDoor.locked) {
+        ctx.strokeStyle = "#F5C400"; ctx.globalAlpha = 0.55 + Math.sin(performance.now() / 180) * 0.25;
+        ctx.strokeRect(exitDoor.x - 28, exitDoor.y - 50, 56, 62); ctx.globalAlpha = 1;
+      }
+    });
+    if (john) {
+      push(john.y, function () {
+        shadow(john.x, john.y + 2, 16, 6);
+        drawSpr(SPR.john, john.x, john.y, 40, 72, false, 1);
+      });
+    }
+    for (i = 0; i < props.length; i++) {
+      p = props[i];
+      if (!p.alive) continue;
+      (function (p) {
+        push(p.y, function () {
+          shadow(p.x, p.y + 2, p.hw * 0.9, 6);
+          if (p.kind === "bush") drawSpr(SPR.bush, p.x, p.y, 44, 40, false, 1);
+          else if (p.kind === "pot") drawSpr(SPR.pot, p.x, p.y, 32, 30, false, 1);
+          else if (p.kind === "pine") drawSpr(levelN >= 4 ? SPR.pineSnow : SPR.pine, p.x, p.y, 56, 78, false, 1);
+          else {
+            ctx.fillStyle = levelN >= 4 ? "#8aa7c4" : "#5C3A1A";
+            ctx.fillRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2);
+            ctx.strokeStyle = "#1A1028"; ctx.strokeRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2);
+          }
+        });
+      })(p);
+    }
+    for (i = 0; i < pickups.length; i++) {
+      p = pickups[i];
+      (function (p) {
+        push(p.y, function () {
+          var bob = Math.sin(p.bob) * 3;
+          if (p.kind === "heart") drawSpr(SPR.heart, p.x, p.y + bob, 22, 20, false, 1);
+          else if (p.kind === "key") drawSpr(SPR.key, p.x, p.y + bob, 26, 22, false, 1);
+          else drawSpr(SPR.chips, p.x, p.y + bob, 24, 18, false, 1);
+        });
+      })(p);
+    }
+    for (i = 0; i < shots.length; i++) {
+      e = shots[i];
+      (function (e) {
+        push(e.y, function () {
+          ctx.fillStyle = "#E8F4FF"; ctx.strokeStyle = "#A8C4E8"; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+      })(e);
+    }
+    for (i = 0; i < enemies.length; i++) {
+      e = enemies[i];
+      if (e.dead && e.kind !== "brute") continue;
+      (function (e) {
+        push(e.y, function () {
+          if (e.dead) return;
+          shadow(e.x, e.y + 2, e.r * 0.9, 7);
+          flip = e.fx < 0;
+          alpha = e.flash > 0 ? 0.55 : 1;
+          if (e.kind === "rat") drawSpr(SPR.rat, e.x, e.y, 42, 34, flip, alpha);
+          else if (e.kind === "spit") drawSpr(e.cd < 0.2 ? SPR.spitAtk : SPR.spit, e.x, e.y, 48, 46, flip, alpha);
+          else if (e.kind === "grunt") drawSpr(SPR.grunt, e.x, e.y, 58, 56, flip, alpha);
+          else {
+            if (e.state === "tele") {
+              ctx.strokeStyle = "rgba(232,93,76," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")";
+              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, 78, 0, Math.PI * 2); ctx.stroke();
+            }
+            if (e.state === "slam") {
+              ctx.fillStyle = "rgba(168,196,232,0.28)";
+              ctx.beginPath(); ctx.arc(e.x, e.y, 80, 0, Math.PI * 2); ctx.fill();
+            }
+            drawSpr(e.state === "tele" || e.state === "slam" ? SPR.bruteSlam : SPR.brute, e.x, e.y, 96, 100, false, alpha);
+            ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 24, e.y - 108, 48, 6);
+            ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
+            ctx.fillRect(e.x - 24, e.y - 108, 48 * (e.hp / 12), 6);
+          }
+        });
+      })(e);
+    }
+    for (i = 0; i < trails.length; i++) {
+      p = trails[i];
+      (function (p) {
+        push(p.y, function () {
+          drawSpr(SPR.roll, p.x, p.y, 44, 36, player.facing < 0, p.t / 0.28 * 0.45);
+        });
+      })(p);
+    }
+    push(player.y, function () {
+      shadow(player.x, player.y + 2, 16, 7);
+      drawSlashArc();
+      alpha = (player.iframes > 0 && ((performance.now() / 60) | 0) % 2 === 0) ? 0.35 : 1;
+      img = player.roll > 0 ? SPR.roll : (player.slashing > 0 ? SPR.slash : SPR.idle);
+      w = player.roll > 0 ? 50 : 52; h = player.roll > 0 ? 40 : 54;
+      var bob = player.roll > 0 ? 0 : Math.sin(player.bob) * 1.5;
+      drawSpr(img, player.x, player.y + bob, w, h, player.facing < 0, alpha);
+      drawHat(player.x, player.y + bob, player.facing < 0);
+    });
+    list.sort(function (a, b) { return a.y - b.y; });
+    for (i = 0; i < list.length; i++) list[i].fn();
+    for (i = 0; i < pops.length; i++) {
+      p = pops[i];
+      ctx.globalAlpha = p.t / 0.45;
+      ctx.fillStyle = p.kind === "spark" ? "#F5C400" : "#F4E6C3";
+      ctx.beginPath(); ctx.arc(p.x, p.y - (0.45 - p.t) * 20, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    if (player && player.hp > 0 && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) < 40 && exitDoor.locked) {
+      ctx.fillStyle = "#F4E6C3"; ctx.font = "800 13px Trebuchet MS, sans-serif";
+      ctx.textAlign = "center"; ctx.fillText(player.keys ? "OPEN" : "LOCKED", exitDoor.x, exitDoor.y + 22);
+    }
+  }
+
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.033, (ts - lastTs) / 1000);
+    lastTs = ts;
+    if (mode !== "play" || paused) { if (mode === "play") draw(); return; }
+    if (hitstop > 0) { hitstop -= dt; draw(); return; }
+    update(dt);
+    draw();
+  }
+
+  function setStick(nx, ny) {
+    var r = 32;
+    knobEl.style.left = (32 + nx * r) + "px";
+    knobEl.style.top = (32 + ny * r) + "px";
+    stick.x = nx; stick.y = ny;
+  }
+  function stickPos(ev) {
+    var rect = stickEl.getBoundingClientRect();
+    var x = (ev.clientX - rect.left) / rect.width * 2 - 1;
+    var y = (ev.clientY - rect.top) / rect.height * 2 - 1;
+    var L = Math.hypot(x, y);
+    if (L > 1) { x /= L; y /= L; }
+    return { x: x, y: y, L: L };
+  }
+  stickEl.addEventListener("pointerdown", function (ev) {
+    stickEl.setPointerCapture(ev.pointerId);
+    var now = performance.now();
+    if (now - stick.lastTap < 240) doRoll();
+    stick.lastTap = now;
+    stick.id = ev.pointerId;
+    var p = stickPos(ev); setStick(p.x, p.y);
+    ev.preventDefault();
+  });
+  stickEl.addEventListener("pointermove", function (ev) {
+    if (stick.id !== ev.pointerId) return;
+    var p = stickPos(ev); setStick(p.x, p.y);
+  });
+  function endStick(ev) {
+    if (stick.id !== ev.pointerId && ev.type !== "pointercancel") return;
+    stick.id = null; setStick(0, 0);
+  }
+  stickEl.addEventListener("pointerup", endStick);
+  stickEl.addEventListener("pointercancel", endStick);
+
+  function startHold() { swordHeld = true; holdT = 0; Sfx.ensure(); }
+  function endHold() {
+    if (!swordHeld) return;
+    var ch = holdT >= CHARGE_HOLD;
+    swordHeld = false; holdT = 0;
+    doSlash(ch);
+  }
+  btnSword.addEventListener("pointerdown", function (ev) { ev.preventDefault(); startHold(); });
+  btnSword.addEventListener("pointerup", function () { endHold(); });
+  btnSword.addEventListener("pointercancel", function () { endHold(); });
+  btnDodge.addEventListener("pointerdown", function (ev) { ev.preventDefault(); Sfx.ensure(); doRoll(); });
+
+  window.addEventListener("keydown", function (ev) {
+    keys[ev.code] = true;
+    if (ev.code === "Space" || ev.code === "KeyJ" || ev.code === "KeyZ") { if (!swordHeld) startHold(); ev.preventDefault(); }
+    if (ev.code === "ShiftLeft" || ev.code === "ShiftRight" || ev.code === "KeyK" || ev.code === "KeyC") { doRoll(); ev.preventDefault(); }
+    if (ev.code === "KeyP" || ev.code === "Escape") togglePause();
+    if (ev.code === "KeyM") toggleMute();
+  });
+  window.addEventListener("keyup", function (ev) {
+    keys[ev.code] = false;
+    if (ev.code === "Space" || ev.code === "KeyJ" || ev.code === "KeyZ") endHold();
+  });
+
+  function toggleMute() {
+    Sfx.muted = !Sfx.muted; patchSave({ mute: Sfx.muted }); hud();
+  }
+  function togglePause() {
+    if (mode !== "play") return;
+    paused = !paused;
+    document.getElementById("paused").classList.toggle("hidden", !paused);
+  }
+
+  function hideMenus() {
+    ["splash", "paused", "shop", "dead", "endcard"].forEach(function (id) {
+      document.getElementById(id).classList.add("hidden");
+    });
+  }
+  function goSplash() {
+    mode = "splash"; paused = false;
+    hideMenus();
+    document.getElementById("splash").classList.remove("hidden");
+    document.getElementById("history").classList.add("hidden");
+    app.classList.add("booting");
+    var s = loadSave();
+    document.getElementById("btn-continue").hidden = !(s.level > 1 || s.act1Held);
+    document.getElementById("hat-tip").classList.toggle("hidden", !hasHat);
+  }
+  function startPlay(n, skipIntro) {
+    Sfx.ensure();
+    var s = loadSave();
+    chips = s.chips;
+    Sfx.muted = !!s.mute;
+    hideMenus();
+    document.getElementById("history").classList.add("hidden");
+    app.classList.remove("booting");
+    mode = "play"; paused = false;
+    buildLevel(n);
+    lastTs = performance.now();
+  }
+
+  function playIntro(after) {
+    histPlaying = true; histI = -1; introAfter = after || null;
+    document.getElementById("history").classList.remove("hidden");
+    var skip = document.getElementById("hist-skip");
+    skip.disabled = true; histSkipArmed = 0;
+    setTimeout(function () { skip.disabled = false; histSkipArmed = 1; }, 550);
+    nextIntro();
+  }
+  function nextIntro() {
+    if (!histPlaying) return;
+    histI += 1;
+    if (histI >= INTRO.length) { stopIntro(); return; }
+    var b = INTRO[histI];
+    document.getElementById("hist-img").src = b.src;
+    document.getElementById("hist-line").textContent = b.line;
+    clearTimeout(histTimer);
+    histTimer = setTimeout(nextIntro, 3200);
+  }
+  function stopIntro() {
+    if (!histPlaying) return;
+    histPlaying = false; clearTimeout(histTimer);
+    document.getElementById("history").classList.add("hidden");
+    patchSave({ introSeen: true });
+    var cb = introAfter; introAfter = null;
+    if (cb) cb();
+  }
+  document.getElementById("hist-skip").addEventListener("click", function () {
+    if (!histSkipArmed) return;
+    stopIntro();
+  });
+  document.getElementById("history").addEventListener("click", function (ev) {
+    if (ev.target.id === "hist-skip") return;
+    if (!histSkipArmed || !histPlaying) return;
+    nextIntro();
+  });
+
+  document.getElementById("btn-play").addEventListener("click", function () {
+    Sfx.ensure();
+    var seen = loadSave().introSeen;
+    patchSave({ level: 1, hp: 6 });
+    var go = function () { startPlay(1, true); };
+    if (!seen) playIntro(go);
+    else go();
+  });
+  document.getElementById("btn-continue").addEventListener("click", function () {
+    var s = loadSave();
+    if (s.act1Held) {
+      hideMenus(); document.getElementById("endcard").classList.remove("hidden"); mode = "end"; return;
+    }
+    startPlay(s.level || 1, true);
+  });
+  document.getElementById("btn-intro").addEventListener("click", function () { Sfx.ensure(); playIntro(null); });
+  document.getElementById("btn-shop").addEventListener("click", function () { document.getElementById("shop").classList.remove("hidden"); });
+  document.getElementById("btn-shop2").addEventListener("click", function () { document.getElementById("shop").classList.remove("hidden"); });
+  document.getElementById("btn-shop-close").addEventListener("click", function () { document.getElementById("shop").classList.add("hidden"); });
+  document.getElementById("btn-mute").addEventListener("click", toggleMute);
+  document.getElementById("btn-pause").addEventListener("click", togglePause);
+  document.getElementById("btn-resume").addEventListener("click", togglePause);
+  document.getElementById("btn-quit").addEventListener("click", goSplash);
+  document.getElementById("btn-retry").addEventListener("click", function () {
+    document.getElementById("dead").classList.add("hidden");
+    var hpKeep = 6;
+    patchSave({ hp: hpKeep, chips: chips });
+    startPlay(levelN, true);
+  });
+  document.getElementById("btn-end-ok").addEventListener("click", goSplash);
+  document.getElementById("btn-end-replay").addEventListener("click", function () {
+    patchSave({ level: 1, hp: 6 });
+    startPlay(1, true);
+  });
+
+  hasHat = lodgeFlag();
+  Sfx.muted = !!loadSave().mute;
+  hud();
+  goSplash();
+  requestAnimationFrame(function (t) { lastTs = t; frame(t); });
+})();
+  </script>
+</body>
+</html>
