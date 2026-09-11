@@ -97,6 +97,15 @@
       pointer-events: none; transition: opacity 0.35s ease;
     }
     #fade.on { opacity: 1; }
+    #lv-banner {
+      position: absolute; inset: 0; z-index: 9;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+      font-size: clamp(32px, 10vw, 52px); font-weight: 900;
+      color: var(--yellow); letter-spacing: 0.06em;
+      text-shadow: 0 3px 0 #1A1028, 0 8px 20px #000;
+    }
+    #lv-banner.hidden { display: none !important; }
     #dock {
       flex: 0 0 auto; z-index: 20; position: relative; background: #1A1028;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -223,6 +232,7 @@
         <div class="hint">WASD · ARROWS</div>
       </div>
       <div id="fade"></div>
+      <div id="lv-banner" class="hidden">LEVEL 1/5</div>
     </div>
     <div id="dock">
       <div id="stick" aria-label="Move"><div id="knob"></div></div>
@@ -363,7 +373,9 @@
   var mode = "splash", paused = false, lastTs = 0, hitstop = 0, shake = 0, fadeT = 0;
   var sayT = 0, ghostT = 0, clearFade = 0;
   var trails = [], pops = [], flakes = [];
-  var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false, levelTransit = false;
+  var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false;
+  var levelTransit = false, levelTimer = null, exitArmed = true;
+  var lvBannerT = 0;
   var chips = 0, hasHat = false, introAfter = null;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
 
@@ -430,10 +442,25 @@
     var s = loadSave();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        level: levelN, chips: chips, hp: player ? player.hp : 6,
+        level: Math.max(1, Math.min(5, levelN | 0 || 1)), chips: chips, hp: player ? player.hp : 6,
         mute: Sfx.muted, act1Held: !!s.act1Held, introSeen: !!s.introSeen
       }));
     } catch (e) {}
+  }
+  function newGameWipe() {
+    var seen = false, mute = Sfx.muted;
+    try {
+      var s = loadSave();
+      seen = !!s.introSeen;
+      mute = !!s.mute;
+    } catch (e) {}
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    chips = 0;
+    Sfx.muted = mute;
+    if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
+    levelTransit = false;
+    exitArmed = true;
+    patchSave({ level: 1, chips: 0, hp: 6, act1Held: false, introSeen: seen, mute: mute });
   }
   function patchSave(p) {
     var s = loadSave(), k;
@@ -629,7 +656,16 @@
     return p;
   }
 
+  function flashLevel(n) {
+    var el = document.getElementById("lv-banner");
+    if (!el) return;
+    el.textContent = "LEVEL " + n + "/5";
+    el.classList.remove("hidden");
+    lvBannerT = 1;
+  }
+
   function buildLevel(n) {
+    if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
     n = Math.max(1, Math.min(5, n | 0 || 1));
     enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
@@ -642,6 +678,7 @@
       hurt: 0, keys: 0, bob: 0
     };
     if (player.hp <= 0) player.hp = 6;
+    exitArmed = false;
     exitDoor = { x: 180, y: 48, locked: n === 4, open: false, r: 22 };
     if (n === 1) {
       addSolid("pine", 52, 90, 22, 28); addSolid("pine", 308, 96, 22, 28);
@@ -676,6 +713,7 @@
     flakes = [];
     for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
     hud();
+    flashLevel(n);
     fadeEl.classList.add("on");
     fadeT = 0.4;
     if (n === 1) {
@@ -709,16 +747,19 @@
   }
 
   function tryExit() {
-    if (levelTransit) return;
-    if (!exitDoor.open || exitDoor.locked) return;
+    if (levelTransit || !exitArmed) return;
+    if (!exitDoor || !exitDoor.open || exitDoor.locked) return;
     if (Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 30) return;
     levelTransit = true;
+    exitArmed = false;
     exitDoor.open = false;
     exitDoor.locked = true;
+    if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     var next = levelN + 1;
     Sfx.door();
     fadeEl.classList.add("on");
-    setTimeout(function () {
+    levelTimer = setTimeout(function () {
+      levelTimer = null;
       if (next > 5) {
         mode = "end";
         patchSave({ act1Held: true, level: 5, chips: chips, hp: player.hp });
@@ -852,6 +893,16 @@
     }
     if (john && !john.said && levelN === 1 && dist(player, john) < 50) john.said = true;
     maybeClear();
+    if (lvBannerT > 0) {
+      lvBannerT -= dt;
+      if (lvBannerT <= 0) {
+        var ban = document.getElementById("lv-banner");
+        if (ban) ban.classList.add("hidden");
+      }
+    }
+    if (!exitArmed && exitDoor && player && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 64) {
+      exitArmed = true;
+    }
     if (levelN === 5 && cleared) {
       clearFade -= dt;
       if (clearFade <= 0 && mode === "play") {
@@ -860,7 +911,7 @@
         document.getElementById("endcard").classList.remove("hidden");
         app.classList.add("booting");
       }
-    } else {
+    } else if (exitArmed && !levelTransit) {
       tryExit();
     }
     if (shake > 0) shake -= dt;
@@ -1163,6 +1214,8 @@
   }
   function startPlay(n, skipIntro) {
     Sfx.ensure();
+    if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
+    levelTransit = false;
     var s = loadSave();
     chips = s.chips;
     Sfx.muted = !!s.mute;
@@ -1213,7 +1266,7 @@
   document.getElementById("btn-play").addEventListener("click", function () {
     Sfx.ensure();
     var seen = loadSave().introSeen;
-    patchSave({ level: 1, hp: 6 });
+    newGameWipe();
     var go = function () { startPlay(1, true); };
     if (!seen) playIntro(go);
     else go();
@@ -1242,7 +1295,7 @@
   });
   document.getElementById("btn-end-ok").addEventListener("click", goSplash);
   document.getElementById("btn-end-replay").addEventListener("click", function () {
-    patchSave({ level: 1, hp: 6 });
+    newGameWipe();
     startPlay(1, true);
   });
 

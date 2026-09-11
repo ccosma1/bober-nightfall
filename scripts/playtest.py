@@ -130,12 +130,24 @@ def main() -> int:
         errors.append("L5 brute missing")
     if "levelTransit" not in text:
         errors.append("missing levelTransit latch")
+    if "exitArmed" not in text:
+        errors.append("missing exitArmed")
+    if "levelTimer" not in text:
+        errors.append("missing levelTimer")
+    if "clearTimeout(levelTimer)" not in text:
+        errors.append("missing clearTimeout(levelTimer)")
     if "buildLevel(levelN + 1)" in text:
         errors.append("live levelN+1 still in timeout")
     if "var next = levelN + 1" not in text:
         errors.append("tryExit must capture next")
     if "open: n === 1" in text:
         errors.append("L1 door still open at spawn")
+    if "LEVEL " not in text or "lv-banner" not in text:
+        errors.append("missing LEVEL n/5 banner")
+    if "newGameWipe" not in text:
+        errors.append("missing new-game wipe")
+    if "localStorage.removeItem(SAVE_KEY)" not in text:
+        errors.append("FACE THE FROST must wipe save")
 
     if errors:
         print("FAIL")
