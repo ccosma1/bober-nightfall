@@ -290,7 +290,7 @@
         <button class="play ghost" id="btn-intro" type="button">INTRO</button>
         <button class="play ghost" id="btn-shop" type="button">SHOP</button>
       </div>
-      <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/" target="_blank" rel="noopener">More games · Green Home Games</a></p>
+      <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/">More games · Green Home Games</a></p>
     </div>
     <div id="history" class="overlay hidden" role="dialog" aria-label="Nightfall intro">
       <div class="hist-stage">
@@ -316,10 +316,10 @@
     <div id="shop" class="overlay hidden">
       <div class="tip-card">
         <h2>WOODCHIP SHOP</h2>
-        <p class="how" id="shop-how">Spend wood in Act I. Ember Woods.</p>
+        <p class="how" id="shop-how">Spend wood. Ember Woods / Ice Approaches.</p>
         <button type="button" class="shop-item" id="shop-piece">Heart Piece<small>25W · 2 pieces → +1 heart max</small></button>
-        <div class="shop-item locked">Bomb bush<small>Act II · 40W</small></div>
-        <div class="shop-item locked">Warm tunic<small>Act II · 60W</small></div>
+        <button type="button" class="shop-item" id="shop-bomb">Bomb<small>40W · carry 1–3</small></button>
+        <div class="shop-item locked">Warm tunic<small>Act III · 60W</small></div>
         <button class="play" id="btn-shop-close" type="button">CLOSE</button>
       </div>
     </div>
@@ -332,14 +332,14 @@
     </div>
     <div id="endcard" class="overlay hidden">
       <img class="hero" src="assets/endcard.jpg" alt="" />
-      <h2>ACT I HELD</h2>
-      <p class="tagline">Ember Woods. The Ice Brute is down. The crown still waits.</p>
-      <p class="how">Levels 6–25 later. No wallet. No gacha.</p>
+      <h2 id="end-title">ACT I HELD</h2>
+      <p class="tagline" id="end-tag">Ember Woods. The Ice Brute is down. The crown still waits.</p>
+      <p class="how" id="end-how">No wallet. No gacha.</p>
       <div class="end-actions">
         <button class="play" id="btn-end-ok" type="button">SPLASH</button>
-        <button class="play ghost" id="btn-end-replay" type="button">REPLAY 1–5</button>
+        <button class="play ghost" id="btn-end-replay" type="button">REPLAY</button>
       </div>
-      <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/" target="_blank" rel="noopener">More games · Green Home Games</a></p>
+      <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/">More games · Green Home Games</a></p>
     </div>
   </div>
   <script>
@@ -386,7 +386,11 @@
     pine: "assets/sprites/pine.png",
     pineSnow: "assets/sprites/pine-snow.png",
     door: "assets/sprites/door.png",
-    doorLock: "assets/sprites/door-lock.png"
+    doorLock: "assets/sprites/door-lock.png",
+    hound: "assets/sprites/frost-hound.png",
+    houndDash: "assets/sprites/frost-hound-dash.png",
+    bomb: "assets/sprites/bomb.png",
+    ice: "assets/sprites/ice-block.png"
   };
   var SPR = {}, snowTile = new Image();
   snowTile.src = "assets/tiles/snow.png";
@@ -413,8 +417,9 @@
   var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false;
   var levelTransit = false, levelTimer = null, exitArmed = true;
   var lvBannerT = 0;
-  var chips = 0, hpMax = 6, heartPieces = 0, pieceBought = false, l5Piece = false;
-  var restMask = 0, warmMask = 0, hasHat = false, introAfter = null;
+  var chips = 0, hpMax = 6, heartPieces = 0, pieceBought = false, l5Piece = false, l10Piece = false;
+  var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, iceSeen = false;
+  var liveBomb = null, hasHat = false, introAfter = null;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
 
@@ -463,8 +468,8 @@
   function defaultSave() {
     return {
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
-      pieceBought: false, l5Piece: false, restMask: 0, warmMask: 0,
-      mute: false, act1Held: false, introSeen: false
+      pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
+      bombs: 0, iceSeen: false, mute: false, act1Held: false, act2Held: false, introSeen: false
     };
   }
   function loadSave() {
@@ -473,7 +478,7 @@
       var raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return d;
       var s = JSON.parse(raw);
-      d.level = Math.max(1, Math.min(5, s.level || 1));
+      d.level = Math.max(1, Math.min(10, s.level || 1));
       d.chips = Math.max(0, s.chips | 0);
       d.hpMax = Math.max(6, Math.min(HP_CAP, s.hpMax == null ? 6 : s.hpMax | 0));
       if (d.hpMax % 2) d.hpMax += 1;
@@ -481,10 +486,14 @@
       d.heartPieces = Math.max(0, Math.min(1, s.heartPieces | 0));
       d.pieceBought = !!s.pieceBought;
       d.l5Piece = !!s.l5Piece;
+      d.l10Piece = !!s.l10Piece;
       d.restMask = s.restMask | 0;
       d.warmMask = s.warmMask | 0;
+      d.bombs = Math.max(0, Math.min(3, s.bombs | 0));
+      d.iceSeen = !!s.iceSeen;
       d.mute = !!s.mute;
       d.act1Held = !!s.act1Held;
+      d.act2Held = !!s.act2Held;
       d.introSeen = !!s.introSeen;
       return d;
     } catch (e) {
@@ -497,25 +506,33 @@
     heartPieces = s.heartPieces | 0;
     pieceBought = !!s.pieceBought;
     l5Piece = !!s.l5Piece;
+    l10Piece = !!s.l10Piece;
     restMask = s.restMask | 0;
     warmMask = s.warmMask | 0;
+    bombs = s.bombs | 0;
+    iceSeen = !!s.iceSeen;
+    act2Held = !!s.act2Held;
     Sfx.muted = !!s.mute;
   }
   function persist() {
     var s = loadSave();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        level: Math.max(1, Math.min(5, levelN | 0 || 1)),
+        level: Math.max(1, Math.min(10, levelN | 0 || 1)),
         chips: chips,
         hp: player ? player.hp : hpMax,
         hpMax: hpMax,
         heartPieces: heartPieces,
         pieceBought: pieceBought,
         l5Piece: l5Piece,
+        l10Piece: l10Piece,
         restMask: restMask,
         warmMask: warmMask,
+        bombs: bombs,
+        iceSeen: iceSeen,
         mute: Sfx.muted,
         act1Held: !!s.act1Held,
+        act2Held: !!s.act2Held || act2Held,
         introSeen: !!s.introSeen
       }));
     } catch (e) {}
@@ -528,16 +545,16 @@
       mute = !!s.mute;
     } catch (e) {}
     try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-    chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false;
-    restMask = 0; warmMask = 0;
+    chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
+    restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; act2Held = false; liveBomb = null;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
     exitArmed = true;
     patchSave({
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
-      pieceBought: false, l5Piece: false, restMask: 0, warmMask: 0,
-      act1Held: false, introSeen: seen, mute: mute
+      pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
+      bombs: 0, iceSeen: false, act1Held: false, act2Held: false, introSeen: seen, mute: mute
     });
   }
   function patchSave(p) {
@@ -577,20 +594,28 @@
     }
     heartsEl.innerHTML = h;
     chipWood.textContent = "W " + chips;
-    chipLv.textContent = "L " + levelN + "/5";
+    chipLv.textContent = "L " + levelN + "/10";
     var act = document.getElementById("chip-act");
-    if (act) act.textContent = heartPieces ? "Ember Woods · ◆" + heartPieces + "/2" : "Ember Woods";
+    var actName = levelN >= 6 ? "Ice Approaches" : "Ember Woods";
+    if (act) act.textContent = heartPieces ? actName + " · ◆" + heartPieces + "/2" : actName;
+    var cb = document.getElementById("chip-bomb");
+    if (cb) { cb.textContent = "B " + bombs; cb.classList.toggle("hidden", bombs <= 0 && !liveBomb); }
+    var bb = document.getElementById("btn-bomb");
+    if (bb) bb.disabled = bombs <= 0;
     btnMute.textContent = Sfx.muted ? "🔇" : "🔊";
     btnMute.classList.toggle("on", Sfx.muted);
     btnDodge.classList.toggle("cd", player && player.rollCd > 0 && player.roll <= 0);
     btnSword.classList.toggle("charged", swordHeld && holdT >= CHARGE_HOLD);
     btnSword.classList.toggle("held", swordHeld);
   }
+  function heartCap() {
+    return (levelN >= 6 || iceSeen || act2Held) ? Math.min(HP_CAP, 10) : HP_CAP_ACT1;
+  }
   function addHeartPiece() {
     heartPieces += 1;
     if (heartPieces >= 2) {
       heartPieces -= 2;
-      hpMax = Math.min(HP_CAP_ACT1, hpMax + 2);
+      hpMax = Math.min(heartCap(), hpMax + 2);
       if (player) player.hp = Math.min(hpMax, player.hp + 2);
     }
     persist();
@@ -643,15 +668,22 @@
   function renderShop() {
     var btn = document.getElementById("shop-piece");
     var how = document.getElementById("shop-how");
-    if (how) how.textContent = "W " + chips + " · Heart max " + (hpMax / 2) + (heartPieces ? " · piece " + heartPieces + "/2" : "");
-    if (!btn) return;
-    if (pieceBought) {
-      btn.disabled = true; btn.classList.add("locked");
-      btn.innerHTML = "Heart Piece<small>Sold · Act I once</small>";
-    } else {
-      btn.disabled = chips < 25;
-      btn.classList.toggle("locked", chips < 25);
-      btn.innerHTML = "Heart Piece<small>25W · 2 pieces → +1 heart max</small>";
+    var bombBtn = document.getElementById("shop-bomb");
+    if (how) how.textContent = "W " + chips + " · Hearts " + (hpMax / 2) + " · Bombs " + bombs + "/3";
+    if (btn) {
+      if (pieceBought) {
+        btn.disabled = true; btn.classList.add("locked");
+        btn.innerHTML = "Heart Piece<small>Sold · Act I once</small>";
+      } else {
+        btn.disabled = chips < 25;
+        btn.classList.toggle("locked", chips < 25);
+        btn.innerHTML = "Heart Piece<small>25W · 2 pieces → +1 heart max</small>";
+      }
+    }
+    if (bombBtn) {
+      bombBtn.disabled = bombs >= 3 || chips < 40;
+      bombBtn.classList.toggle("locked", bombs >= 3 || chips < 40);
+      bombBtn.innerHTML = bombs >= 3 ? "Bomb<small>Full · 3/3</small>" : "Bomb<small>40W · carry " + bombs + "/3</small>";
     }
   }
   function buyPiece() {
@@ -660,6 +692,12 @@
     pieceBought = true;
     addHeartPiece();
     renderShop();
+  }
+  function buyBomb() {
+    if (bombs >= 3 || chips < 40) return;
+    chips -= 40;
+    bombs += 1;
+    persist(); hud(); renderShop();
   }
 
   function say(who, text, t) {
@@ -677,6 +715,7 @@
   }
   function breakProp(p, fromSlash) {
     if (!p.alive) return;
+    if ((p.kind === "ice" || p.kind === "frostBush") && fromSlash) return;
     p.alive = false;
     addPop(p.x, p.y, p.kind);
     Sfx.hit();
@@ -729,6 +768,11 @@
       Sfx.block();
       return;
     }
+    if (e.kind === "hound" && (e.state === "tele" || e.state === "dash")) {
+      addPop(e.x, e.y, "spark");
+      Sfx.block();
+      return;
+    }
     e.hp -= dmg;
     e.kx = Math.cos(ang) * kforce;
     e.ky = Math.sin(ang) * kforce;
@@ -745,6 +789,8 @@
     else if (e.kind === "spit") { chips += 2; drop(e.x, e.y, "chip"); }
     else if (e.kind === "grunt") {
       chips += 2; drop(e.x, e.y, "chip");
+    } else if (e.kind === "hound") {
+      chips += 4; drop(e.x, e.y, "chip");
     } else if (e.kind === "brute") {
       chips += 5; drop(e.x, e.y, "chip");
       if (Math.random() < 0.8) drop(e.x + 16, e.y, "heart");
@@ -800,29 +846,37 @@
     if (kind === "rat") { e.hp = 1; e.r = 14; e.spd = 92; }
     else if (kind === "spit") { e.hp = 2; e.r = 18; e.spd = 38; e.cd = 0.6; }
     else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 1.6; }
+    else if (kind === "hound") { e.hp = 9; e.r = 26; e.spd = 86; e.state = "idle"; e.st = 0.7; e.dx = 1; e.dy = 0; }
     else { e.hp = 12; e.r = 34; e.spd = 46; e.state = "idle"; e.st = 0.9; }
     enemies.push(e);
   }
   function addSolid(kind, x, y, hw, hh) {
     var p = { kind: kind, x: x, y: y, hw: hw, hh: hh, r: Math.max(hw, hh), alive: true, hasKey: false };
     props.push(p);
-    if (kind === "pine" || kind === "block") solids.push(p);
-    else if (kind === "bush" || kind === "pot") solids.push(p);
+    if (kind === "pine" || kind === "block" || kind === "ice" || kind === "fence") solids.push(p);
+    else if (kind === "bush" || kind === "pot" || kind === "frostBush") solids.push(p);
     return p;
   }
 
   function flashLevel(n) {
     var el = document.getElementById("lv-banner");
     if (!el) return;
-    el.textContent = "LEVEL " + n + "/5";
+    if (n >= 6 && !iceSeen) {
+      el.textContent = "ICE APPROACHES";
+      iceSeen = true;
+      persist();
+    } else {
+      el.textContent = "LEVEL " + n + "/10";
+    }
     el.classList.remove("hidden");
-    lvBannerT = 1;
+    lvBannerT = n >= 6 && el.textContent === "ICE APPROACHES" ? 1.35 : 1;
   }
 
   function buildLevel(n) {
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
-    n = Math.max(1, Math.min(5, n | 0 || 1));
+    n = Math.max(1, Math.min(10, n | 0 || 1));
+    liveBomb = null;
     enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
     john = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
     hideClearSpend();
@@ -836,7 +890,7 @@
     };
     if (player.hp <= 0) player.hp = hpMax;
     exitArmed = false;
-    exitDoor = { x: 180, y: 48, locked: n === 4, open: false, r: 22 };
+    exitDoor = { x: 180, y: 48, locked: n === 4 || n === 9, open: false, r: 22 };
     if (n === 1) {
       addSolid("pine", 52, 90, 22, 28); addSolid("pine", 308, 96, 22, 28);
       addSolid("pine", 46, 260, 22, 28); addSolid("pine", 314, 270, 22, 28);
@@ -862,9 +916,31 @@
       addSolid("bush", 300, 360, 16, 14);
       spawnEnemy("grunt", 180, 210);
       exitDoor.locked = true; exitDoor.open = false;
-    } else {
+    } else if (n === 5) {
       spawnEnemy("brute", 180, 200);
       addSolid("pine", 46, 80, 22, 28); addSolid("pine", 314, 84, 22, 28);
+    } else if (n === 6) {
+      addSolid("ice", 70, 160, 20, 20); addSolid("ice", 290, 170, 20, 20);
+      addSolid("ice", 80, 300, 18, 18);
+      spawnEnemy("rat", 120, 170); spawnEnemy("rat", 250, 180);
+      spawnEnemy("spit", 180, 140);
+    } else if (n === 7) {
+      addSolid("bush", 120, 250, 16, 14); addSolid("bush", 240, 250, 16, 14);
+      addSolid("bush", 180, 300, 16, 14); addSolid("frostBush", 180, 200, 16, 14);
+      spawnEnemy("spit", 80, 140); spawnEnemy("spit", 280, 150);
+    } else if (n === 8) {
+      addSolid("fence", 90, 220, 40, 10); addSolid("fence", 270, 220, 40, 10);
+      addSolid("fence", 180, 320, 50, 10);
+      spawnEnemy("grunt", 180, 200); spawnEnemy("spit", 80, 140);
+    } else if (n === 9) {
+      addSolid("ice", 130, 130, 22, 22); addSolid("ice", 180, 128, 22, 22); addSolid("ice", 230, 130, 22, 22);
+      addSolid("pot", 64, 280, 14, 14).hasKey = true;
+      drop(300, 320, "bomb");
+      spawnEnemy("rat", 200, 250);
+      exitDoor.locked = true; exitDoor.open = false;
+    } else {
+      spawnEnemy("hound", 180, 200);
+      addSolid("ice", 50, 90, 18, 18); addSolid("ice", 310, 96, 18, 18);
     }
     var i;
     flakes = [];
@@ -877,7 +953,7 @@
       say("JOHN SNOW", "John Snow from the white…", 3.4);
       ghostT = 13.4;
     }
-    patchSave({ level: n, chips: chips, hp: player.hp });
+    patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, act1Held: n >= 6 });
   }
 
   function maybeClear() {
@@ -891,18 +967,28 @@
       if (left) return;
     }
     cleared = true;
-    clearFade = levelN === 5 ? 2.4 : 0.55;
+    clearFade = levelN === 10 ? 2.4 : 0.55;
     Sfx.win();
     if (levelN === 5 && !l5Piece) { l5Piece = true; addHeartPiece(); }
+    if (levelN === 10 && !l10Piece && (heartPieces === 1 || hpMax < heartCap())) {
+      l10Piece = true; addHeartPiece();
+    }
     showClearSpend();
     if (levelN === 3 && john && !john.said) {
       john.said = true;
       say("JOHN SNOW", "Door’s yours.", 2.8);
       exitDoor.open = true;
-    } else if (levelN !== 4) {
+    } else if (levelN !== 4 && levelN !== 9) {
       exitDoor.open = true; exitDoor.locked = false;
     }
-    if (levelN === 4 && player.keys > 0) { exitDoor.locked = false; exitDoor.open = true; }
+    if ((levelN === 4 || levelN === 9) && player.keys > 0) {
+      exitDoor.locked = false; exitDoor.open = true;
+    }
+    if (levelN === 9) {
+      var iceN = 0, ii;
+      for (ii = 0; ii < props.length; ii++) if (props[ii].kind === "ice" && props[ii].alive) iceN++;
+      if (iceN === 0) { exitDoor.locked = false; exitDoor.open = true; }
+    }
   }
 
   function tryExit() {
@@ -919,14 +1005,10 @@
     fadeEl.classList.add("on");
     levelTimer = setTimeout(function () {
       levelTimer = null;
-      if (next > 5) {
-        mode = "end";
-        persist();
-        patchSave({ act1Held: true, level: 5 });
-        hideClearSpend();
-        document.getElementById("endcard").classList.remove("hidden");
-        app.classList.add("booting");
+      if (next > 10) {
+        showActEnd(2);
       } else {
+        if (next === 6) patchSave({ act1Held: true });
         buildLevel(next);
       }
     }, 280);
@@ -974,7 +1056,84 @@
       } else if (e.state === "stun") {
         if (e.st <= 0) { e.state = "chase"; e.t = 0; }
       }
+    } else if (e.kind === "hound") {
+      e.fx = ux; e.fy = uy;
+      if (e.state === "idle") {
+        if (e.st <= 0) e.state = "chase";
+      } else if (e.state === "chase") {
+        moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+        if (d < 108 || e.t > 1.7) {
+          e.state = "tele"; e.st = 0.55; e.dx = ux; e.dy = uy; e.hit = false;
+        }
+        if (d < e.r + player.r - 2) hurtPlayer(e, 200);
+      } else if (e.state === "tele") {
+        if (e.st <= 0) { e.state = "dash"; e.st = 0.28; Sfx.slam(); }
+      } else if (e.state === "dash") {
+        moveEnt(e, e.dx * 340 * dt, e.dy * 340 * dt);
+        if (Math.hypot(player.x - e.x, player.y - e.y) < e.r + player.r) {
+          e.hit = true; hurtPlayer(e, 240);
+        }
+        if (e.st <= 0) {
+          if (!e.hit) { e.state = "stun"; e.st = 1.12; }
+          else { e.state = "chase"; e.t = 0; }
+        }
+      } else if (e.state === "stun") {
+        if (e.st <= 0) { e.state = "chase"; e.t = 0; }
+      }
     }
+  }
+
+  function placeBomb() {
+    if (!player || mode !== "play" || paused || player.hp <= 0) return;
+    if (bombs < 1 || liveBomb) return;
+    bombs -= 1;
+    var L = Math.hypot(player.ax, player.ay) || 1;
+    liveBomb = { x: player.x + (player.ax / L) * 22, y: player.y + (player.ay / L) * 22, t: 0.9 };
+    Sfx.place ? Sfx.place() : Sfx.beep(180, 0.08, "square", 0.05);
+    persist(); hud();
+  }
+  function explodeBomb() {
+    if (!liveBomb) return;
+    var b = liveBomb, i, p, e, d;
+    liveBomb = null;
+    shake = 0.22; Sfx.slam();
+    addPop(b.x, b.y, "spark");
+    for (i = 0; i < props.length; i++) {
+      p = props[i];
+      if (!p.alive) continue;
+      if (p.kind !== "ice" && p.kind !== "frostBush" && p.kind !== "bush") continue;
+      if (Math.hypot(p.x - b.x, p.y - b.y) < 62) breakProp(p, false);
+    }
+    for (i = 0; i < enemies.length; i++) {
+      e = enemies[i];
+      if (e.dead) continue;
+      d = Math.hypot(e.x - b.x, e.y - b.y);
+      if (d < 62) {
+        e.hp -= 1;
+        e.flash = 0.12;
+        e.kx = (e.x - b.x) / (d || 1) * 180;
+        e.ky = (e.y - b.y) / (d || 1) * 180;
+        if (e.hp <= 0) killEnemy(e);
+      }
+    }
+    if (levelN === 9) {
+      var iceN = 0;
+      for (i = 0; i < props.length; i++) if (props[i].kind === "ice" && props[i].alive) iceN++;
+      if (iceN === 0) { exitDoor.locked = false; if (cleared) exitDoor.open = true; Sfx.door(); }
+    }
+  }
+  function showActEnd(act) {
+    mode = "end";
+    if (act === 2) act2Held = true;
+    persist();
+    patchSave(act === 2 ? { act2Held: true, level: 10 } : { act1Held: true, level: 5 });
+    hideClearSpend();
+    var t = document.getElementById("end-title");
+    var g = document.getElementById("end-tag");
+    if (t) t.textContent = act === 2 ? "ACT II HELD" : "ACT I HELD";
+    if (g) g.textContent = act === 2 ? "Ice Approaches held. The crown still waits." : "Ember Woods. The Ice Brute is down. The crown still waits.";
+    document.getElementById("endcard").classList.remove("hidden");
+    app.classList.add("booting");
   }
 
   function slashConeHit(px, py) {
@@ -1020,7 +1179,17 @@
       addTrail(player.x, player.y);
     } else if (player.slashing > 0) spd *= 0.35;
     else if (swordHeld && holdT >= CHARGE_HOLD) spd *= 0.55;
+    if (levelN === 6) {
+      player.iceX = (player.iceX || 0) * 0.84 + mx * 0.16;
+      player.iceY = (player.iceY || 0) * 0.84 + my * 0.16;
+      mx = mx * 0.9 + player.iceX * 0.1;
+      my = my * 0.9 + player.iceY * 0.1;
+    }
     if (player.hp > 0) moveEnt(player, mx * spd * dt + player.kx * dt, my * spd * dt + player.ky * dt);
+    if (liveBomb) {
+      liveBomb.t -= dt;
+      if (liveBomb.t <= 0) explodeBomb();
+    }
 
     var i, s, p;
     for (i = 0; i < enemies.length; i++) updateEnemy(enemies[i], dt);
@@ -1041,6 +1210,7 @@
       if (Math.hypot(p.x - player.x, p.y - player.y) < 22) {
         if (p.kind === "heart") player.hp = Math.min(hpMax, player.hp + 2);
         else if (p.kind === "key") player.keys += 1;
+        else if (p.kind === "bomb") bombs = Math.min(3, bombs + 1);
         else if (p.kind === "chip") {}
         Sfx.pick();
         pickups.splice(i, 1);
@@ -1050,8 +1220,13 @@
 
     if (player.keys > 0 && exitDoor.locked && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) < 36) {
       exitDoor.locked = false; exitDoor.open = true; player.keys -= 1; Sfx.door();
+      if (levelN === 9) {
+        for (i = 0; i < props.length; i++) if (props[i].kind === "ice" && props[i].alive) { props[i].alive = false; addPop(props[i].x, props[i].y, "snow"); }
+      }
     }
-    solids = props.filter(function (q) { return q.alive && (q.kind === "pine" || q.kind === "block" || q.kind === "bush" || q.kind === "pot"); });
+    solids = props.filter(function (q) {
+      return q.alive && (q.kind === "pine" || q.kind === "block" || q.kind === "bush" || q.kind === "pot" || q.kind === "ice" || q.kind === "fence" || q.kind === "frostBush");
+    });
 
     if (sayT > 0) { sayT -= dt; if (sayT <= 0) hideSay(); }
     if (levelN === 1 && ghostT > 0) {
@@ -1065,7 +1240,10 @@
       lvBannerT -= dt;
       if (lvBannerT <= 0) {
         var ban = document.getElementById("lv-banner");
-        if (ban) ban.classList.add("hidden");
+        if (ban && ban.textContent === "ICE APPROACHES") {
+          ban.textContent = "LEVEL " + levelN + "/10";
+          lvBannerT = 1;
+        } else if (ban) ban.classList.add("hidden");
       }
     }
     if (clearFlashT > 0) {
@@ -1078,16 +1256,9 @@
     if (!exitArmed && exitDoor && player && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 64) {
       exitArmed = true;
     }
-    if (levelN === 5 && cleared) {
+    if (levelN === 10 && cleared) {
       clearFade -= dt;
-      if (clearFade <= 0 && mode === "play") {
-        mode = "end";
-        persist();
-        patchSave({ act1Held: true, level: 5 });
-        hideClearSpend();
-        document.getElementById("endcard").classList.remove("hidden");
-        app.classList.add("booting");
-      }
+      if (clearFade <= 0 && mode === "play") showActEnd(2);
     } else if (exitArmed && !levelTransit) {
       tryExit();
     }
@@ -1119,7 +1290,10 @@
     ctx.drawImage(img, -w / 2, -h, w, h);
     ctx.restore();
   }
-  function themeT() { return (levelN - 1) / 4; }
+  function themeT() {
+    if (levelN >= 6) return 0.84 + (levelN - 6) * 0.03;
+    return (levelN - 1) / 4;
+  }
   function lerpC(a, b, t) {
     var pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
     var r = (pa >> 16) + ((pb >> 16) - (pa >> 16)) * t | 0;
@@ -1147,6 +1321,16 @@
     ctx.fillRect(0, 0, WALL, H); ctx.fillRect(W - WALL, 0, WALL, H);
     ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 3;
     ctx.strokeRect(WALL - 1, WALL - 1, W - WALL * 2 + 2, H - WALL * 2 + 2);
+    if (levelN >= 6) {
+      ctx.save();
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = "#4a3420";
+      var lg;
+      for (lg = 0; lg < 4; lg++) ctx.fillRect(24, 70 + lg * 7, 88, 5);
+      ctx.fillStyle = "rgba(168,196,232,0.35)";
+      ctx.beginPath(); ctx.ellipse(180, 260, 70, 18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
     if (levelN === 1) {
       ctx.save();
       ctx.globalAlpha = 0.2;
@@ -1220,10 +1404,14 @@
       (function (p) {
         push(p.y, function () {
           shadow(p.x, p.y + 2, p.hw * 0.9, 6);
-          if (p.kind === "bush") drawSpr(SPR.bush, p.x, p.y, 44, 40, false, 1);
+          if (p.kind === "bush" || p.kind === "frostBush") drawSpr(SPR.bush, p.x, p.y, 44, 40, false, 1);
           else if (p.kind === "pot") drawSpr(SPR.pot, p.x, p.y, 32, 30, false, 1);
           else if (p.kind === "pine") drawSpr(levelN >= 4 ? SPR.pineSnow : SPR.pine, p.x, p.y, 56, 78, false, 1);
-          else {
+          else if (p.kind === "ice") drawSpr(SPR.ice, p.x, p.y, 44, 42, false, 1);
+          else if (p.kind === "fence") {
+            ctx.fillStyle = "#5C3A1A"; ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 2;
+            ctx.fillRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2); ctx.strokeRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2);
+          } else {
             ctx.fillStyle = levelN >= 4 ? "#8aa7c4" : "#5C3A1A";
             ctx.fillRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2);
             ctx.strokeStyle = "#1A1028"; ctx.strokeRect(p.x - p.hw, p.y - p.hh, p.hw * 2, p.hh * 2);
@@ -1238,6 +1426,7 @@
           var bob = Math.sin(p.bob) * 3;
           if (p.kind === "heart") drawSpr(SPR.heart, p.x, p.y + bob, 22, 20, false, 1);
           else if (p.kind === "key") drawSpr(SPR.key, p.x, p.y + bob, 26, 22, false, 1);
+          else if (p.kind === "bomb") drawSpr(SPR.bomb, p.x, p.y + bob, 22, 26, false, 1);
           else drawSpr(SPR.chips, p.x, p.y + bob, 24, 18, false, 1);
         });
       })(p);
@@ -1263,6 +1452,17 @@
           if (e.kind === "rat") drawSpr(SPR.rat, e.x, e.y, 42, 34, flip, alpha);
           else if (e.kind === "spit") drawSpr(e.cd < 0.2 ? SPR.spitAtk : SPR.spit, e.x, e.y, 48, 46, flip, alpha);
           else if (e.kind === "grunt") drawSpr(SPR.grunt, e.x, e.y, 58, 56, flip, alpha);
+          else if (e.kind === "hound") {
+            if (e.state === "tele") {
+              ctx.strokeStyle = "rgba(168,196,232," + (0.45 + Math.sin(performance.now() / 70) * 0.3) + ")";
+              ctx.lineWidth = 3; ctx.beginPath();
+              ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.dx * 90, e.y + e.dy * 90); ctx.stroke();
+            }
+            drawSpr(e.state === "dash" || e.state === "tele" ? SPR.houndDash : SPR.hound, e.x, e.y, 86, 70, e.dx < 0 || e.fx < 0, alpha);
+            ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 22, e.y - 78, 44, 6);
+            ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
+            ctx.fillRect(e.x - 22, e.y - 78, 44 * (e.hp / 9), 6);
+          }
           else {
             if (e.state === "tele") {
               ctx.strokeStyle = "rgba(232,93,76," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")";
@@ -1298,6 +1498,11 @@
       drawSpr(img, player.x, player.y + bob, w, h, player.facing < 0, alpha);
       drawHat(player.x, player.y + bob, player.facing < 0);
     });
+    if (liveBomb) {
+      push(liveBomb.y, function () {
+        drawSpr(SPR.bomb, liveBomb.x, liveBomb.y, 24, 28, false, 1);
+      });
+    }
     list.sort(function (a, b) { return a.y - b.y; });
     for (i = 0; i < list.length; i++) list[i].fn();
     for (i = 0; i < pops.length; i++) {
@@ -1419,6 +1624,7 @@
     keys[ev.code] = true;
     if (ev.code === "Space" || ev.code === "KeyJ" || ev.code === "KeyZ") { if (!swordHeld) startHold(); ev.preventDefault(); }
     if (ev.code === "ShiftLeft" || ev.code === "ShiftRight" || ev.code === "KeyK" || ev.code === "KeyC") { doRoll(); ev.preventDefault(); }
+    if (ev.code === "KeyB") { placeBomb(); ev.preventDefault(); }
     if (ev.code === "KeyP" || ev.code === "Escape") togglePause();
     if (ev.code === "KeyM") toggleMute();
   });
@@ -1449,7 +1655,7 @@
     document.getElementById("history").classList.add("hidden");
     app.classList.add("booting");
     var s = loadSave();
-    document.getElementById("btn-continue").hidden = !(s.level > 1 || s.act1Held);
+    document.getElementById("btn-continue").hidden = !(s.level > 1 || s.act1Held || s.act2Held);
     document.getElementById("hat-tip").classList.toggle("hidden", !hasHat);
   }
   function startPlay(n, skipIntro) {
@@ -1512,10 +1718,9 @@
   });
   document.getElementById("btn-continue").addEventListener("click", function () {
     var s = loadSave();
-    if (s.act1Held) {
-      hideMenus(); document.getElementById("endcard").classList.remove("hidden"); mode = "end"; return;
-    }
-    var lv = Math.max(1, Math.min(5, s.level | 0 || 1));
+    if (s.act2Held) { applySaveMeta(s); showActEnd(2); return; }
+    var lv = Math.max(1, Math.min(10, s.level | 0 || 1));
+    if (s.act1Held && lv < 6) lv = 6;
     startPlay(lv, true);
   });
   document.getElementById("btn-intro").addEventListener("click", function () { Sfx.ensure(); playIntro(null); });
@@ -1523,6 +1728,8 @@
   document.getElementById("btn-shop2").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
   document.getElementById("btn-shop-close").addEventListener("click", function () { document.getElementById("shop").classList.add("hidden"); });
   document.getElementById("shop-piece").addEventListener("click", buyPiece);
+  document.getElementById("shop-bomb").addEventListener("click", buyBomb);
+  document.getElementById("btn-bomb").addEventListener("pointerdown", function (ev) { ev.preventDefault(); Sfx.ensure(); placeBomb(); });
   document.getElementById("btn-rest").addEventListener("click", doRest);
   document.getElementById("btn-warm").addEventListener("click", doWarm);
   document.getElementById("btn-mute").addEventListener("click", toggleMute);

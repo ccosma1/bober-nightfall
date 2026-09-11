@@ -18,7 +18,7 @@ Run `START.bat` or open `index.html` in a browser.
 2. Move with the stick or **WASD / arrows**. Desktop: **LMB** slash, **RMB** roll.
 3. **Tap** slash. **Hold** ≥0.25s then release for a charged slash.
 4. **Roll** through snowballs. Flank or charge Shield Grunts. Punish the Ice Brute after the slam.
-5. On **CLEAR**, **REST 5W** heals a heart. **Heart Piece** (25W or first L5 clear; two pieces → +1 heart max). Act I is **Ember Woods**.
+5. On **CLEAR**, **REST 5W** heals a heart. **Heart Piece** (25W or first L5 clear; two pieces → +1 heart max). Act I is **Ember Woods**. Act II (**Ice Approaches**, L6–10) adds bombs (40W, **B** / BOMB) and the Frost Hound.
 
 Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1`.
 

@@ -30,8 +30,13 @@ NEED = [
     "hpMax",
     "heartPieces",
     "Desktop: WASD · LMB slash · RMB roll",
-    "More Bober games",
-    "https://ccosma1.github.io/boberverse/",
+    "More games · Green Home Games",
+    "https://ccosma1.github.io/green-home-games/",
+    "ICE APPROACHES",
+    "ACT II HELD",
+    "spawnEnemy(\"hound\"",
+    "placeBomb",
+    "Ice Approaches",
     "exitArmed",
     "levelTimer",
     "newGameWipe",
@@ -156,7 +161,15 @@ def main() -> int:
     if "open: n === 1" in text:
         errors.append("L1 door still open at spawn")
     if "LEVEL " not in text or "lv-banner" not in text:
-        errors.append("missing LEVEL n/5 banner")
+        errors.append("missing LEVEL banner")
+    if "Math.min(10" not in text and "Math.min(10," not in text:
+        errors.append("levels not clamped to 10")
+    if 'href="https://ccosma1.github.io/boberverse/"' in text:
+        errors.append("old hub URL still present")
+    sprites_extra = ["frost-hound.png", "frost-hound-dash.png", "bomb.png", "ice-block.png"]
+    for name in sprites_extra:
+        if not (ROOT / "assets" / "sprites" / name).exists():
+            errors.append("missing sprite " + name)
     if "newGameWipe" not in text:
         errors.append("missing new-game wipe")
     if "localStorage.removeItem(SAVE_KEY)" not in text:
