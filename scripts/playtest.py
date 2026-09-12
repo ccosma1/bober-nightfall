@@ -45,8 +45,20 @@ NEED = [
     "spawnEnemy(\"warden\"",
     "placeBomb",
     "Ice Approaches",
-    "MAX_LV = 15",
+    "MAX_LV = 20",
     "act3Held",
+    "act4Held",
+    "hasTorch",
+    "keepSeen",
+    "FROST KEEP",
+    "ACT IV HELD",
+    "Stone colder than the dead.",
+    "spawnEnemy(\"imp\"",
+    "spawnEnemy(\"halb\"",
+    "spawnEnemy(\"captain\"",
+    "TORCH_R = 72",
+    "btn-torch",
+    "KeyF",
     "bomb-badge",
     "min-width: 44px",
     "min-height: 44px",
@@ -181,12 +193,16 @@ def main() -> int:
         errors.append("L1 door still open at spawn")
     if "LEVEL " not in text or "lv-banner" not in text:
         errors.append("missing LEVEL banner")
-    if "MAX_LV = 15" not in text:
-        errors.append("levels not clamped to 15")
+    if "MAX_LV = 20" not in text:
+        errors.append("levels not clamped to 20")
+    if "MAX_LV = 15" in text:
+        errors.append("old MAX_LV = 15 still present")
     if "Math.min(10, s.level" in text or "Math.min(10, n" in text:
         errors.append("old level clamp 10 still present")
-    if "buildLevel(16" in text or "n === 16" in text or "n === 25" in text:
-        errors.append("L16-25 must not ship yet")
+    if "n === 16" not in text:
+        errors.append("L16 missing")
+    if "john =" in text.split("n === 16")[1].split("function allBraziersLit")[0]:
+        errors.append("John Snow spawned in Act IV")
     if 'addSolid("fence", 180, 320' in text:
         errors.append("L8 center fence still blocks the flank lane")
     if "chips < 40" in text or "chips -= 40" in text:
@@ -200,6 +216,8 @@ def main() -> int:
         "rime-skull.png", "rime-skull-lunge.png", "rib-guard.png",
         "ash-archer.png", "ash-archer-draw.png",
         "tomb-warden.png", "tomb-warden-swipe.png", "bone-pile.png",
+        "sleet-imp.png", "keep-halberd.png", "frost-captain.png",
+        "frost-captain-bash.png", "torch.png", "frost-web.png",
     ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
@@ -222,6 +240,26 @@ def main() -> int:
         errors.append("intro caption bar < 56px")
     if "font-size: 16px" not in text:
         errors.append("intro caption not ≥16px")
+    if "https://ccosma1.github.io/green-home-games/" not in text:
+        errors.append("hub URL missing")
+    if 'addSolid("fence"' in text.split("n === 18")[1].split("n === 19")[0]:
+        errors.append("L18 courtyard has a fence choke")
+    if "kind === \"web\" && !fromTorch" not in text:
+        errors.append("frost-web must only burn from torch")
+    if "kind === \"ice\"" in text and "fromTorch" not in text:
+        errors.append("torch ice rule missing")
+    if "e.turn = e.kind === \"rib\" ? 2.05 : e.kind === \"halb\" ? 2.0 : 2.6" not in text:
+        errors.append("Keep Halberd turn not ~2.0s")
+    if "0.85" not in text:
+        errors.append("Keep Halberd block arc missing")
+    if 'spawnEnemy("imp"' not in text:
+        errors.append("Sleet Imp missing")
+    if "showActEnd(4)" not in text:
+        errors.append("Act IV endcard path missing")
+    if "chip-lv" in text and "L 1/20" not in text:
+        errors.append("HUD not L n/20")
+    if "min-height: 55dvh" not in text:
+        errors.append("stage min-height not 55dvh")
 
     if errors:
         print("FAIL")

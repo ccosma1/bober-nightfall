@@ -14,6 +14,17 @@ SPR = ROOT / "assets" / "sprites"
 TIL = ROOT / "assets" / "tiles"
 INTRO = ROOT / "assets" / "intro"
 
+ACT4 = Path(
+    r"C:\Users\calle\.grok\sessions\C%3A%5CUsers%5Ccalle\01a0946b-3765-7840-8c8e-ba4a080ce500\images"
+)
+ACT4_CHROMA = [
+    ("3.jpg", "sleet-imp.png"),
+    ("2.jpg", "keep-halberd.png"),
+    ("5.jpg", "frost-captain.png"),
+    ("6.jpg", "frost-captain-bash.png"),
+    ("4.jpg", "torch.png"),
+    ("1.jpg", "frost-web.png"),
+]
 ACT3 = Path(
     r"C:\Users\calle\.grok\sessions\C%3A%5CUsers%5Ccalle\01a0927e-bcf5-75d1-9dcc-85753c003059\images"
 )
