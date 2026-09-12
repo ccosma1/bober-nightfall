@@ -78,31 +78,35 @@
     #say b { display: block; color: #5C3A1A; font-size: 11px; letter-spacing: 0.06em; margin-bottom: 2px; }
     #say.hidden, #ghost.hidden, #fade.hidden, #elon-tip.hidden, #elon-cameo.hidden { display: none !important; }
     #elon-tip {
-      position: absolute; left: 10px; right: 10px; top: 12px; bottom: auto; z-index: 10;
+      position: absolute; left: 10px; right: 56px; top: 12px; bottom: auto; z-index: 10;
       display: flex; gap: 10px; align-items: center;
       background: var(--cream); color: var(--ink);
       border: 3px solid var(--yellow); border-radius: 14px;
       padding: 9px 12px; font-weight: 800; font-size: 15px;
       line-height: 1.3; text-align: left; cursor: pointer;
       box-shadow: 0 6px 18px #0008; pointer-events: auto;
-      max-width: 360px; margin: 0 auto;
+      max-width: 360px; margin: 0 auto 0 0;
     }
     #say:not(.hidden) ~ #elon-tip { top: 88px; }
-    #elon-tip img {
-      width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: center 18%;
-      border: 2px solid var(--yellow); flex: 0 0 auto; background: #3A2A6A;
+    .elon-face {
+      position: relative; width: 52px; height: 52px; border-radius: 50%; overflow: hidden;
+      flex: 0 0 auto; border: 2px solid var(--yellow); background: #1A1028;
+    }
+    .elon-face img {
+      position: absolute; width: 250.5%; height: auto; max-width: none;
+      left: -80%; top: -4%; display: block; pointer-events: none;
     }
     #elon-tip p {
       margin: 0; flex: 1 1 auto; min-width: 0;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
     #elon-cameo {
-      appearance: none; position: absolute; right: 8px; left: auto; top: 8px; bottom: auto; z-index: 7;
+      appearance: none; position: absolute; right: 8px; left: auto; top: 8px; bottom: auto; z-index: 11;
       width: 40px; height: 40px; padding: 0; border: 2px solid var(--yellow);
       border-radius: 50%; overflow: hidden; cursor: pointer;
-      background: #3A2A6A; box-shadow: 0 3px 10px #0006;
+      background: #1A1028; box-shadow: 0 3px 10px #0006;
     }
-    #elon-cameo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    #elon-cameo .elon-face { width: 100%; height: 100%; border: 0; }
     #ghost {
       position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 8px; pointer-events: none;
@@ -337,11 +341,11 @@
         <button type="button" id="btn-warm" class="ghost">WARM 12W</button>
       </div>
       <div id="elon-tip" class="hidden" role="status">
-        <img src="assets/sprites/buddy.png" alt="" onerror="this.style.display='none'" />
+        <span class="elon-face"><img src="assets/sprites/john-snow.png" alt="" /></span>
         <p id="elon-line">Stick or WASD. Slash. Roll. Long Night — don’t freeze.</p>
       </div>
       <button id="elon-cameo" class="hidden" type="button" aria-label="Replay last tip" title="Last tip">
-        <img src="assets/sprites/buddy.png" alt="" onerror="this.style.display='none'" />
+        <span class="elon-face"><img src="assets/sprites/john-snow.png" alt="" /></span>
       </button>
     </div>
     <div id="dock">
@@ -534,7 +538,7 @@
   var stick = { x: 0, y: 0, id: null, lastTap: 0 };
   var swordHeld = false, holdT = 0;
   var mode = "splash", paused = false, lastTs = 0, hitstop = 0, shake = 0, fadeT = 0;
-  var sayT = 0, ghostT = 0, clearFade = 0, tipT = 0;
+  var sayT = 0, ghostT = 0, clearFade = 0, tipT = 0, tipPinned = false, tipHovering = false, tipLeaveTimer = 0;
   var trails = [], pops = [], flakes = [];
   var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false;
   var levelTransit = false, levelTimer = null, exitArmed = true;
@@ -875,33 +879,68 @@
     sayT = t || 3.2;
   }
   function hideSay() { sayEl.classList.add("hidden"); sayT = 0; }
-  function showBuddyTip() {
+  function currentTipLine() {
     var n = Math.max(1, Math.min(TIPS.length, levelN | 0 || 1));
-    var line = TIPS[n - 1] || TIPS[0];
+    return TIPS[n - 1] || TIPS[0];
+  }
+  function showCameoIfPlay() {
+    var cam = document.getElementById("elon-cameo");
+    if (!cam) return;
+    if (mode === "play" && !cleared) cam.classList.remove("hidden");
+    else cam.classList.add("hidden");
+  }
+  function showBuddyTip(fromHover) {
     var el = document.getElementById("elon-tip");
     var p = document.getElementById("elon-line");
     var cam = document.getElementById("elon-cameo");
-    if (p) p.textContent = line;
+    if (p) p.textContent = currentTipLine();
     if (el) el.classList.remove("hidden");
+    if (fromHover) {
+      showCameoIfPlay();
+      if (!tipPinned) tipT = 0;
+      return;
+    }
+    tipPinned = true;
+    if (tipLeaveTimer) { clearTimeout(tipLeaveTimer); tipLeaveTimer = 0; }
     if (cam) cam.classList.add("hidden");
     tipT = 3.4;
   }
   function hideBuddyTip() {
+    if (tipHovering && !tipPinned) {
+      showBuddyTip(true);
+      return;
+    }
+    if (tipHovering && tipPinned) {
+      tipPinned = false;
+      showBuddyTip(true);
+      return;
+    }
+    tipPinned = false;
     var el = document.getElementById("elon-tip");
     if (el) el.classList.add("hidden");
     tipT = 0;
-    var cam = document.getElementById("elon-cameo");
-    if (cam) {
-      if (mode === "play" && !cleared) cam.classList.remove("hidden");
-      else cam.classList.add("hidden");
-    }
+    showCameoIfPlay();
   }
   function hideBuddyAll() {
+    tipPinned = false;
+    tipHovering = false;
+    if (tipLeaveTimer) { clearTimeout(tipLeaveTimer); tipLeaveTimer = 0; }
     var el = document.getElementById("elon-tip");
     var cam = document.getElementById("elon-cameo");
     if (el) el.classList.add("hidden");
     if (cam) cam.classList.add("hidden");
     tipT = 0;
+  }
+  function armTipLeave() {
+    if (tipLeaveTimer) clearTimeout(tipLeaveTimer);
+    tipLeaveTimer = setTimeout(function () {
+      tipLeaveTimer = 0;
+      if (tipHovering || tipPinned) return;
+      var el = document.getElementById("elon-tip");
+      if (el) el.classList.add("hidden");
+      tipT = 0;
+      showCameoIfPlay();
+    }, 180);
   }
 
   function addPop(x, y, kind) { pops.push({ x: x, y: y, t: 0.45, kind: kind }); }
@@ -2720,6 +2759,20 @@
       startPlay(21, true);
     } else goSplash();
   });
+  function bindTipHover(node) {
+    node.addEventListener("pointerenter", function (ev) {
+      if (ev.pointerType === "touch") return;
+      tipHovering = true;
+      if (tipLeaveTimer) { clearTimeout(tipLeaveTimer); tipLeaveTimer = 0; }
+      if (mode !== "play" || paused || cleared) return;
+      if (!tipPinned) showBuddyTip(true);
+    });
+    node.addEventListener("pointerleave", function (ev) {
+      if (ev.pointerType === "touch") return;
+      tipHovering = false;
+      if (!tipPinned) armTipLeave();
+    });
+  }
   document.getElementById("elon-tip").addEventListener("pointerdown", function (ev) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -2727,6 +2780,7 @@
   document.getElementById("elon-tip").addEventListener("click", function (ev) {
     ev.preventDefault();
     ev.stopPropagation();
+    tipHovering = false;
     hideBuddyTip();
   });
   document.getElementById("elon-cameo").addEventListener("pointerdown", function (ev) {
@@ -2739,6 +2793,8 @@
     if (mode !== "play" || paused || cleared) return;
     showBuddyTip();
   });
+  bindTipHover(document.getElementById("elon-tip"));
+  bindTipHover(document.getElementById("elon-cameo"));
   document.getElementById("btn-end-replay").addEventListener("click", function () {
     if (endAct >= 5) {
       newGameWipe();

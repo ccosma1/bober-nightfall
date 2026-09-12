@@ -96,7 +96,9 @@ NEED = [
     "hideBuddyTip",
     "elon-tip",
     "elon-cameo",
-    "assets/sprites/buddy.png",
+    "assets/sprites/john-snow.png",
+    "pointerenter",
+    "pointerleave",
     "CONTINUE on Held",
     "Long Night — don’t freeze.",
 ]
@@ -225,7 +227,6 @@ def main() -> int:
         "tomb-warden.png", "tomb-warden-swipe.png", "bone-pile.png",
         "sleet-imp.png", "keep-halberd.png", "frost-captain.png",
         "frost-captain-bash.png", "torch.png", "frost-web.png",
-        "buddy.png",
     ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
@@ -286,6 +287,13 @@ def main() -> int:
         errors.append("elon-cameo bottom-docked under stick")
     if "top:" not in cam_css:
         errors.append("elon-cameo not parked below HUD")
+    stage = text.split('id="stage"')[1].split('id="dock"')[0]
+    if "buddy.png" in stage:
+        errors.append("elon tip/cameo still uses buddy.png")
+    if stage.count("john-snow.png") < 2:
+        errors.append("elon tip/cameo not using john-snow.png")
+    if "bindTipHover" not in text or "fromHover" not in text:
+        errors.append("cameo hover-to-hint missing")
     if "btn-end-ok" in text and 'startPlay(11, true)' not in text:
         errors.append("CONTINUE L10→L11 missing")
     if "btn-end-ok" in text and 'startPlay(16, true)' not in text:
