@@ -1343,7 +1343,7 @@
       john.said = true;
       say("JOHN SNOW", "Door’s yours.", 2.8);
       exitDoor.open = true;
-    } else if (levelN !== 4 && levelN !== 9 && levelN !== 14 && levelN !== 16 && levelN !== 18 && levelN !== 19 && levelN !== 23 && levelN !== 24) {
+    } else if (levelN !== 4 && levelN !== 9 && levelN !== 14 && levelN !== 16 && levelN !== 18 && levelN !== 19 && levelN !== 20 && levelN !== 23 && levelN !== 24 && levelN !== 25) {
       exitDoor.open = true; exitDoor.locked = false;
     }
     if ((levelN === 4 || levelN === 9 || levelN === 14 || levelN === 18 || levelN === 23) && player.keys > 0) {
@@ -1641,12 +1641,29 @@
     else if (act === 4) act4Held = true;
     else if (act === 3) act3Held = true;
     else if (act === 2) act2Held = true;
-    persist();
-    if (act === 5) patchSave({ act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, level: 25 });
-    else if (act === 4) patchSave({ act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, level: 21 });
-    else if (act === 3) patchSave({ act3Held: true, act2Held: true, level: 16 });
-    else if (act === 2) patchSave({ act2Held: true, level: 11 });
-    else patchSave({ act1Held: true, level: 5 });
+    var held = {
+      chips: chips,
+      hp: player ? player.hp : hpMax,
+      hpMax: hpMax,
+      heartPieces: heartPieces,
+      bombs: bombs,
+      hasTorch: !!hasTorch,
+      keepSeen: !!keepSeen,
+      crownSeen: !!crownSeen,
+      iceSeen: !!iceSeen,
+      boneSeen: !!boneSeen,
+      act2Wood: !!act2Wood,
+      l20Piece: !!l20Piece,
+      l25Piece: !!l25Piece,
+      restMask: restMask,
+      warmMask: warmMask,
+      pieceBought: !!pieceBought
+    };
+    if (act === 5) patchSave(Object.assign(held, { act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, level: 25 }));
+    else if (act === 4) patchSave(Object.assign(held, { act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, level: 21 }));
+    else if (act === 3) patchSave(Object.assign(held, { act3Held: true, act2Held: true, level: 16 }));
+    else if (act === 2) patchSave(Object.assign(held, { act2Held: true, level: 11 }));
+    else patchSave(Object.assign(held, { act1Held: true, level: 5 }));
     hideClearSpend();
     var t = document.getElementById("end-title");
     var g = document.getElementById("end-tag");
@@ -2566,7 +2583,7 @@
     var s = loadSave();
     if (s.act5Held) { applySaveMeta(s); showActEnd(5); return; }
     var lv = Math.max(1, Math.min(MAX_LV, s.level | 0 || 1));
-    if (s.act4Held && lv < 21) lv = 21;
+    if (s.act4Held && !s.act5Held) lv = Math.max(lv, 21);
     else if (s.act3Held && lv < 16) lv = 16;
     else if (s.act2Held && lv < 11) lv = 11;
     else if (s.act1Held && lv < 6) lv = 6;
@@ -2600,10 +2617,13 @@
     startPlay(levelN, true);
   });
   document.getElementById("btn-end-ok").addEventListener("click", function () {
-    if (endAct === 2) startPlay(11, true);
-    else if (endAct === 3) startPlay(16, true);
-    else if (endAct === 4) startPlay(21, true);
-    else goSplash();
+    var a = endAct | 0;
+    if (a === 2) startPlay(11, true);
+    else if (a === 3) startPlay(16, true);
+    else if (a === 4) {
+      patchSave({ act4Held: true, level: 21 });
+      startPlay(21, true);
+    } else goSplash();
   });
   document.getElementById("btn-end-replay").addEventListener("click", function () {
     if (endAct >= 5) {
