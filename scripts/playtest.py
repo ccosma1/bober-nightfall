@@ -45,7 +45,7 @@ NEED = [
     "spawnEnemy(\"warden\"",
     "placeBomb",
     "Ice Approaches",
-    "MAX_LV = 20",
+    "MAX_LV = 25",
     "act3Held",
     "act4Held",
     "hasTorch",
@@ -92,6 +92,13 @@ NEED = [
     "act2Wood",
     "Roll past the shield. Hit his back. No bomb needed.",
     "e.turn = 2.6",
+    "showBuddyTip",
+    "hideBuddyTip",
+    "elon-tip",
+    "elon-cameo",
+    "assets/sprites/buddy.png",
+    "CONTINUE on Held",
+    "Long Night — don’t freeze.",
 ]
 
 FORBID_UI = [
@@ -193,8 +200,8 @@ def main() -> int:
         errors.append("L1 door still open at spawn")
     if "LEVEL " not in text or "lv-banner" not in text:
         errors.append("missing LEVEL banner")
-    if "MAX_LV = 20" not in text:
-        errors.append("levels not clamped to 20")
+    if "MAX_LV = 25" not in text:
+        errors.append("levels not clamped to 25")
     if "MAX_LV = 15" in text:
         errors.append("old MAX_LV = 15 still present")
     if "Math.min(10, s.level" in text or "Math.min(10, n" in text:
@@ -218,6 +225,7 @@ def main() -> int:
         "tomb-warden.png", "tomb-warden-swipe.png", "bone-pile.png",
         "sleet-imp.png", "keep-halberd.png", "frost-captain.png",
         "frost-captain-bash.png", "torch.png", "frost-web.png",
+        "buddy.png",
     ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
@@ -254,12 +262,41 @@ def main() -> int:
         errors.append("Keep Halberd block arc missing")
     if 'spawnEnemy("imp"' not in text:
         errors.append("Sleet Imp missing")
-    if "showActEnd(4)" not in text:
+    if "levelN === 20 ? 4" not in text and "showActEnd(4)" not in text:
         errors.append("Act IV endcard path missing")
-    if "chip-lv" in text and "L 1/20" not in text:
-        errors.append("HUD not L n/20")
+    if "chip-lv" in text and "L 1/25" not in text:
+        errors.append("HUD not L n/25")
     if "min-height: 55dvh" not in text:
         errors.append("stage min-height not 55dvh")
+    if "var TIPS" not in text or text.count("Act II.") < 1:
+        errors.append("missing TIPS array")
+    if text.split("var TIPS = [")[1].split("];")[0].count('"') < 50:
+        errors.append("need 25 buddy tips")
+    if "tipT = 3.4" not in text:
+        errors.append("buddy tip auto-dismiss not ~3.4s")
+    if 'id="elon-tip"' not in text.split('id="stage"')[1].split('id="dock"')[0]:
+        errors.append("elon-tip not in stage (HUD crush risk)")
+    elon_css = text.split("#elon-tip {")[1].split("}")[0]
+    if "top:" not in elon_css:
+        errors.append("elon-tip not below HUD / upper-middle")
+    if "bottom: 8px" in elon_css:
+        errors.append("elon-tip bottom-docked (HUD crush)")
+    cam_css = text.split("#elon-cameo {")[1].split("}")[0]
+    if "bottom: 8px" in cam_css:
+        errors.append("elon-cameo bottom-docked under stick")
+    if "top:" not in cam_css:
+        errors.append("elon-cameo not parked below HUD")
+    if "btn-end-ok" in text and 'startPlay(11, true)' not in text:
+        errors.append("CONTINUE L10→L11 missing")
+    if "btn-end-ok" in text and 'startPlay(16, true)' not in text:
+        errors.append("CONTINUE L15→L16 missing")
+    if "btn-end-ok" in text and 'startPlay(21, true)' not in text:
+        errors.append("CONTINUE L20→L21 missing")
+    if "wallet" in text.lower() and "No wallet" not in text:
+        errors.append("wallet mention without denial")
+    tips_block = text.split("var TIPS = [")[1].split("];")[0].lower()
+    if "wallet" in tips_block or "crypto" in tips_block or "gacha" in tips_block:
+        errors.append("buddy tips pitch wallet/crypto/gacha")
 
     if errors:
         print("FAIL")

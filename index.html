@@ -76,7 +76,33 @@
       pointer-events: none;
     }
     #say b { display: block; color: #5C3A1A; font-size: 11px; letter-spacing: 0.06em; margin-bottom: 2px; }
-    #say.hidden, #ghost.hidden, #fade.hidden { display: none !important; }
+    #say.hidden, #ghost.hidden, #fade.hidden, #elon-tip.hidden, #elon-cameo.hidden { display: none !important; }
+    #elon-tip {
+      position: absolute; left: 10px; right: 10px; top: 12px; bottom: auto; z-index: 10;
+      display: flex; gap: 10px; align-items: center;
+      background: var(--cream); color: var(--ink);
+      border: 3px solid var(--yellow); border-radius: 14px;
+      padding: 9px 12px; font-weight: 800; font-size: 15px;
+      line-height: 1.3; text-align: left; cursor: pointer;
+      box-shadow: 0 6px 18px #0008; pointer-events: auto;
+      max-width: 360px; margin: 0 auto;
+    }
+    #say:not(.hidden) ~ #elon-tip { top: 88px; }
+    #elon-tip img {
+      width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: center 18%;
+      border: 2px solid var(--yellow); flex: 0 0 auto; background: #3A2A6A;
+    }
+    #elon-tip p {
+      margin: 0; flex: 1 1 auto; min-width: 0;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    #elon-cameo {
+      appearance: none; position: absolute; right: 8px; left: auto; top: 8px; bottom: auto; z-index: 7;
+      width: 40px; height: 40px; padding: 0; border: 2px solid var(--yellow);
+      border-radius: 50%; overflow: hidden; cursor: pointer;
+      background: #3A2A6A; box-shadow: 0 3px 10px #0006;
+    }
+    #elon-cameo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
     #ghost {
       position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 8px; pointer-events: none;
@@ -310,6 +336,13 @@
         <button type="button" id="btn-rest">REST 5W</button>
         <button type="button" id="btn-warm" class="ghost">WARM 12W</button>
       </div>
+      <div id="elon-tip" class="hidden" role="status">
+        <img src="assets/sprites/buddy.png" alt="" onerror="this.style.display='none'" />
+        <p id="elon-line">Stick or WASD. Slash. Roll. Long Night — don’t freeze.</p>
+      </div>
+      <button id="elon-cameo" class="hidden" type="button" aria-label="Replay last tip" title="Last tip">
+        <img src="assets/sprites/buddy.png" alt="" onerror="this.style.display='none'" />
+      </button>
     </div>
     <div id="dock">
       <div id="stick" aria-label="Move"><div id="knob"></div></div>
@@ -469,12 +502,39 @@
     { src: "assets/intro/n5.jpg", line: "Bring the summer." }
   ];
   var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 25, BOMB_COST = 25, TORCH_R = 72;
+  var TIPS = [
+    "Stick or WASD. Slash. Roll. Long Night — don’t freeze.",
+    "Smash pots. Wood buys hearts. Gather, then fight.",
+    "Spitters kite. Roll snowballs. John holds the door.",
+    "Key in a pot. Flank the shield — or charge slash.",
+    "Ice Brute slams. Wait, then punish. Act I almost held.",
+    "Act II. Ice wants a bomb. Shop 25W or find one.",
+    "Frost bushes laugh at slash. Bomb or leave them.",
+    "Roll past the shield. Hit his back. No bomb needed.",
+    "Bomb the ice OR grab the key. Don’t sit in the door.",
+    "Hound dashes. Sidestep. CONTINUE on Held — don’t camp it.",
+    "Act III. Ice that used to walk. Move, fight, gather.",
+    "Skulls drift. Don’t get boxed. Smash pots for wood.",
+    "Rib Guard faces you. Flank. Charge if you’re brave.",
+    "Ash Archer. Bomb ice or key. Don’t softlock the door.",
+    "Tomb Warden. Punish the swipe. CONTINUE on Held.",
+    "Act IV. Hold TORCH (F). Light fire. Ice still wants a bomb.",
+    "Frost-web only burns. Torch, not slash, not bomb. Wow.",
+    "Halberd pokes long. Flank. Key in a pot. Keep moving.",
+    "Bomb the ice. Torch the braziers. Two jobs, one beaver.",
+    "Frost Captain. Wait the bash. CONTINUE on Held — don’t sit.",
+    "Act V. Crown road. Same tools. Don’t freeze now.",
+    "Webs again. Torch them. Gather wood. Survive.",
+    "Stone hall. Key, flank, hearts. The Long Night thins.",
+    "Last lock: bomb ice, light fire. Then the crown waits.",
+    "Long Night’s end. Move. Fight. Don’t AFK the Held screen."
+  ];
 
   var keys = Object.create(null);
   var stick = { x: 0, y: 0, id: null, lastTap: 0 };
   var swordHeld = false, holdT = 0;
   var mode = "splash", paused = false, lastTs = 0, hitstop = 0, shake = 0, fadeT = 0;
-  var sayT = 0, ghostT = 0, clearFade = 0;
+  var sayT = 0, ghostT = 0, clearFade = 0, tipT = 0;
   var trails = [], pops = [], flakes = [];
   var player, enemies, props, shots, pickups, solids, john, exitDoor, levelN = 1, cleared = false;
   var levelTransit = false, levelTimer = null, exitArmed = true;
@@ -736,6 +796,7 @@
     var bar = document.getElementById("clear-bar");
     if (flash) { flash.classList.remove("hidden"); clearFlashT = 1; }
     if (bar) bar.classList.remove("hidden");
+    hideBuddyAll();
     syncClearBtns();
   }
   function hideClearSpend() {
@@ -814,6 +875,34 @@
     sayT = t || 3.2;
   }
   function hideSay() { sayEl.classList.add("hidden"); sayT = 0; }
+  function showBuddyTip() {
+    var n = Math.max(1, Math.min(TIPS.length, levelN | 0 || 1));
+    var line = TIPS[n - 1] || TIPS[0];
+    var el = document.getElementById("elon-tip");
+    var p = document.getElementById("elon-line");
+    var cam = document.getElementById("elon-cameo");
+    if (p) p.textContent = line;
+    if (el) el.classList.remove("hidden");
+    if (cam) cam.classList.add("hidden");
+    tipT = 3.4;
+  }
+  function hideBuddyTip() {
+    var el = document.getElementById("elon-tip");
+    if (el) el.classList.add("hidden");
+    tipT = 0;
+    var cam = document.getElementById("elon-cameo");
+    if (cam) {
+      if (mode === "play" && !cleared) cam.classList.remove("hidden");
+      else cam.classList.add("hidden");
+    }
+  }
+  function hideBuddyAll() {
+    var el = document.getElementById("elon-tip");
+    var cam = document.getElementById("elon-cameo");
+    if (el) el.classList.add("hidden");
+    if (cam) cam.classList.add("hidden");
+    tipT = 0;
+  }
 
   function addPop(x, y, kind) { pops.push({ x: x, y: y, t: 0.45, kind: kind }); }
   function addTrail(x, y) { trails.push({ x: x, y: y, t: 0.28 }); }
@@ -859,6 +948,7 @@
   }
   function die() {
     mode = "dead";
+    hideBuddyAll();
     document.getElementById("dead").classList.remove("hidden");
     persist();
   }
@@ -1063,6 +1153,7 @@
     enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
     john = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
     hideClearSpend();
+    hideBuddyAll();
     levelN = n;
     var theme = (n - 1) / 4;
     var savedHp = loadSave().hp;
@@ -1259,6 +1350,7 @@
     } else if (granted) {
       say("CAMP", "+15 wood. Shop bomb is 25W.", 2.6);
     }
+    showBuddyTip();
     patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, keepSeen: keepSeen, crownSeen: crownSeen, act2Wood: act2Wood, hasTorch: hasTorch, act1Held: n >= 6, act2Held: n >= 11 || act2Held, act3Held: n >= 16 || act3Held, act4Held: n >= 21 || act4Held });
   }
 
@@ -1636,6 +1728,7 @@
   }
   function showActEnd(act) {
     mode = "end";
+    hideBuddyAll();
     endAct = act | 0;
     if (act === 5) act5Held = true;
     else if (act === 4) act4Held = true;
@@ -1864,6 +1957,7 @@
     });
 
     if (sayT > 0) { sayT -= dt; if (sayT <= 0) hideSay(); }
+    if (tipT > 0) { tipT -= dt; if (tipT <= 0) hideBuddyTip(); }
     if (levelN === 1 && ghostT > 0) {
       ghostT -= dt;
       if (ghostT < 10.2 && ghostT > 0 && ghostEl.classList.contains("hidden") && sayT <= 0) ghostEl.classList.remove("hidden");
@@ -2509,6 +2603,7 @@
     ["splash", "paused", "shop", "dead", "endcard"].forEach(function (id) {
       document.getElementById(id).classList.add("hidden");
     });
+    hideBuddyAll();
   }
   function goSplash() {
     mode = "splash"; paused = false;
@@ -2624,6 +2719,25 @@
       patchSave({ act4Held: true, level: 21 });
       startPlay(21, true);
     } else goSplash();
+  });
+  document.getElementById("elon-tip").addEventListener("pointerdown", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  });
+  document.getElementById("elon-tip").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    hideBuddyTip();
+  });
+  document.getElementById("elon-cameo").addEventListener("pointerdown", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  });
+  document.getElementById("elon-cameo").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (mode !== "play" || paused || cleared) return;
+    showBuddyTip();
   });
   document.getElementById("btn-end-replay").addEventListener("click", function () {
     if (endAct >= 5) {
