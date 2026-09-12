@@ -482,6 +482,7 @@
   var chips = 0, hpMax = 6, heartPieces = 0, pieceBought = false, l5Piece = false, l10Piece = false;
   var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, act3Held = false, act4Held = false, iceSeen = false, boneSeen = false, keepSeen = false, act2Wood = false;
   var liveBomb = null, hasHat = false, introAfter = null, hasTorch = false, torchHeld = false, torchDmgCd = 0, puddles = [];
+  var endAct = 0;
   var l20Piece = false;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
@@ -1530,19 +1531,35 @@
   }
   function showActEnd(act) {
     mode = "end";
+    endAct = act | 0;
     if (act === 4) act4Held = true;
     else if (act === 3) act3Held = true;
     else if (act === 2) act2Held = true;
     persist();
     if (act === 4) patchSave({ act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, level: 20 });
-    else if (act === 3) patchSave({ act3Held: true, act2Held: true, level: 15 });
-    else if (act === 2) patchSave({ act2Held: true, level: 10 });
+    else if (act === 3) patchSave({ act3Held: true, act2Held: true, level: 16 });
+    else if (act === 2) patchSave({ act2Held: true, level: 11 });
     else patchSave({ act1Held: true, level: 5 });
     hideClearSpend();
     var t = document.getElementById("end-title");
     var g = document.getElementById("end-tag");
+    var ok = document.getElementById("btn-end-ok");
+    var rp = document.getElementById("btn-end-replay");
     if (t) t.textContent = act === 4 ? "ACT IV HELD" : act === 3 ? "ACT III HELD" : act === 2 ? "ACT II HELD" : "ACT I HELD";
     if (g) g.textContent = act === 4 ? "Frost Keep held. Stone colder than the dead. The crown still waits." : act === 3 ? "Bone Camp held. Ice that used to walk. The crown still waits." : act === 2 ? "Ice Approaches held. The crown still waits." : "Ember Woods. The Ice Brute is down. The crown still waits.";
+    if (ok) ok.textContent = (act === 2 || act === 3) ? "CONTINUE" : "SPLASH";
+    if (rp) {
+      if (act >= 4) {
+        rp.hidden = false;
+        rp.textContent = "REPLAY";
+      } else if (act === 2 || act === 3) {
+        rp.hidden = false;
+        rp.textContent = "SPLASH";
+      } else {
+        rp.hidden = true;
+        rp.textContent = "REPLAY";
+      }
+    }
     document.getElementById("endcard").classList.remove("hidden");
     app.classList.add("booting");
   }
@@ -2397,10 +2414,18 @@
     patchSave({ hp: hpMax, chips: chips, hpMax: hpMax, heartPieces: heartPieces });
     startPlay(levelN, true);
   });
-  document.getElementById("btn-end-ok").addEventListener("click", goSplash);
+  document.getElementById("btn-end-ok").addEventListener("click", function () {
+    if (endAct === 2) startPlay(11, true);
+    else if (endAct === 3) startPlay(16, true);
+    else goSplash();
+  });
   document.getElementById("btn-end-replay").addEventListener("click", function () {
-    newGameWipe();
-    startPlay(1, true);
+    if (endAct >= 4) {
+      newGameWipe();
+      startPlay(1, true);
+    } else {
+      goSplash();
+    }
   });
 
   hasHat = lodgeFlag();
