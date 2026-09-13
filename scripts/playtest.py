@@ -109,6 +109,8 @@ NEED = [
     "showStartGate",
     "beginLevel",
     "chopHintDone",
+    "dismissStartTips",
+    "calmT",
 ]
 
 FORBID_UI = [
@@ -330,6 +332,15 @@ def main() -> int:
         errors.append("L1 door must lock without a key icon")
     if 'strokeText("CHOP"' not in text and 'fillText("CHOP"' not in text:
         errors.append("L1 missing CHOP ping on blocking trees")
+    bl = text.split("function buildLevel")[1].split("function allBraziersLit")[0]
+    if 'say("TIP"' in bl or 'say("JOHN SNOW"' in bl or 'say("CAMP"' in bl:
+        errors.append("level start still fires say() plus buddy tip")
+    if "showBuddyTip()" not in bl:
+        errors.append("level start missing single buddy tip")
+    if "dismissStartTips()" not in text.split("function beginLevel")[1].split("function addPop")[0]:
+        errors.append("START must dismiss tip UI")
+    if "calmT" not in text.split("function updateEnemy")[1][:400]:
+        errors.append("post-START calm window missing on enemies")
 
     if errors:
         print("FAIL")

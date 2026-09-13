@@ -362,7 +362,7 @@
       </div>
       <div id="elon-tip" class="hidden" role="status">
         <span class="elon-face"><img src="assets/sprites/john-snow.png" alt="" /></span>
-        <p id="elon-line">Chop the trees blocking the door. Slash them. Long Night — don’t freeze.</p>
+        <p id="elon-line">John Snow from the white… Chop the trees blocking the door. Long Night — don’t freeze.</p>
       </div>
       <button id="elon-cameo" class="hidden" type="button" aria-label="Replay last tip" title="Last tip">
         <span class="elon-face"><img src="assets/sprites/john-snow.png" alt="" /></span>
@@ -531,7 +531,7 @@
   ];
   var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 25, BOMB_COST = 25, TORCH_R = 72;
   var TIPS = [
-    "Chop the trees blocking the door. Slash them. Long Night — don’t freeze.",
+    "John Snow from the white… Chop the trees blocking the door. Long Night — don’t freeze.",
     "Smash pots. Wood buys hearts. Gather, then fight.",
     "Spitters kite. Roll snowballs. John holds the door.",
     "Key in a pot. Flank the shield — or charge slash.",
@@ -572,7 +572,7 @@
   var liveBomb = null, hasHat = false, introAfter = null, hasTorch = false, torchHeld = false, torchDmgCd = 0, puddles = [];
   var endAct = 0, l25Piece = false, allyClock = 0;
   var l20Piece = false;
-  var waitingStart = false, chopHintDone = false;
+  var waitingStart = false, chopHintDone = false, calmT = 0;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
 
@@ -901,6 +901,7 @@
   }
 
   function say(who, text, t) {
+    if (waitingStart) return;
     sayEl.innerHTML = "<b>" + who + "</b>" + text;
     sayEl.classList.remove("hidden");
     sayT = t || 3.2;
@@ -916,11 +917,11 @@
     if (mode === "play" && !cleared) cam.classList.remove("hidden");
     else cam.classList.add("hidden");
   }
-  function showBuddyTip(fromHover) {
+  function showBuddyTip(fromHover, line) {
     var el = document.getElementById("elon-tip");
     var p = document.getElementById("elon-line");
     var cam = document.getElementById("elon-cameo");
-    if (p) p.textContent = currentTipLine();
+    if (p) p.textContent = line || currentTipLine();
     if (el) el.classList.remove("hidden");
     if (fromHover) {
       showCameoIfPlay();
@@ -981,9 +982,21 @@
     var el = document.getElementById("lv-start");
     if (el) el.classList.remove("hidden");
   }
+  function dismissStartTips() {
+    hideSay();
+    tipPinned = false;
+    tipHovering = false;
+    if (tipLeaveTimer) { clearTimeout(tipLeaveTimer); tipLeaveTimer = 0; }
+    var el = document.getElementById("elon-tip");
+    if (el) el.classList.add("hidden");
+    tipT = 0;
+    showCameoIfPlay();
+  }
   function beginLevel() {
     if (!waitingStart || mode !== "play" || paused) return;
     hideStartGate();
+    dismissStartTips();
+    calmT = 1.25;
     Sfx.ensure();
     Sfx.beep(523, 0.08, "square", 0.05);
   }
@@ -1225,11 +1238,8 @@
       lvBannerT = 1.35;
     } else {
       main.textContent = "LEVEL " + n + "/" + MAX_LV;
-      if (n === 1 && sub) {
-        sub.textContent = "Chop the trees blocking the door.";
-        sub.classList.remove("hidden");
-      } else if (sub) sub.classList.add("hidden");
-      lvBannerT = n === 1 ? 1.7 : 1;
+      if (sub) sub.classList.add("hidden");
+      lvBannerT = 1;
     }
     el.classList.remove("hidden");
   }
@@ -1245,6 +1255,7 @@
     hideBuddyAll();
     hideStartGate();
     chopHintDone = false;
+    calmT = 0;
     levelN = n;
     var theme = (n - 1) / 4;
     var savedHp = loadSave().hp;
@@ -1424,25 +1435,10 @@
     flashLevel(n);
     fadeEl.classList.add("on");
     fadeT = 0.4;
-    if (n === 1) {
-      say("JOHN SNOW", "John Snow from the white… Chop the trees blocking the door.", 4.2);
-      ghostT = 13.4;
-    } else if (n === 8) {
-      say("TIP", "Roll past the shield. Hit his back. No bomb needed.", 3.6);
-    } else if (n === 16) {
-      say("TIP", "Hold TORCH (F). Light the braziers. Ice still wants a bomb.", 3.8);
-    } else if (n === 17) {
-      say("TIP", "Burn frost-web with TORCH. Slash and bomb cannot.", 3.4);
-    } else if (n === 19) {
-      say("TIP", "Bomb the ice. Torch the braziers.", 3.2);
-    } else if (n === 21) {
-      say("TIP", "The crown road. Same tools.", 2.6);
-    } else if (n === 24) {
-      say("TIP", "Bomb the ice. Light the braziers.", 2.8);
-    } else if (granted) {
-      say("CAMP", "+15 wood. Shop bomb is 25W.", 2.6);
-    }
-    showBuddyTip();
+    if (n === 1) ghostT = 13.4;
+    hideSay();
+    if (granted) showBuddyTip(false, "+15 wood. Shop bomb is 25W.");
+    else showBuddyTip();
     showStartGate();
     patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, keepSeen: keepSeen, crownSeen: crownSeen, act2Wood: act2Wood, hasTorch: hasTorch, act1Held: n >= 6, act2Held: n >= 11 || act2Held, act3Held: n >= 16 || act3Held, act4Held: n >= 21 || act4Held });
   }
@@ -1572,6 +1568,7 @@
     e.kx *= Math.pow(0.001, dt); e.ky *= Math.pow(0.001, dt);
     moveEnt(e, e.kx * dt, e.ky * dt);
     if (e.flash > 0) e.flash -= dt;
+    if (calmT > 0) return;
     if (e.stagger > 0) { e.stagger -= dt; return; }
     var dx = player.x - e.x, dy = player.y - e.y, d = Math.hypot(dx, dy) || 1;
     var ux = dx / d, uy = dy / d;
@@ -1888,7 +1885,7 @@
   }
 
   function updateAlly(dt) {
-    if (levelN !== 25 || mode !== "play") return;
+    if (levelN !== 25 || mode !== "play" || calmT > 0) return;
     var king = null, i, e;
     for (i = 0; i < enemies.length; i++) {
       e = enemies[i];
@@ -2032,6 +2029,7 @@
       if (liveBomb.t <= 0) explodeBomb();
     }
 
+    if (calmT > 0) calmT = Math.max(0, calmT - dt);
     tickTorch(dt);
     var i, s, p;
     for (i = puddles.length - 1; i >= 0; i--) { puddles[i].t -= dt; if (puddles[i].t <= 0) puddles.splice(i, 1); }
