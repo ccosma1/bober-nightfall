@@ -68,6 +68,18 @@ NEED = [
     "Frost King down. Not done.",
     "A short vow. A long road.",
     "Held under the keep. Worth the whole winter.",
+    "id=\"diff-pick\"",
+    "Lodge pace.",
+    "Sharper frost.",
+    "No mercy. Still fair.",
+    "Rime Runner",
+    "Slush Brute",
+    "Chill Bell",
+    "Icicle Toss",
+    "Keymoth",
+    "spawnEnemy(\"runr\"",
+    "hpScale",
+    "assets/intro/n18.jpg",
     "act3Held",
     "act4Held",
     "hasTorch",
@@ -189,7 +201,7 @@ def main() -> int:
         p = ROOT / "assets" / "sprites" / name
         if not p.exists():
             errors.append("missing sprite " + name)
-    for i in range(14):
+    for i in range(19):
         p = ROOT / "assets" / "intro" / f"n{i}.jpg"
         if not p.exists():
             errors.append("missing intro n" + str(i))
@@ -265,6 +277,8 @@ def main() -> int:
         "frost-captain-bash.png", "torch.png", "frost-web.png",
         "ice-warden.png", "lockwight.png", "pale-guest.png",
         "chain-choir.png", "lady-thaw.png",
+        "rime-runner.png", "slush-brute.png", "chill-bell.png",
+        "icicle-toss.png", "keymoth.png",
     ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
@@ -391,6 +405,10 @@ def main() -> int:
         errors.append("ACT V CONTINUE still camps Held instead of L26")
     if "function buildQuietBelow" not in text:
         errors.append("Act VI builder missing")
+    if "function startNewRun" not in text or "diffId" not in text:
+        errors.append("difficulty picker missing")
+    if 'difficulty === "easy" ? 1' not in text and "hpScale" not in text:
+        errors.append("easy must stay 1.0x")
     if "Lady Thaw" not in text or "The Quiet Below" not in text:
         errors.append("Act VI names missing")
     if 'id="mus-detail"' not in text:

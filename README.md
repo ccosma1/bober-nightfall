@@ -8,6 +8,8 @@ A Zelda-like top-down room-clear. Forty discrete levels through Act VI **The Qui
 
 No install. No wallet. No login. No ads. No gacha. No PvP.
 
+Difficulty: **Easy** (Lodge pace — current toughness), **Normal**, **Hard**. CONTINUE keeps the saved pick. A new difficulty is a new run.
+
 ## Local
 
 Run `START.bat` or open `index.html` in a browser.
