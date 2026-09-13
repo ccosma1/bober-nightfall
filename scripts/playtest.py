@@ -407,6 +407,15 @@ def main() -> int:
         errors.append("Act VI builder missing")
     if "function startNewRun" not in text or "diffId" not in text:
         errors.append("difficulty picker missing")
+    if "width: 148px" not in text or "height: 148px" not in text:
+        errors.append("phone stick not enlarged")
+    if "min-width: 64px" not in text:
+        errors.append("phone action buttons not enlarged")
+    if "eatDockTouch" not in text:
+        errors.append("dock touch preventDefault missing")
+    dock_css = text.split("    #dock {")[1].split("    #stick {")[0]
+    if "touch-action: none" not in dock_css:
+        errors.append("dock missing touch-action none")
     if 'difficulty === "easy" ? 1' not in text and "hpScale" not in text:
         errors.append("easy must stay 1.0x")
     if "Lady Thaw" not in text or "The Quiet Below" not in text:

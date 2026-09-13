@@ -21,7 +21,8 @@
     html, body {
       margin: 0; height: 100%; background: var(--ink); color: var(--cream);
       font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
-      user-select: none; overflow: hidden; touch-action: manipulation;
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+      overflow: hidden; touch-action: manipulation;
       overscroll-behavior: none;
     }
     #app {
@@ -29,6 +30,7 @@
       width: 100%; max-width: 430px; margin: 0 auto; background: var(--sky);
       position: relative; overflow: hidden;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
     }
     #hud {
       flex: 0 0 auto; z-index: 20; position: relative;
@@ -69,6 +71,8 @@
       flex: 1 1 auto; min-height: 55dvh; min-width: 0; width: 100%;
       position: relative; z-index: 1; background: #12101c;
       display: flex; align-items: center; justify-content: center;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
     canvas { display: block; width: 100%; height: 100%; object-fit: contain; touch-action: none; }
     #say {
@@ -186,44 +190,60 @@
     #clear-bar button.ghost { background: #1A1028; color: var(--cream); border-color: var(--cream); }
     #app.fine #dock { opacity: 1; }
     #app.fine #stick, #app.fine #btn-dodge, #app.fine #btn-sword {
-      opacity: 0.42; transform: scale(0.78); transform-origin: bottom center;
+      opacity: 0.42; transform: none;
     }
     #app.fine #btn-bomb, #app.fine #btn-torch { opacity: 1; transform: none; }
     .tool-col {
       display: flex; flex-direction: column-reverse; align-items: center;
-      gap: 4px; flex: 0 0 auto; min-width: 52px;
+      gap: 6px; flex: 0 0 auto; min-width: 68px;
     }
     #dock {
       flex: 0 0 auto; z-index: 20; position: relative; background: #1A1028;
       display: flex; justify-content: space-between; align-items: flex-end;
-      gap: 10px; padding: 6px 10px max(10px, env(safe-area-inset-bottom));
-      min-height: 124px; pointer-events: auto; flex-wrap: nowrap;
+      gap: 8px; padding: 8px 8px max(16px, env(safe-area-inset-bottom));
+      min-height: 168px; pointer-events: auto; flex-wrap: nowrap;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
     #stick {
-      width: 112px; height: 112px; border-radius: 50%;
+      width: 148px; height: 148px; border-radius: 50%;
       background: #2a1c4e; border: 3px solid #5C3A1A; position: relative;
       touch-action: none; flex: 0 0 auto;
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    }
+    #stick::before {
+      content: ""; position: absolute; inset: -12px; border-radius: 50%;
     }
     #knob {
-      width: 48px; height: 48px; border-radius: 50%; background: var(--yellow);
-      border: 3px solid #1A1028; position: absolute; left: 32px; top: 32px;
+      width: 43%; height: 43%; border-radius: 50%; background: var(--yellow);
+      border: 3px solid #1A1028; position: absolute; left: 28.5%; top: 28.5%;
       pointer-events: none; box-shadow: 0 3px 0 #8a6a00;
     }
-    #actions { display: flex; gap: 6px; align-items: flex-end; padding-bottom: 4px; flex: 0 0 auto; flex-wrap: nowrap; }
+    #actions {
+      display: flex; gap: 6px; align-items: flex-end; padding-bottom: 2px;
+      flex: 0 0 auto; flex-wrap: nowrap;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
     .act {
-      width: 52px; height: 52px; min-width: 44px; min-height: 44px; border-radius: 50%;
+      width: 68px; height: 68px; min-width: 64px; min-height: 64px; border-radius: 50%;
       border: 3px solid var(--yellow); background: var(--fur); color: var(--ink);
       font-weight: 900; font-size: 11px; letter-spacing: 0.02em; cursor: pointer;
       box-shadow: 0 4px 0 #3a2410; position: relative;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .act::before {
+      content: ""; position: absolute; inset: -8px; border-radius: 50%;
     }
     .act:active, .act.held { transform: translateY(2px); box-shadow: 0 2px 0 #3a2410; filter: brightness(0.9); }
     #btn-sword { background: var(--yellow); color: var(--ink); }
     #btn-sword.charged { box-shadow: 0 0 0 4px #F5C40088, 0 4px 0 #8a6a00; }
     #btn-dodge.cd { opacity: 0.45; }
     #btn-bomb {
-      width: 52px; height: 52px; min-width: 44px; min-height: 44px;
+      width: 68px; height: 68px; min-width: 64px; min-height: 64px;
       background: #2a1c4e; color: #8aa7c4; border-color: #5C3A1A;
-      font-size: 12px; flex: 0 0 auto;
+      font-size: 11px; flex: 0 0 auto;
     }
     #btn-bomb.armed {
       background: #F5C400; color: #1A1028; border-color: #F4E6C3;
@@ -241,7 +261,7 @@
     }
     #btn-bomb.armed #bomb-badge { background: #F5C400; color: #1A1028; }
     #btn-torch {
-      width: 52px; height: 52px; min-width: 44px; min-height: 44px;
+      width: 68px; height: 68px; min-width: 64px; min-height: 64px;
       background: #2A3548; color: #E89A3C; border-color: #E89A3C;
       font-size: 10px; flex: 0 0 auto;
     }
@@ -251,10 +271,23 @@
     }
     #btn-torch.hidden { display: none !important; }
     .chip.hidden { display: none !important; }
+    #app.fine #stick { width: 112px; height: 112px; }
+    #app.fine #stick::before { inset: -6px; }
+    #app.fine .act, #app.fine #btn-bomb, #app.fine #btn-torch {
+      width: 52px; height: 52px; min-width: 44px; min-height: 44px; font-size: 11px;
+    }
+    #app.fine .act::before { inset: -4px; }
+    #app.fine .tool-col { min-width: 52px; gap: 4px; }
+    #app.fine #dock {
+      min-height: 124px; gap: 10px;
+      padding: 6px 10px max(10px, env(safe-area-inset-bottom));
+    }
     footer {
       flex: 0 0 auto; text-align: center; font-size: 10px; font-weight: 700;
       color: #cbbda0; padding: 0 8px 2px; background: #1A1028; z-index: 20;
+      pointer-events: none; user-select: none; -webkit-user-select: none;
     }
+    #app:not(.booting) footer { display: none; }
     footer a { color: var(--cream); }
     .overlay {
       position: absolute; inset: 0; z-index: 12; display: flex; flex-direction: column;
@@ -338,7 +371,7 @@
     #hist-skip:disabled { opacity: 0.35; cursor: default; }
     #museum {
       z-index: 22; justify-content: flex-start; overflow: hidden;
-      overscroll-behavior: contain;
+      overscroll-behavior: contain; touch-action: pan-y;
       padding: 10px 10px max(18px, env(safe-area-inset-bottom));
       background: #1a1028f4; align-items: stretch;
     }
@@ -346,7 +379,7 @@
       width: 100%; max-width: 390px; margin: 0 auto;
       display: flex; flex-direction: column; align-items: stretch;
       flex: 1 1 auto; min-height: 0; overflow: auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling: touch; touch-action: pan-y;
     }
     .museum-panel h2 { margin: 4px 0 4px; }
     .museum-panel > .how { margin: 0 0 8px; max-width: none; }
@@ -3511,9 +3544,9 @@
   }
 
   function setStick(nx, ny) {
-    var r = 32;
-    knobEl.style.left = (32 + nx * r) + "px";
-    knobEl.style.top = (32 + ny * r) + "px";
+    var rest = 28.5, travel = 21.5;
+    knobEl.style.left = (rest + nx * travel) + "%";
+    knobEl.style.top = (rest + ny * travel) + "%";
     stick.x = nx; stick.y = ny;
   }
   function stickPos(ev) {
@@ -3536,13 +3569,29 @@
   stickEl.addEventListener("pointermove", function (ev) {
     if (stick.id !== ev.pointerId) return;
     var p = stickPos(ev); setStick(p.x, p.y);
-  });
+    ev.preventDefault();
+  }, { passive: false });
   function endStick(ev) {
     if (stick.id !== ev.pointerId && ev.type !== "pointercancel") return;
     stick.id = null; setStick(0, 0);
   }
   stickEl.addEventListener("pointerup", endStick);
   stickEl.addEventListener("pointercancel", endStick);
+  function eatDockTouch(ev) { ev.preventDefault(); }
+  var dockEl = document.getElementById("dock");
+  if (dockEl) {
+    dockEl.addEventListener("touchstart", eatDockTouch, { passive: false });
+    dockEl.addEventListener("touchmove", eatDockTouch, { passive: false });
+    dockEl.addEventListener("contextmenu", eatDockTouch);
+  }
+  stickEl.addEventListener("touchstart", eatDockTouch, { passive: false });
+  stickEl.addEventListener("touchmove", eatDockTouch, { passive: false });
+  [btnSword, btnDodge, document.getElementById("btn-bomb"), document.getElementById("btn-torch")].forEach(function (el) {
+    if (!el) return;
+    el.addEventListener("touchstart", eatDockTouch, { passive: false });
+    el.addEventListener("touchmove", eatDockTouch, { passive: false });
+    el.addEventListener("contextmenu", eatDockTouch);
+  });
 
   function startTorch() {
     if (waitingStart || !hasTorch || mode !== "play" || paused || !player || player.hp <= 0) return;
