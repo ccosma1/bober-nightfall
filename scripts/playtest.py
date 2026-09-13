@@ -341,6 +341,10 @@ def main() -> int:
         errors.append("START must dismiss tip UI")
     if "calmT" not in text.split("function updateEnemy")[1][:400]:
         errors.append("post-START calm window missing on enemies")
+    if "calmT = 1.25" in text:
+        errors.append("post-START freeze still 1.25s (should be ~half)")
+    if "calmT = 0.62" not in text:
+        errors.append("post-START freeze not halved to ~0.62s")
 
     if errors:
         print("FAIL")
