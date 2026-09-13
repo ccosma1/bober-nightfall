@@ -407,6 +407,10 @@ def main() -> int:
         errors.append("Act VI builder missing")
     if "function startNewRun" not in text or "diffId" not in text:
         errors.append("difficulty picker missing")
+    if "CONTINUE keeps your difficulty" in text:
+        errors.append("difficulty picker still lectures about CONTINUE")
+    if "window.confirm" in text:
+        errors.append("difficulty still uses confirm()")
     if "width: 148px" not in text or "height: 148px" not in text:
         errors.append("phone stick not enlarged")
     if "min-width: 64px" not in text:

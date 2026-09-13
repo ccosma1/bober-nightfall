@@ -574,7 +574,6 @@
     <div id="diff-pick" class="overlay hidden" role="dialog" aria-label="Choose difficulty">
       <div class="tip-card">
         <h2>NEW RUN</h2>
-        <p class="how">CONTINUE keeps your difficulty. A new pick wipes the run.</p>
         <button class="play" id="diff-easy" type="button">EASY<small>Lodge pace.</small></button>
         <button class="play ghost" id="diff-normal" type="button">NORMAL<small>Sharper frost.</small></button>
         <button class="play ghost" id="diff-hard" type="button">HARD<small>No mercy. Still fair.</small></button>
@@ -983,10 +982,6 @@
   function scaleChips(n) { return Math.max(1, Math.round((n | 0) * chipScale())); }
   function diffLabel() { return difficulty === "hard" ? "HARD" : difficulty === "normal" ? "NORMAL" : "EASY"; }
   function diffBlurb() { return difficulty === "hard" ? "No mercy. Still fair." : difficulty === "normal" ? "Sharper frost." : "Lodge pace."; }
-  function saveHasProgress() {
-    var s = loadSave();
-    return (s.level | 0) > 1 || s.act1Held || s.act2Held || s.act3Held || s.act4Held || s.act5Held || s.act6Held;
-  }
   function defaultSave() {
     return {
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
@@ -3794,9 +3789,6 @@
     document.getElementById("diff-pick").classList.add("hidden");
   }
   function startNewRun(diff) {
-    if (saveHasProgress()) {
-      if (!window.confirm("New run wipes progress. CONTINUE keeps your difficulty.")) return;
-    }
     difficulty = diffId(diff);
     Sfx.ensure();
     var seen = loadSave().introSeen;
