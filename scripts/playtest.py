@@ -101,6 +101,14 @@ NEED = [
     "pointerleave",
     "CONTINUE on Held",
     "Long Night — don’t freeze.",
+    "Chop the trees blocking the door.",
+    "Read the tip. Then START.",
+    'id="lv-start"',
+    'id="btn-lv-start"',
+    "waitingStart",
+    "showStartGate",
+    "beginLevel",
+    "chopHintDone",
 ]
 
 FORBID_UI = [
@@ -305,6 +313,23 @@ def main() -> int:
     tips_block = text.split("var TIPS = [")[1].split("];")[0].lower()
     if "wallet" in tips_block or "crypto" in tips_block or "gacha" in tips_block:
         errors.append("buddy tips pitch wallet/crypto/gacha")
+
+    if 'id="btn-lv-start"' not in text.split('id="stage"')[1].split('id="dock"')[0]:
+        errors.append("START button not in stage")
+    if "showStartGate()" not in text.split("function buildLevel")[1].split("function allBraziersLit")[0]:
+        errors.append("buildLevel must show START gate")
+    if "waitingStart" not in text.split("function frame")[1].split("function setStick")[0]:
+        errors.append("frame must freeze until START")
+    if ".chop = true" not in text:
+        errors.append("L1 blocking trees not marked chop")
+    if "function maybeClear" in text and 'kind === "bush" && props[i].alive' in text.split("function maybeClear")[1].split("function tryExit")[0]:
+        errors.append("L1 still clears on bushes not trees")
+    if "props[i].chop && props[i].alive" not in text:
+        errors.append("L1 clear must count chop trees")
+    if "exitDoor.needKey = false" not in text:
+        errors.append("L1 door must lock without a key icon")
+    if 'strokeText("CHOP"' not in text and 'fillText("CHOP"' not in text:
+        errors.append("L1 missing CHOP ping on blocking trees")
 
     if errors:
         print("FAIL")

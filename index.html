@@ -141,6 +141,26 @@
       color: var(--cream); text-shadow: 0 2px 0 #1A1028, 0 4px 12px #000;
     }
     #lv-ban-sub.hidden { display: none !important; }
+    #lv-start {
+      position: absolute; left: 12px; right: 12px; bottom: 12px; top: auto; z-index: 13;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      gap: 8px; pointer-events: none;
+    }
+    #lv-start.hidden { display: none !important; }
+    #lv-start-hint {
+      margin: 0; font-size: 14px; font-weight: 800; color: var(--cream);
+      text-shadow: 0 2px 0 #1A1028, 0 4px 10px #000; text-align: center;
+      pointer-events: none;
+    }
+    #btn-lv-start {
+      pointer-events: auto; appearance: none; border: 3px solid #1A1028;
+      background: var(--yellow); color: var(--ink);
+      font-weight: 900; font-size: 22px; letter-spacing: 0.08em;
+      padding: 12px 28px; min-width: 168px; min-height: 52px;
+      border-radius: 16px; cursor: pointer;
+      box-shadow: 0 4px 0 #8a6a00, 0 8px 20px #0007;
+    }
+    #btn-lv-start:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a6a00; }
     #clear-flash {
       position: absolute; inset: 0; z-index: 8;
       display: flex; align-items: center; justify-content: center;
@@ -342,11 +362,15 @@
       </div>
       <div id="elon-tip" class="hidden" role="status">
         <span class="elon-face"><img src="assets/sprites/john-snow.png" alt="" /></span>
-        <p id="elon-line">Stick or WASD. Slash. Roll. Long Night — don’t freeze.</p>
+        <p id="elon-line">Chop the trees blocking the door. Slash them. Long Night — don’t freeze.</p>
       </div>
       <button id="elon-cameo" class="hidden" type="button" aria-label="Replay last tip" title="Last tip">
         <span class="elon-face"><img src="assets/sprites/john-snow.png" alt="" /></span>
       </button>
+      <div id="lv-start" class="hidden">
+        <p id="lv-start-hint">Read the tip. Then START.</p>
+        <button type="button" id="btn-lv-start">START</button>
+      </div>
     </div>
     <div id="dock">
       <div id="stick" aria-label="Move"><div id="knob"></div></div>
@@ -507,7 +531,7 @@
   ];
   var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 25, BOMB_COST = 25, TORCH_R = 72;
   var TIPS = [
-    "Stick or WASD. Slash. Roll. Long Night — don’t freeze.",
+    "Chop the trees blocking the door. Slash them. Long Night — don’t freeze.",
     "Smash pots. Wood buys hearts. Gather, then fight.",
     "Spitters kite. Roll snowballs. John holds the door.",
     "Key in a pot. Flank the shield — or charge slash.",
@@ -548,6 +572,7 @@
   var liveBomb = null, hasHat = false, introAfter = null, hasTorch = false, torchHeld = false, torchDmgCd = 0, puddles = [];
   var endAct = 0, l25Piece = false, allyClock = 0;
   var l20Piece = false;
+  var waitingStart = false, chopHintDone = false;
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
 
@@ -710,6 +735,8 @@
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
     exitArmed = true;
+    hideStartGate();
+    chopHintDone = false;
     patchSave({
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
@@ -942,6 +969,24 @@
       showCameoIfPlay();
     }, 180);
   }
+  function hideStartGate() {
+    waitingStart = false;
+    var el = document.getElementById("lv-start");
+    if (el) el.classList.add("hidden");
+  }
+  function showStartGate() {
+    waitingStart = true;
+    swordHeld = false; holdT = 0; torchHeld = false;
+    if (stick.id == null) setStick(0, 0);
+    var el = document.getElementById("lv-start");
+    if (el) el.classList.remove("hidden");
+  }
+  function beginLevel() {
+    if (!waitingStart || mode !== "play" || paused) return;
+    hideStartGate();
+    Sfx.ensure();
+    Sfx.beep(523, 0.08, "square", 0.05);
+  }
 
   function addPop(x, y, kind) { pops.push({ x: x, y: y, t: 0.45, kind: kind }); }
   function addTrail(x, y) { trails.push({ x: x, y: y, t: 0.28 }); }
@@ -955,6 +1000,7 @@
     if ((p.kind === "ice" || p.kind === "frostBush") && (fromSlash || fromTorch)) return;
     if (p.kind === "brazier") return;
     p.alive = false;
+    if (p.chop) chopHintDone = true;
     addPop(p.x, p.y, p.kind);
     Sfx.hit();
     if (p.kind === "pot") {
@@ -965,14 +1011,14 @@
         else { chips += 1 + (Math.random() < 0.55 ? 1 : 0); drop(p.x, p.y, "chip"); }
       } else if (Math.random() < 0.55) drop(p.x, p.y, "heart");
       else { chips += 1 + (Math.random() < 0.5 ? 1 : 0); drop(p.x, p.y, "chip"); }
-    } else if (p.kind === "bush" && Math.random() < 0.35) {
+    } else if ((p.kind === "bush" || (p.kind === "pine" && p.chop)) && Math.random() < 0.45) {
       chips += 1; drop(p.x, p.y, "chip");
     }
     persist();
   }
 
   function hurtPlayer(src, force) {
-    if (player.iframes > 0 || player.roll > 0 || player.hp <= 0) return;
+    if (waitingStart || player.iframes > 0 || player.roll > 0 || player.hp <= 0) return;
     player.hp = Math.max(0, player.hp - 2);
     player.iframes = INVULN;
     player.hurt = 0.2;
@@ -987,6 +1033,7 @@
   }
   function die() {
     mode = "dead";
+    hideStartGate();
     hideBuddyAll();
     document.getElementById("dead").classList.remove("hidden");
     persist();
@@ -1080,7 +1127,7 @@
   }
 
   function doSlash(charge) {
-    if (player.slashing > 0 || player.roll > 0 || player.hp <= 0) return;
+    if (waitingStart || !player || player.slashing > 0 || player.roll > 0 || player.hp <= 0) return;
     player.slashing = SLASH_REC;
     player.charged = !!charge;
     var ang = Math.atan2(player.ay, player.ax);
@@ -1100,9 +1147,9 @@
     }
     for (i = 0; i < props.length; i++) {
       e = props[i];
-      if (!e.alive || (e.kind !== "bush" && e.kind !== "pot")) continue;
+      if (!e.alive || (e.kind !== "bush" && e.kind !== "pot" && !(e.kind === "pine" && e.chop))) continue;
       d = Math.hypot(e.x - player.x, e.y - player.y);
-      if (d > range + 18) continue;
+      if (d > range + (e.chop ? 28 : 18)) continue;
       a = Math.atan2(e.y - player.y, e.x - player.x);
       if (angDiff(a, ang) <= arc / 2) breakProp(e, true);
     }
@@ -1114,7 +1161,7 @@
     }
   }
   function doRoll() {
-    if (!player || player.rollCd > 0 || player.hp <= 0) return;
+    if (waitingStart || !player || player.rollCd > 0 || player.hp <= 0) return;
     var L = Math.hypot(player.ax, player.ay) || 1;
     player.rdx = player.ax / L; player.rdy = player.ay / L;
     player.roll = ROLL_T; player.rollCd = ROLL_CD; player.iframes = ROLL_T;
@@ -1178,8 +1225,11 @@
       lvBannerT = 1.35;
     } else {
       main.textContent = "LEVEL " + n + "/" + MAX_LV;
-      if (sub) sub.classList.add("hidden");
-      lvBannerT = 1;
+      if (n === 1 && sub) {
+        sub.textContent = "Chop the trees blocking the door.";
+        sub.classList.remove("hidden");
+      } else if (sub) sub.classList.add("hidden");
+      lvBannerT = n === 1 ? 1.7 : 1;
     }
     el.classList.remove("hidden");
   }
@@ -1193,6 +1243,8 @@
     john = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
     hideClearSpend();
     hideBuddyAll();
+    hideStartGate();
+    chopHintDone = false;
     levelN = n;
     var theme = (n - 1) / 4;
     var savedHp = loadSave().hp;
@@ -1203,15 +1255,16 @@
     };
     if (player.hp <= 0) player.hp = hpMax;
     exitArmed = false;
-    exitDoor = { x: 180, y: 48, locked: n === 4 || n === 9 || n === 14, open: false, r: 22 };
+    exitDoor = { x: 180, y: 48, locked: n === 4 || n === 9 || n === 14, open: false, r: 22, needKey: n === 4 || n === 9 || n === 14 };
     if (n === 1) {
       addSolid("pine", 52, 90, 22, 28); addSolid("pine", 308, 96, 22, 28);
       addSolid("pine", 46, 260, 22, 28); addSolid("pine", 314, 270, 22, 28);
-      addSolid("bush", 52, 208, 18, 16); addSolid("bush", 96, 198, 18, 16);
-      addSolid("bush", 140, 194, 18, 16); addSolid("bush", 180, 190, 18, 16);
-      addSolid("bush", 220, 194, 18, 16); addSolid("bush", 264, 198, 18, 16);
-      addSolid("bush", 308, 208, 18, 16);
+      addSolid("pine", 118, 142, 20, 26).chop = true;
+      addSolid("pine", 180, 148, 20, 26).chop = true;
+      addSolid("pine", 242, 142, 20, 26).chop = true;
+      addSolid("bush", 70, 300, 16, 14); addSolid("bush", 290, 310, 16, 14);
       john = { x: 292, y: 340, said: false };
+      exitDoor.locked = true; exitDoor.open = false; exitDoor.needKey = false;
     } else if (n === 2) {
       addSolid("pine", 50, 80, 22, 28); addSolid("pine", 310, 86, 22, 28);
       addSolid("bush", 90, 300, 16, 14); addSolid("bush", 270, 310, 16, 14);
@@ -1303,7 +1356,7 @@
       spawnEnemy("halb", 180, 200);
       spawnEnemy("imp", 86, 280);
       if (!hasTorch) hasTorch = true;
-      exitDoor.locked = true; exitDoor.open = false;
+      exitDoor.locked = true; exitDoor.open = false; exitDoor.needKey = true;
     } else if (n === 19) {
       addSolid("ice", 130, 118, 20, 20); addSolid("ice", 180, 116, 20, 20); addSolid("ice", 230, 118, 20, 20);
       addSolid("ice", 70, 268, 18, 18); addSolid("ice", 108, 268, 18, 18);
@@ -1315,7 +1368,7 @@
       spawnEnemy("spit", 90, 160);
       if (bombs < 1) drop(300, 360, "bomb");
       if (!hasTorch) hasTorch = true;
-      exitDoor.locked = true; exitDoor.open = false;
+      exitDoor.locked = true; exitDoor.open = false; exitDoor.needKey = true;
     } else if (n === 20) {
       spawnEnemy("captain", 180, 200);
       addSolid("pot", 56, 340, 14, 14);
@@ -1343,7 +1396,7 @@
       addSolid("pot", 56, 368, 14, 14).hasKey = true;
       spawnEnemy("halb", 180, 200); spawnEnemy("grunt", 180, 128);
       if (!hasTorch) hasTorch = true;
-      exitDoor.locked = true; exitDoor.open = false;
+      exitDoor.locked = true; exitDoor.open = false; exitDoor.needKey = true;
     } else if (n === 24) {
       addSolid("ice", 120, 120, 20, 20); addSolid("ice", 180, 118, 20, 20); addSolid("ice", 240, 120, 20, 20);
       addSolid("brazier", 64, 210, 14, 16); addSolid("brazier", 296, 210, 14, 16);
@@ -1372,7 +1425,7 @@
     fadeEl.classList.add("on");
     fadeT = 0.4;
     if (n === 1) {
-      say("JOHN SNOW", "John Snow from the white…", 3.4);
+      say("JOHN SNOW", "John Snow from the white… Chop the trees blocking the door.", 4.2);
       ghostT = 13.4;
     } else if (n === 8) {
       say("TIP", "Roll past the shield. Hit his back. No bomb needed.", 3.6);
@@ -1390,6 +1443,7 @@
       say("CAMP", "+15 wood. Shop bomb is 25W.", 2.6);
     }
     showBuddyTip();
+    showStartGate();
     patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, keepSeen: keepSeen, crownSeen: crownSeen, act2Wood: act2Wood, hasTorch: hasTorch, act1Held: n >= 6, act2Held: n >= 11 || act2Held, act3Held: n >= 16 || act3Held, act4Held: n >= 21 || act4Held });
   }
 
@@ -1447,7 +1501,7 @@
     if (cleared) return;
     var i, left = 0;
     if (levelN === 1) {
-      for (i = 0; i < props.length; i++) if (props[i].kind === "bush" && props[i].alive) left++;
+      for (i = 0; i < props.length; i++) if (props[i].chop && props[i].alive) left++;
       if (left) return;
     } else {
       for (i = 0; i < enemies.length; i++) if (!enemies[i].dead) left++;
@@ -1728,7 +1782,7 @@
   }
 
   function placeBomb() {
-    if (!player || mode !== "play" || paused || player.hp <= 0) return;
+    if (waitingStart || !player || mode !== "play" || paused || player.hp <= 0) return;
     if (bombs < 1 || liveBomb) return;
     bombs -= 1;
     var L = Math.hypot(player.ax, player.ay) || 1;
@@ -1767,6 +1821,7 @@
   }
   function showActEnd(act) {
     mode = "end";
+    hideStartGate();
     hideBuddyAll();
     endAct = act | 0;
     if (act === 5) act5Held = true;
@@ -1894,6 +1949,34 @@
         }
       }
     }
+  }
+
+  function updateWaiting(dt) {
+    if (lvBannerT > 0) {
+      lvBannerT -= dt;
+      if (lvBannerT <= 0) {
+        var ban = document.getElementById("lv-banner");
+        var main = document.getElementById("lv-ban-main");
+        var sub = document.getElementById("lv-ban-sub");
+        var title = main ? main.textContent : (ban ? ban.textContent : "");
+        if (title === "BONE CAMP" || title === "ICE APPROACHES" || title === "FROST KEEP" || title === "CROWN APPROACH") {
+          if (main) main.textContent = "LEVEL " + levelN + "/" + MAX_LV;
+          if (sub) sub.classList.add("hidden");
+          lvBannerT = 1;
+        } else if (ban) ban.classList.add("hidden");
+      }
+    }
+    if (fadeT > 0) {
+      fadeT -= dt;
+      fadeEl.style.opacity = String(clamp(fadeT / 0.4, 0, 1));
+      if (fadeT <= 0) fadeEl.classList.remove("on");
+    }
+    var i;
+    for (i = 0; i < flakes.length; i++) {
+      flakes[i].y += flakes[i].v * dt; flakes[i].x += Math.sin(flakes[i].y * 0.02) * 8 * dt;
+      if (flakes[i].y > H) { flakes[i].y = -6; flakes[i].x = Math.random() * W; }
+    }
+    hud();
   }
 
   function update(dt) {
@@ -2243,6 +2326,10 @@
       if (exitDoor.open && !exitDoor.locked) {
         ctx.strokeStyle = "#F5C400"; ctx.globalAlpha = 0.55 + Math.sin(performance.now() / 180) * 0.25;
         ctx.strokeRect(exitDoor.x - 28, exitDoor.y - 50, 56, 62); ctx.globalAlpha = 1;
+      } else if (levelN === 1 && exitDoor.locked) {
+        ctx.strokeStyle = "#E85D4C"; ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.5 + Math.sin(performance.now() / 200) * 0.3;
+        ctx.strokeRect(exitDoor.x - 28, exitDoor.y - 50, 56, 62); ctx.globalAlpha = 1;
       }
     });
     if (john) {
@@ -2259,7 +2346,36 @@
           shadow(p.x, p.y + 2, p.hw * 0.9, 6);
           if (p.kind === "bush" || p.kind === "frostBush") drawSpr(SPR.bush, p.x, p.y, 44, 40, false, 1);
           else if (p.kind === "pot") drawSpr(SPR.pot, p.x, p.y, 32, 30, false, 1);
-          else if (p.kind === "pine") drawSpr(levelN >= 4 ? SPR.pineSnow : SPR.pine, p.x, p.y, 56, 78, false, 1);
+          else if (p.kind === "pine") {
+            if (p.chop && !chopHintDone) {
+              var pulse = 0.5 + Math.sin(performance.now() / 160) * 0.4;
+              ctx.save();
+              ctx.globalAlpha = pulse;
+              ctx.strokeStyle = "#F5C400"; ctx.lineWidth = 4;
+              ctx.beginPath(); ctx.ellipse(p.x, p.y - 28, 26, 38, 0, 0, Math.PI * 2); ctx.stroke();
+              ctx.restore();
+              ctx.save();
+              ctx.strokeStyle = "#F5C400"; ctx.lineWidth = 3;
+              ctx.beginPath();
+              ctx.moveTo(p.x - 8, p.y - 6); ctx.lineTo(p.x + 7, p.y + 8);
+              ctx.moveTo(p.x - 2, p.y - 10); ctx.lineTo(p.x + 11, p.y + 4);
+              ctx.stroke();
+              ctx.restore();
+            }
+            drawSpr(levelN >= 4 ? SPR.pineSnow : SPR.pine, p.x, p.y, 56, 78, false, 1);
+            if (p.chop && !chopHintDone) {
+              var cy = p.y - 76 + Math.sin(performance.now() / 200) * 4;
+              ctx.save();
+              ctx.font = "900 15px Trebuchet MS, sans-serif";
+              ctx.textAlign = "center"; ctx.textBaseline = "middle";
+              ctx.lineWidth = 4; ctx.strokeStyle = "#1A1028"; ctx.fillStyle = "#F5C400";
+              ctx.strokeText("CHOP", p.x, cy); ctx.fillText("CHOP", p.x, cy);
+              ctx.beginPath();
+              ctx.moveTo(p.x, cy + 10); ctx.lineTo(p.x - 7, cy + 20); ctx.lineTo(p.x + 7, cy + 20);
+              ctx.closePath(); ctx.fill();
+              ctx.restore();
+            }
+          }
           else if (p.kind === "ice") drawSpr(SPR.ice, p.x, p.y, 44, 42, false, 1);
           else if (p.kind === "bones") drawSpr(SPR.bones, p.x, p.y, 52, 42, false, 1);
           else if (p.kind === "web") drawSpr(SPR.web, p.x, p.y, 78, 70, false, 1);
@@ -2495,7 +2611,7 @@
       ctx.beginPath(); ctx.arc(p.x, p.y - (0.45 - p.t) * 20, 5, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
     }
-    if (player && exitDoor.locked) {
+    if (player && exitDoor.locked && exitDoor.needKey) {
       drawSpr(SPR.key, exitDoor.x + 18, exitDoor.y - 36, 18, 16, false, player.keys ? 1 : 0.35);
     }
   }
@@ -2505,6 +2621,7 @@
     var dt = Math.min(0.033, (ts - lastTs) / 1000);
     lastTs = ts;
     if (mode !== "play" || paused) { if (mode === "play") draw(); return; }
+    if (waitingStart) { updateWaiting(dt); draw(); return; }
     if (hitstop > 0) { hitstop -= dt; draw(); return; }
     update(dt);
     draw();
@@ -2545,7 +2662,7 @@
   stickEl.addEventListener("pointercancel", endStick);
 
   function startTorch() {
-    if (!hasTorch || mode !== "play" || paused || !player || player.hp <= 0) return;
+    if (waitingStart || !hasTorch || mode !== "play" || paused || !player || player.hp <= 0) return;
     torchHeld = true;
     Sfx.ensure();
     Sfx.beep(240, 0.05, "triangle", 0.04);
@@ -2555,7 +2672,10 @@
     torchHeld = false;
     hud();
   }
-  function startHold() { swordHeld = true; holdT = 0; Sfx.ensure(); }
+  function startHold() {
+    if (waitingStart || mode !== "play" || paused || !player || player.hp <= 0) return;
+    swordHeld = true; holdT = 0; Sfx.ensure();
+  }
   function endHold() {
     if (!swordHeld) return;
     var ch = holdT >= CHARGE_HOLD;
@@ -2591,7 +2711,7 @@
     }
   }
   canvas.addEventListener("pointerdown", function (ev) {
-    if (mode !== "play" || paused) return;
+    if (mode !== "play" || paused || waitingStart) return;
     if (ev.pointerType === "touch") return;
     Sfx.ensure();
     aimFromEvent(ev);
@@ -2616,6 +2736,13 @@
 
   window.addEventListener("keydown", function (ev) {
     keys[ev.code] = true;
+    if (waitingStart && mode === "play" && !paused) {
+      if (ev.code === "Enter" || ev.code === "NumpadEnter") { beginLevel(); ev.preventDefault(); }
+      if (ev.code === "KeyP" || ev.code === "Escape") togglePause();
+      if (ev.code === "KeyM") toggleMute();
+      if (ev.code === "Space" || ev.code === "KeyJ" || ev.code === "KeyZ" || ev.code === "KeyB" || ev.code === "KeyX" || ev.code === "KeyF") ev.preventDefault();
+      return;
+    }
     if (ev.code === "Space" || ev.code === "KeyJ" || ev.code === "KeyZ") { if (!swordHeld) startHold(); ev.preventDefault(); }
     if (ev.code === "ShiftLeft" || ev.code === "ShiftRight" || ev.code === "KeyK" || ev.code === "KeyC") { doRoll(); ev.preventDefault(); }
     if (ev.code === "KeyB" || ev.code === "KeyX") { placeBomb(); ev.preventDefault(); }
@@ -2646,6 +2773,7 @@
   }
   function goSplash() {
     mode = "splash"; paused = false;
+    hideStartGate();
     hideMenus();
     hideClearSpend();
     document.getElementById("splash").classList.remove("hidden");
@@ -2739,6 +2867,14 @@
     torchBtn.addEventListener("pointercancel", function () { endTorch(); });
     torchBtn.addEventListener("pointerleave", function () { endTorch(); });
   }
+  document.getElementById("btn-lv-start").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    beginLevel();
+  });
+  document.getElementById("btn-lv-start").addEventListener("pointerdown", function (ev) {
+    ev.stopPropagation();
+  });
   document.getElementById("btn-rest").addEventListener("click", doRest);
   document.getElementById("btn-warm").addEventListener("click", doWarm);
   document.getElementById("btn-mute").addEventListener("click", toggleMute);
