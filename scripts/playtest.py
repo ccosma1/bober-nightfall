@@ -370,6 +370,17 @@ def main() -> int:
     intro_block = text.split("var INTRO = [")[1].split("];")[0].lower()
     if "meadow" in intro_block or "yeeted" in intro_block:
         errors.append("intro copy not Nightfall story")
+    if 'id="mus-detail"' not in text:
+        errors.append("museum card detail overlay missing")
+    if "function openMusDetail" not in text or "function closeMusDetail" not in text:
+        errors.append("museum detail open/close missing")
+    if "data-id" not in text.split("function paintMuseum")[1].split("function findMusCard")[0]:
+        errors.append("museum cards not tagged for tap")
+    paint_js = text.split("function paintMuseum")[1].split("function findMusCard")[0]
+    if "<button" not in paint_js or "mus-card" not in paint_js:
+        errors.append("museum cards not buttons")
+    if "Reach this act to unlock." not in text:
+        errors.append("locked detail tease missing")
 
     if errors:
         print("FAIL")

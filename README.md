@@ -24,7 +24,7 @@ Run `START.bat` or open `index.html` in a browser.
 
 Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1` (levels 1–20).
 
-**Museum** (splash or pause) is a play-card gallery: roster + act milestones. Cards unlock as you reach the level that introduces that foe (Frost King after the finale). Soft save `bober-nightfall-museum-v1`. Always at least Bober.
+**Museum** (splash or pause) is a play-card gallery: roster + act milestones. Tap a card for the large still. Locked cards still open (silhouette + tease). Back from a card returns to the grid. Cards unlock as you reach the level that introduces that foe (Frost King after the finale). Soft save `bober-nightfall-museum-v1`. Always at least Bober.
 
 Shop is a stub in Act I. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
 

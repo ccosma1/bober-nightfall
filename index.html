@@ -331,14 +331,16 @@
     }
     #hist-skip:disabled { opacity: 0.35; cursor: default; }
     #museum {
-      z-index: 22; justify-content: flex-start; overflow: auto;
-      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+      z-index: 22; justify-content: flex-start; overflow: hidden;
+      overscroll-behavior: contain;
       padding: 10px 10px max(18px, env(safe-area-inset-bottom));
       background: #1a1028f4; align-items: stretch;
     }
     .museum-panel {
       width: 100%; max-width: 390px; margin: 0 auto;
       display: flex; flex-direction: column; align-items: stretch;
+      flex: 1 1 auto; min-height: 0; overflow: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .museum-panel h2 { margin: 4px 0 4px; }
     .museum-panel > .how { margin: 0 0 8px; max-width: none; }
@@ -358,11 +360,13 @@
       padding-bottom: 8px;
     }
     .mus-card {
+      appearance: none; -webkit-appearance: none; font-family: inherit;
       display: grid; grid-template-columns: 92px minmax(0, 1fr);
       gap: 10px; align-items: center; text-align: left;
       background: #2a1c4e; border: 3px solid var(--ice); border-radius: 14px;
-      padding: 10px;
+      padding: 10px; width: 100%; min-height: 112px; cursor: pointer; color: inherit;
     }
+    .mus-card:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
     .mus-card.mile { grid-template-columns: 1fr; align-items: stretch; }
     .mus-art {
       width: 92px; height: 92px; border-radius: 12px; overflow: hidden;
@@ -392,6 +396,57 @@
       letter-spacing: 0.06em; color: var(--ice);
     }
     #museum #btn-museum-back { align-self: center; margin-top: 12px; }
+    #mus-detail {
+      position: absolute; inset: 0; z-index: 4;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; overflow: auto;
+      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+      padding: 12px 12px max(18px, env(safe-area-inset-bottom));
+      background: #1a1028f6;
+    }
+    #mus-detail.hidden { display: none !important; }
+    .mus-detail-wrap {
+      position: relative; width: 100%; max-width: 390px; margin: 0 auto;
+      padding-top: 48px;
+    }
+    .mus-x {
+      appearance: none; position: absolute; top: 0; right: 0; z-index: 2;
+      width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+      border: 2px solid var(--yellow); background: #1A1028; color: var(--yellow);
+      border-radius: 12px; font-family: inherit; font-weight: 900; font-size: 16px;
+      cursor: pointer; padding: 0;
+    }
+    .mus-detail-card {
+      width: 100%; background: #2a1c4e; border: 3px solid var(--ice);
+      border-radius: 16px; padding: 14px 12px 16px; text-align: center;
+    }
+    #mus-detail.locked .mus-detail-card { border-color: #5C3A1A; background: #241836; }
+    .mus-detail-art {
+      width: 100%; height: 220px; margin: 0 0 12px; border-radius: 12px;
+      overflow: hidden; background: #1A1028;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mus-detail-art img {
+      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+    }
+    #mus-detail.mile .mus-detail-art { height: 240px; }
+    #mus-detail.mile .mus-detail-art img { width: 100%; height: 100%; object-fit: cover; }
+    #mus-detail.locked .mus-detail-art img { filter: brightness(0); opacity: 0.45; }
+    #mus-detail-name {
+      margin: 0 0 6px; font-size: 22px; line-height: 1.15; color: var(--yellow);
+      text-shadow: 0 2px 0 #1A1028;
+    }
+    #mus-detail.locked #mus-detail-name { color: var(--ice); }
+    #mus-detail-body {
+      margin: 0 0 8px; font-size: 15px; font-weight: 700; line-height: 1.35;
+      color: var(--cream); overflow-wrap: anywhere;
+    }
+    #mus-detail-meta {
+      margin: 0 0 12px; font-size: 12px; font-weight: 800; color: var(--ice);
+    }
+    #mus-detail-meta:empty, #mus-detail-tag:empty { display: none; }
+    #mus-detail-tag { margin: 0 0 4px; }
+    #mus-detail-back { margin-top: 4px; }
     #app.booting #hud, #app.booting #dock, #app.booting footer { visibility: hidden; }
     #hat-tip { margin: 0 0 10px; font-size: 12px; font-weight: 800; color: var(--yellow); text-shadow: 0 2px 6px #000; }
     #hat-tip.hidden { display: none; }
@@ -495,6 +550,19 @@
         </div>
         <div id="museum-grid"></div>
         <button class="play ghost" id="btn-museum-back" type="button">Back</button>
+      </div>
+      <div id="mus-detail" class="hidden" role="dialog" aria-label="Card detail">
+        <div class="mus-detail-wrap">
+          <button type="button" class="mus-x" id="mus-detail-x" aria-label="Close">X</button>
+          <div class="mus-detail-card" id="mus-detail-inner">
+            <div class="mus-detail-art"><img id="mus-detail-img" alt="" /></div>
+            <span class="mus-tag" id="mus-detail-tag"></span>
+            <h3 id="mus-detail-name"></h3>
+            <p id="mus-detail-body"></p>
+            <p id="mus-detail-meta"></p>
+            <button class="play ghost" id="mus-detail-back" type="button">Back</button>
+          </div>
+        </div>
       </div>
     </div>
     <div id="paused" class="overlay hidden">
@@ -668,17 +736,22 @@
   ];
   var MILES = [
     { id: "woods", name: "Ember Woods", art: "assets/intro/n1.jpg?v=8", lv: 1,
-      blurb: "Lodge fire held. Now the trees bite back." },
+      blurb: "Lodge fire held. Now the trees bite back.",
+      tease: "Snow in the pines. A path waits." },
     { id: "ice", name: "Ice Approaches", art: "assets/intro/n2.jpg?v=8", lv: 6,
-      blurb: "The path ices over. Bombs and a hound wait." },
+      blurb: "The path ices over. Bombs and a hound wait.",
+      tease: "The road goes white." },
     { id: "bone", name: "Bone Camp", art: "assets/intro/n3.jpg?v=8", lv: 11,
-      blurb: "Ice that used to walk. Don’t get boxed." },
+      blurb: "Ice that used to walk. Don’t get boxed.",
+      tease: "Something that used to walk." },
     { id: "keep", name: "Frost Keep", art: "assets/intro/n4.jpg?v=8", lv: 16,
-      blurb: "Winter siege. Hold the torch. End the frost." },
+      blurb: "Winter siege. Hold the torch. End the frost.",
+      tease: "Stone and torch. A gate." },
     { id: "finale", name: "Frost King", art: "assets/intro/n5.jpg?v=8", lv: 21,
-      blurb: "The last lock. Lodge fire was only the start." }
+      blurb: "The last lock. Lodge fire was only the start.",
+      tease: "The last ice still waits." }
   ];
-  var musTab = "roster", museumFrom = "splash";
+  var musTab = "roster", museumFrom = "splash", musDetailFrom = null;
   var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 25, BOMB_COST = 25, TORCH_R = 72;
   var TIPS = [
     "John Snow from the white… Chop the trees blocking the door. Long Night — don’t freeze.",
@@ -940,7 +1013,8 @@
     var grid = document.getElementById("museum-grid");
     if (!grid) return;
     var mus = loadMuseum();
-    var list = musTab === "miles" ? MILES : ROSTER;
+    var kind = musTab === "miles" ? "miles" : "roster";
+    var list = kind === "miles" ? MILES : ROSTER;
     var html = "";
     var i, c, on, title, body, tag;
     for (i = 0; i < list.length; i++) {
@@ -949,28 +1023,86 @@
       title = on ? c.name : "???";
       body = on ? c.blurb : (c.tease || "Not yet.");
       tag = (c.buddy && on) ? "<span class=\"mus-tag\">TIP ONLY</span>" : "";
-      html += "<article class=\"mus-card" + (musTab === "miles" ? " mile" : "") + (on ? "" : " locked") + "\">" +
+      html += "<button type=\"button\" class=\"mus-card" + (kind === "miles" ? " mile" : "") + (on ? "" : " locked") +
+        "\" data-id=\"" + c.id + "\" data-kind=\"" + kind + "\" aria-label=\"" + (on ? c.name : "Locked card") + "\">" +
         "<div class=\"mus-art\"><img src=\"" + c.art + "\" alt=\"\" /></div>" +
-        "<div class=\"mus-body\">" + tag + "<h3>" + title + "</h3><p>" + body + "</p></div></article>";
+        "<div class=\"mus-body\">" + tag + "<h3>" + title + "</h3><p>" + body + "</p></div></button>";
     }
     if (!html) {
-      html = "<article class=\"mus-card\"><div class=\"mus-art\"><img src=\"assets/sprites/bober-idle.png\" alt=\"\" /></div>" +
-        "<div class=\"mus-body\"><h3>Bober</h3><p>Square-headed hero. Chop, slash, roll. End the frost.</p></div></article>";
+      html = "<button type=\"button\" class=\"mus-card\" data-id=\"bober\" data-kind=\"roster\" aria-label=\"Bober\">" +
+        "<div class=\"mus-art\"><img src=\"assets/sprites/bober-idle.png\" alt=\"\" /></div>" +
+        "<div class=\"mus-body\"><h3>Bober</h3><p>Square-headed hero. Chop, slash, roll. End the frost.</p></div></button>";
     }
     grid.innerHTML = html;
   }
+  function findMusCard(id, kind) {
+    var list = kind === "miles" ? MILES : ROSTER;
+    var i;
+    for (i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    if (id === "bober") return ROSTER[0];
+    return null;
+  }
+  function cardMeta(card, on, kind) {
+    if (!card) return "";
+    if (kind === "miles") return on ? "Act reached." : "Reach this act to unlock.";
+    if (card.king) return on ? "Finale · Frost King down." : "Beat the Frost King to unlock.";
+    if (card.buddy) return on ? "Tip only · not a fighter." : "See a tip, or reach L1.";
+    if (card.id === "bober" || card.lv === 0) return "Hero of the Long Night.";
+    if (on) return "First seen L" + (card.lv | 0) + ".";
+    return "Reach this act to unlock.";
+  }
+  function musDetailOpen() {
+    var el = document.getElementById("mus-detail");
+    return !!(el && !el.classList.contains("hidden"));
+  }
+  function closeMusDetail() {
+    var el = document.getElementById("mus-detail");
+    if (el) el.classList.add("hidden");
+    if (musDetailFrom && musDetailFrom.focus) {
+      try { musDetailFrom.focus(); } catch (e) {}
+    }
+    musDetailFrom = null;
+  }
+  function openMusDetail(id, kind) {
+    var card = findMusCard(id, kind);
+    if (!card) return;
+    var mus = loadMuseum();
+    var on = cardUnlocked(card, mus);
+    var el = document.getElementById("mus-detail");
+    var img = document.getElementById("mus-detail-img");
+    var name = document.getElementById("mus-detail-name");
+    var body = document.getElementById("mus-detail-body");
+    var meta = document.getElementById("mus-detail-meta");
+    var tag = document.getElementById("mus-detail-tag");
+    var back = document.getElementById("mus-detail-back");
+    musDetailFrom = document.activeElement;
+    if (img) img.src = card.art;
+    if (name) name.textContent = on ? card.name : "???";
+    if (body) body.textContent = on ? card.blurb : (card.tease || "Not yet.");
+    if (meta) meta.textContent = cardMeta(card, on, kind);
+    if (tag) tag.textContent = (card.buddy && on) ? "TIP ONLY" : "";
+    if (el) {
+      el.classList.toggle("locked", !on);
+      el.classList.toggle("mile", kind === "miles");
+      el.classList.remove("hidden");
+    }
+    if (back) back.focus();
+  }
   function openMuseum(from) {
     museumFrom = from || "splash";
+    closeMusDetail();
     var musEl = document.getElementById("museum");
     if (musEl) musEl.classList.remove("hidden");
     paintMuseum();
   }
   function closeMuseum() {
+    closeMusDetail();
     var musEl = document.getElementById("museum");
     if (musEl) musEl.classList.add("hidden");
     if (museumFrom === "paused") document.getElementById("paused").classList.remove("hidden");
   }
   function setMusTab(tab) {
+    closeMusDetail();
     musTab = tab === "miles" ? "miles" : "roster";
     document.getElementById("mus-tab-roster").classList.toggle("on", musTab === "roster");
     document.getElementById("mus-tab-miles").classList.toggle("on", musTab === "miles");
@@ -2969,6 +3101,18 @@
 
   window.addEventListener("keydown", function (ev) {
     keys[ev.code] = true;
+    var musOpen = document.getElementById("museum");
+    musOpen = musOpen && !musOpen.classList.contains("hidden");
+    if (musOpen && (ev.code === "Escape" || ev.code === "KeyP")) {
+      if (musDetailOpen()) closeMusDetail();
+      else closeMuseum();
+      ev.preventDefault();
+      return;
+    }
+    if (musOpen && (ev.code === "Space" || ev.code === "KeyX" || ev.code === "KeyJ" || ev.code === "KeyZ" || ev.code === "KeyB" || ev.code === "KeyF")) {
+      ev.preventDefault();
+      return;
+    }
     if (waitingStart && mode === "play" && !paused) {
       if (ev.code === "Enter" || ev.code === "NumpadEnter") { beginLevel(); ev.preventDefault(); }
       if (ev.code === "KeyP" || ev.code === "Escape") togglePause();
@@ -2996,7 +3140,8 @@
     if (mode !== "play") return;
     var mus = document.getElementById("museum");
     if (mus && !mus.classList.contains("hidden")) {
-      closeMuseum();
+      if (musDetailOpen()) closeMusDetail();
+      else closeMuseum();
       return;
     }
     paused = !paused;
@@ -3094,9 +3239,35 @@
   document.getElementById("btn-intro").addEventListener("click", function () { Sfx.ensure(); playIntro(null); });
   document.getElementById("btn-museum").addEventListener("click", function () { openMuseum("splash"); });
   document.getElementById("btn-museum2").addEventListener("click", function () { openMuseum("paused"); });
-  document.getElementById("btn-museum-back").addEventListener("click", closeMuseum);
+  document.getElementById("btn-museum-back").addEventListener("click", function () {
+    if (musDetailOpen()) closeMusDetail();
+    else closeMuseum();
+  });
   document.getElementById("mus-tab-roster").addEventListener("click", function () { setMusTab("roster"); });
   document.getElementById("mus-tab-miles").addEventListener("click", function () { setMusTab("miles"); });
+  document.getElementById("museum-grid").addEventListener("click", function (ev) {
+    var btn = ev.target.closest ? ev.target.closest(".mus-card") : null;
+    if (!btn || !document.getElementById("museum-grid").contains(btn)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    openMusDetail(btn.getAttribute("data-id"), btn.getAttribute("data-kind"));
+  });
+  document.getElementById("mus-detail-back").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeMusDetail();
+  });
+  document.getElementById("mus-detail-x").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeMusDetail();
+  });
+  document.getElementById("mus-detail").addEventListener("click", function (ev) {
+    if (ev.target.id === "mus-detail") closeMusDetail();
+  });
+  document.getElementById("mus-detail-inner").addEventListener("click", function (ev) {
+    ev.stopPropagation();
+  });
   document.getElementById("btn-shop").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
   document.getElementById("btn-shop2").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
   document.getElementById("btn-shop-close").addEventListener("click", function () { document.getElementById("shop").classList.add("hidden"); });
