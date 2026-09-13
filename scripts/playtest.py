@@ -54,7 +54,20 @@ NEED = [
     "spawnEnemy(\"warden\"",
     "placeBomb",
     "Ice Approaches",
-    "MAX_LV = 25",
+    "MAX_LV = 40",
+    "ACT VI HELD",
+    "The Quiet Below",
+    "Lady Thaw",
+    "Ice Warden",
+    "Lockwight",
+    "Pale Guest",
+    "Chain Choir",
+    "spawnEnemy(\"iward\"",
+    "startPlay(26, true)",
+    "assets/intro/n13.jpg",
+    "Frost King down. Not done.",
+    "A short vow. A long road.",
+    "Held under the keep. Worth the whole winter.",
     "act3Held",
     "act4Held",
     "hasTorch",
@@ -176,7 +189,7 @@ def main() -> int:
         p = ROOT / "assets" / "sprites" / name
         if not p.exists():
             errors.append("missing sprite " + name)
-    for i in range(6):
+    for i in range(14):
         p = ROOT / "assets" / "intro" / f"n{i}.jpg"
         if not p.exists():
             errors.append("missing intro n" + str(i))
@@ -184,6 +197,8 @@ def main() -> int:
         errors.append("missing splash.jpg")
     if not (ROOT / "assets" / "endcard.jpg").exists():
         errors.append("missing endcard.jpg")
+    if not (ROOT / "assets" / "endcard-thaw.jpg").exists():
+        errors.append("missing endcard-thaw.jpg")
     if not (ROOT / "assets" / "museum" / "frost-king.jpg").exists():
         errors.append("missing museum frost-king.jpg")
 
@@ -223,8 +238,8 @@ def main() -> int:
         errors.append("L1 door still open at spawn")
     if "LEVEL " not in text or "lv-banner" not in text:
         errors.append("missing LEVEL banner")
-    if "MAX_LV = 25" not in text:
-        errors.append("levels not clamped to 25")
+    if "MAX_LV = 40" not in text:
+        errors.append("levels not clamped to 40")
     if "MAX_LV = 15" in text:
         errors.append("old MAX_LV = 15 still present")
     if "Math.min(10, s.level" in text or "Math.min(10, n" in text:
@@ -248,6 +263,8 @@ def main() -> int:
         "tomb-warden.png", "tomb-warden-swipe.png", "bone-pile.png",
         "sleet-imp.png", "keep-halberd.png", "frost-captain.png",
         "frost-captain-bash.png", "torch.png", "frost-web.png",
+        "ice-warden.png", "lockwight.png", "pale-guest.png",
+        "chain-choir.png", "lady-thaw.png",
     ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
@@ -286,14 +303,14 @@ def main() -> int:
         errors.append("Sleet Imp missing")
     if "levelN === 20 ? 4" not in text and "showActEnd(4)" not in text:
         errors.append("Act IV endcard path missing")
-    if "chip-lv" in text and "L 1/25" not in text:
-        errors.append("HUD not L n/25")
+    if "chip-lv" in text and "L 1/40" not in text:
+        errors.append("HUD not L n/40")
     if "min-height: 55dvh" not in text:
         errors.append("stage min-height not 55dvh")
     if "var TIPS" not in text or text.count("Act II.") < 1:
         errors.append("missing TIPS array")
-    if text.split("var TIPS = [")[1].split("];")[0].count('"') < 50:
-        errors.append("need 25 buddy tips")
+    if text.split("var TIPS = [")[1].split("];")[0].count('"') < 80:
+        errors.append("need 40 buddy tips")
     if "tipT = 3.4" not in text:
         errors.append("buddy tip auto-dismiss not ~3.4s")
     if 'id="elon-tip"' not in text.split('id="stage"')[1].split('id="dock"')[0]:
@@ -370,6 +387,12 @@ def main() -> int:
     intro_block = text.split("var INTRO = [")[1].split("];")[0].lower()
     if "meadow" in intro_block or "yeeted" in intro_block:
         errors.append("intro copy not Nightfall story")
+    if "if (s.act5Held) { applySaveMeta(s); showActEnd(5)" in text:
+        errors.append("ACT V CONTINUE still camps Held instead of L26")
+    if "function buildQuietBelow" not in text:
+        errors.append("Act VI builder missing")
+    if "Lady Thaw" not in text or "The Quiet Below" not in text:
+        errors.append("Act VI names missing")
     if 'id="mus-detail"' not in text:
         errors.append("museum card detail overlay missing")
     if "function openMusDetail" not in text or "function closeMusDetail" not in text:
