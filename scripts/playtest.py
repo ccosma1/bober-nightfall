@@ -16,12 +16,21 @@ NEED = [
     "bober-nightfall-v1",
     "ACT I HELD",
     "John Snow from the white",
-    "First he yeeted.",
-    "Then he held the dam.",
-    "Then he held the fire.",
-    "Winter cracked. Green home stayed.",
-    "One crown left: the Frost King.",
+    "The fire held. Now the woods.",
+    "Twigs and spit. Chop a path.",
+    "Ice wants a bomb. The hound waits.",
+    "End the frost. Bring the summer.",
     "Bring the summer.",
+    "id=\"btn-museum\"",
+    "id=\"museum\"",
+    "bober-nightfall-museum-v1",
+    "MUSEUM",
+    "Milestones",
+    "Roster",
+    "Frost King",
+    "Twig Rat",
+    "Sleet Imp",
+    "calmT = 0.62",
     "Lodge fire held. Now end the winter.",
     "Ember Woods",
     "REST 5W",
@@ -175,6 +184,8 @@ def main() -> int:
         errors.append("missing splash.jpg")
     if not (ROOT / "assets" / "endcard.jpg").exists():
         errors.append("missing endcard.jpg")
+    if not (ROOT / "assets" / "museum" / "frost-king.jpg").exists():
+        errors.append("missing museum frost-king.jpg")
 
     if "y-sort" not in text and "list.sort" not in text:
         errors.append("no y-sort")
@@ -345,6 +356,20 @@ def main() -> int:
         errors.append("post-START freeze still 1.25s (should be ~half)")
     if "calmT = 0.62" not in text:
         errors.append("post-START freeze not halved to ~0.62s")
+    if "First he yeeted." in text or "Then he held the dam." in text:
+        errors.append("old yeet/dam intro captions still present")
+    if 'id="btn-museum"' not in text.split('id="splash"')[1].split('id="history"')[0]:
+        errors.append("Museum button missing on splash")
+    if 'id="btn-museum2"' not in text.split('id="paused"')[1].split('id="shop"')[0]:
+        errors.append("Museum button missing on pause")
+    if "var ROSTER" not in text or "var MILES" not in text:
+        errors.append("museum roster/milestones missing")
+    hist_line_css = text.split("#history .hist-line")[1].split("}")[0]
+    if "-webkit-line-clamp: 2" in hist_line_css:
+        errors.append("hist-line still two-line clamp")
+    intro_block = text.split("var INTRO = [")[1].split("];")[0].lower()
+    if "meadow" in intro_block or "yeeted" in intro_block:
+        errors.append("intro copy not Nightfall story")
 
     if errors:
         print("FAIL")

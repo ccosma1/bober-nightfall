@@ -165,13 +165,8 @@ def main() -> None:
     if snow.exists():
         Image.open(snow).convert("RGB").save(TIL / "snow.png")
         print("tile snow")
-    for src_name, dest_name in STILLS:
-        src = SRC / src_name
-        if not src.exists():
-            print("MISSING still", src_name)
-            continue
-        Image.open(src).convert("RGB").save(INTRO / dest_name, quality=92)
-        print("intro", dest_name)
+    # Prompt 8 intro stills live in assets/intro. Do not clobber them from old dumps.
+    print("skip intro stills (authored)")
     splash_src = SRC / "29.jpg"
     if splash_src.exists():
         Image.open(splash_src).convert("RGB").save(ROOT / "assets" / "splash.jpg", quality=92)

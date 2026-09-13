@@ -14,7 +14,7 @@ Run `START.bat` or open `index.html` in a browser.
 
 ## How to play
 
-1. Skip or watch the silent intro stills (Yeet → Dam → Lodge → Nightfall).
+1. Skip or watch the silent intro stills (lodge → woods → ice → bone → keep → Frost King), or open **Museum** for play cards.
 2. Each level waits — read the tip, look at the map, tap **START**.
 3. Move with the stick or **WASD / arrows**. Desktop: **LMB** slash, **RMB** roll.
 4. **Tap** slash. **Hold** ≥0.25s then release for a charged slash.
@@ -23,6 +23,8 @@ Run `START.bat` or open `index.html` in a browser.
 7. On **CLEAR**, **REST 5W** heals a heart. **Heart Piece** (25W or first L5 clear; two pieces → +1 heart max). Act I is **Ember Woods**. Act II (**Ice Approaches**, L6–10) adds bombs (25W, **B** / BOMB) and the Frost Hound. L8 is a flank fight (no bomb required). L9 is bomb **or** key. Act III (**Bone Camp**, L11–15) is ice-bone camp: Rime Skull, Rib Guard, Ash Archer, Tomb Warden. No new tool. Act IV (**Frost Keep**, L16–20) adds the torch (**F** / TORCH): hold for a light radius, light braziers, burn frost-web. Bomb still breaks ice. Sleet Imp, Keep Halberd, Frost Captain.
 
 Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1` (levels 1–20).
+
+**Museum** (splash or pause) is a play-card gallery: roster + act milestones. Cards unlock as you reach the level that introduces that foe (Frost King after the finale). Soft save `bober-nightfall-museum-v1`. Always at least Bober.
 
 Shop is a stub in Act I. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
 

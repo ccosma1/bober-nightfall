@@ -278,6 +278,11 @@
     .play:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a6a00; }
     .play.ghost { background: transparent; color: var(--cream); border-color: var(--cream); box-shadow: none; margin-top: 8px; }
     .end-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .ghost-row {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+      width: 100%; max-width: 390px; margin-top: 4px;
+    }
+    .ghost-row .play.ghost { margin-top: 0; font-size: 14px; padding: 8px 14px; }
     #paused, #shop, #dead { justify-content: center; background: #1a1028e8; }
     .tip-card {
       background: #3A2A6Aee; border: 3px solid var(--yellow); border-radius: 16px;
@@ -305,14 +310,18 @@
     #history .hist-bar {
       flex: 0 0 auto; min-height: 56px; background: #3A2A6A;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 6px; padding: 10px 14px max(12px, env(safe-area-inset-bottom));
+      gap: 4px; padding: 8px 14px max(12px, env(safe-area-inset-bottom));
     }
-    #history .hist-sub { margin: 0; font-size: 11px; font-weight: 800; color: var(--ice); letter-spacing: 0.04em; }
+    #history .hist-sub {
+      margin: 0; max-width: 22em; width: 100%;
+      font-size: 11px; font-weight: 800; color: var(--ice); letter-spacing: 0.04em;
+      text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     #history .hist-line {
       margin: 0; max-width: 22em; width: 100%;
       font-size: 16px; font-weight: 900; line-height: 1.2;
       color: var(--cream); text-align: center;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       text-shadow: 0 2px 0 #1A1028, 0 0 4px #1A1028, -1px -1px 0 #1A1028, 1px 1px 0 #1A1028, 1px -1px 0 #1A1028, -1px 1px 0 #1A1028;
     }
     #hist-skip {
@@ -321,6 +330,68 @@
       padding: 6px 14px; border-radius: 10px; cursor: pointer;
     }
     #hist-skip:disabled { opacity: 0.35; cursor: default; }
+    #museum {
+      z-index: 22; justify-content: flex-start; overflow: auto;
+      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+      padding: 10px 10px max(18px, env(safe-area-inset-bottom));
+      background: #1a1028f4; align-items: stretch;
+    }
+    .museum-panel {
+      width: 100%; max-width: 390px; margin: 0 auto;
+      display: flex; flex-direction: column; align-items: stretch;
+    }
+    .museum-panel h2 { margin: 4px 0 4px; }
+    .museum-panel > .how { margin: 0 0 8px; max-width: none; }
+    .museum-tabs {
+      display: flex; gap: 8px; justify-content: center; margin: 0 0 10px;
+    }
+    .museum-tabs button {
+      appearance: none; border: 2px solid var(--cream); background: transparent;
+      color: var(--cream); font-family: inherit; font-weight: 800; font-size: 13px;
+      padding: 6px 14px; border-radius: 10px; cursor: pointer;
+    }
+    .museum-tabs button.on {
+      background: var(--yellow); color: var(--ink); border-color: var(--yellow);
+    }
+    #museum-grid {
+      display: flex; flex-direction: column; gap: 10px; width: 100%;
+      padding-bottom: 8px;
+    }
+    .mus-card {
+      display: grid; grid-template-columns: 92px minmax(0, 1fr);
+      gap: 10px; align-items: center; text-align: left;
+      background: #2a1c4e; border: 3px solid var(--ice); border-radius: 14px;
+      padding: 10px;
+    }
+    .mus-card.mile { grid-template-columns: 1fr; align-items: stretch; }
+    .mus-art {
+      width: 92px; height: 92px; border-radius: 12px; overflow: hidden;
+      background: #1A1028; display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto;
+    }
+    .mus-card.mile .mus-art { width: 100%; height: 132px; }
+    .mus-art img {
+      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+    }
+    .mus-card.mile .mus-art img { width: 100%; height: 100%; object-fit: cover; }
+    .mus-body { min-width: 0; }
+    .mus-card h3 {
+      margin: 0 0 4px; font-size: 16px; line-height: 1.15; color: var(--yellow);
+      text-shadow: 0 1px 0 #1A1028;
+    }
+    .mus-card p {
+      margin: 0; font-size: 13px; font-weight: 700; line-height: 1.35;
+      color: var(--cream); overflow-wrap: anywhere;
+    }
+    .mus-card.locked { border-color: #5C3A1A; background: #241836; }
+    .mus-card.locked h3 { color: var(--ice); }
+    .mus-card.locked p { color: #c9d6ea; }
+    .mus-card.locked .mus-art img { filter: brightness(0); opacity: 0.45; }
+    .mus-tag {
+      display: inline-block; margin: 0 0 4px; font-size: 10px; font-weight: 800;
+      letter-spacing: 0.06em; color: var(--ice);
+    }
+    #museum #btn-museum-back { align-self: center; margin-top: 12px; }
     #app.booting #hud, #app.booting #dock, #app.booting footer { visibility: hidden; }
     #hat-tip { margin: 0 0 10px; font-size: 12px; font-weight: 800; color: var(--yellow); text-shadow: 0 2px 6px #000; }
     #hat-tip.hidden { display: none; }
@@ -389,15 +460,18 @@
       <img class="hero" src="assets/splash.jpg" alt="" />
       <h1>BOBER NIGHTFALL</h1>
       <p class="tagline">Face the Frost King.</p>
-      <p class="tagline">Fan game by a holder.</p>
       <p class="how">Lodge fire held. Now end the winter.</p>
       <p class="how">Desktop: WASD · LMB slash · RMB roll</p>
+      <p class="how">Fan game by a holder.</p>
       <p id="hat-tip" class="hidden">Lodge fire remembered — yellow hat on.</p>
       <div class="end-actions">
         <button class="play" id="btn-play" type="button">FACE THE FROST</button>
         <button class="play ghost" id="btn-continue" type="button" hidden>CONTINUE</button>
-        <button class="play ghost" id="btn-intro" type="button">INTRO</button>
-        <button class="play ghost" id="btn-shop" type="button">SHOP</button>
+        <div class="ghost-row">
+          <button class="play ghost" id="btn-intro" type="button">INTRO</button>
+          <button class="play ghost" id="btn-museum" type="button">Museum</button>
+          <button class="play ghost" id="btn-shop" type="button">SHOP</button>
+        </div>
       </div>
       <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/">More games · Green Home Games</a></p>
     </div>
@@ -405,10 +479,22 @@
       <div class="hist-stage">
         <img id="hist-img" alt="" />
         <div class="hist-bar">
-          <p class="hist-sub" id="hist-sub">Fan game by a holder.</p>
+          <p class="hist-sub" id="hist-sub"></p>
           <p class="hist-line" id="hist-line"></p>
           <button type="button" id="hist-skip" disabled>tap to skip</button>
         </div>
+      </div>
+    </div>
+    <div id="museum" class="overlay hidden" role="dialog" aria-label="Museum">
+      <div class="museum-panel">
+        <h2>MUSEUM</h2>
+        <p class="how">Play cards from the Long Night.</p>
+        <div class="museum-tabs">
+          <button type="button" id="mus-tab-roster" class="on">Roster</button>
+          <button type="button" id="mus-tab-miles">Milestones</button>
+        </div>
+        <div id="museum-grid"></div>
+        <button class="play ghost" id="btn-museum-back" type="button">Back</button>
       </div>
     </div>
     <div id="paused" class="overlay hidden">
@@ -417,8 +503,11 @@
         <p class="how">WASD · LMB slash · RMB roll. Stick on phone.</p>
         <div class="end-actions">
           <button class="play" id="btn-resume" type="button">RESUME</button>
-          <button class="play ghost" id="btn-shop2" type="button">SHOP</button>
-          <button class="play ghost" id="btn-quit" type="button">SPLASH</button>
+          <div class="ghost-row">
+            <button class="play ghost" id="btn-museum2" type="button">Museum</button>
+            <button class="play ghost" id="btn-shop2" type="button">SHOP</button>
+            <button class="play ghost" id="btn-quit" type="button">SPLASH</button>
+          </div>
         </div>
       </div>
     </div>
@@ -458,6 +547,7 @@
   var LODGE_KEY = "bober-frost-lodge-v1";
   var LODGE_CLEARED = "bober-frost-cleared-v1";
   var HIST_SEEN = "bober-history-v1";
+  var MUSEUM_KEY = "bober-nightfall-museum-v1";
   var W = 360, H = 480, WALL = 26;
   var SPEED = 138, ROLL_SPD = 310, ROLL_T = 0.28, ROLL_CD = 0.55;
   var SLASH_REC = 0.18, CHARGE_HOLD = 0.25, HITSTOP = 2 / 60, INVULN = 0.35;
@@ -522,13 +612,73 @@
   });
 
   var INTRO = [
-    { src: "assets/intro/n0.jpg", line: "First he yeeted." },
-    { src: "assets/intro/n1.jpg", line: "Then he held the dam." },
-    { src: "assets/intro/n2.jpg", line: "Then he held the fire." },
-    { src: "assets/intro/n3.jpg", line: "Winter cracked. Green home stayed." },
-    { src: "assets/intro/n4.jpg", line: "One crown left: the Frost King." },
-    { src: "assets/intro/n5.jpg", line: "Bring the summer." }
+    { src: "assets/intro/n0.jpg?v=8", sub: "Lodge fire.", line: "The fire held. Now the woods." },
+    { src: "assets/intro/n1.jpg?v=8", sub: "Ember Woods.", line: "Twigs and spit. Chop a path." },
+    { src: "assets/intro/n2.jpg?v=8", sub: "Ice Approaches.", line: "Ice wants a bomb. The hound waits." },
+    { src: "assets/intro/n3.jpg?v=8", sub: "Bone Camp.", line: "Ice that used to walk." },
+    { src: "assets/intro/n4.jpg?v=8", sub: "Frost Keep.", line: "Torch the web. Hold the gate." },
+    { src: "assets/intro/n5.jpg?v=8", sub: "Frost King.", line: "End the frost. Bring the summer." }
   ];
+  var ROSTER = [
+    { id: "bober", name: "Bober", art: "assets/sprites/bober-idle.png", lv: 0,
+      blurb: "Square-headed hero. Chop, slash, roll. End the frost.",
+      tease: "A beaver with a stick." },
+    { id: "buddy", name: "Buddy", art: "assets/sprites/john-snow.png", lv: 1, buddy: true,
+      blurb: "Tip face from the white. Not a fighter — a whisper.",
+      tease: "A face from the white has a tip." },
+    { id: "rat", name: "Twig Rat", art: "assets/sprites/twig-rat.png", lv: 2,
+      blurb: "Ice on a stick. First nibble of Ember Woods.",
+      tease: "Something small skitters in the pines." },
+    { id: "imp", name: "Sleet Imp", art: "assets/sprites/sleet-imp.png", lv: 16,
+      blurb: "Hopping ice with a snowball and a grin.",
+      tease: "Something hops in the keep." },
+    { id: "grunt", name: "Shield Grunt", art: "assets/sprites/shield-grunt.png", lv: 4,
+      blurb: "Face-front forever. Flank him or charge.",
+      tease: "A shield waits in the trees." },
+    { id: "spit", name: "Snow Spitter", art: "assets/sprites/snow-spitter.png", lv: 3,
+      blurb: "Kites and spitballs. Roll the snow.",
+      tease: "Soft white, mean throw." },
+    { id: "ash", name: "Ash Archer", art: "assets/sprites/ash-archer.png", lv: 14,
+      blurb: "Bone-camp bolts. Don’t stand in the door.",
+      tease: "Ice that used to aim." },
+    { id: "hound", name: "Frost Hound", art: "assets/sprites/frost-hound.png", lv: 10,
+      blurb: "Dashes a line of ice. Sidestep or eat it.",
+      tease: "A howl on the ice path." },
+    { id: "brute", name: "Ice Brute", art: "assets/sprites/ice-brute.png", lv: 5,
+      blurb: "Slams, then sleeps. Punish the nap.",
+      tease: "Something heavy in Ember Woods." },
+    { id: "rib", name: "Rib Guard", art: "assets/sprites/rib-guard.png", lv: 13,
+      blurb: "A shield made of yesterday’s walkers.",
+      tease: "Bones that still face you." },
+    { id: "captain", name: "Frost Captain", art: "assets/sprites/frost-captain.png", lv: 20,
+      blurb: "Bash, summon, hold the gate.",
+      tease: "The keep has a captain." },
+    { id: "halb", name: "Keep Halberd", art: "assets/sprites/keep-halberd.png", lv: 18,
+      blurb: "Long poke. The keep’s polite welcome.",
+      tease: "A polearm in the hall." },
+    { id: "warden", name: "Tomb Warden", art: "assets/sprites/tomb-warden.png", lv: 15,
+      blurb: "Swipe circle. Ice that used to command.",
+      tease: "The camp still has a warden." },
+    { id: "skull", name: "Rime Skull", art: "assets/sprites/rime-skull.png", lv: 11,
+      blurb: "Drift, then lunge. Cute until it isn’t.",
+      tease: "Something grins in Bone Camp." },
+    { id: "king", name: "Frost King", art: "assets/museum/frost-king.jpg", king: true,
+      blurb: "Last ice. Last lock. Bring the summer.",
+      tease: "The frost still has a king." }
+  ];
+  var MILES = [
+    { id: "woods", name: "Ember Woods", art: "assets/intro/n1.jpg?v=8", lv: 1,
+      blurb: "Lodge fire held. Now the trees bite back." },
+    { id: "ice", name: "Ice Approaches", art: "assets/intro/n2.jpg?v=8", lv: 6,
+      blurb: "The path ices over. Bombs and a hound wait." },
+    { id: "bone", name: "Bone Camp", art: "assets/intro/n3.jpg?v=8", lv: 11,
+      blurb: "Ice that used to walk. Don’t get boxed." },
+    { id: "keep", name: "Frost Keep", art: "assets/intro/n4.jpg?v=8", lv: 16,
+      blurb: "Winter siege. Hold the torch. End the frost." },
+    { id: "finale", name: "Frost King", art: "assets/intro/n5.jpg?v=8", lv: 21,
+      blurb: "The last lock. Lodge fire was only the start." }
+  ];
+  var musTab = "roster", museumFrom = "splash";
   var HP_CAP_ACT1 = 8, HP_CAP = 12, MAX_LV = 25, BOMB_COST = 25, TORCH_R = 72;
   var TIPS = [
     "John Snow from the white… Chop the trees blocking the door. Long Night — don’t freeze.",
@@ -743,6 +893,89 @@
       bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, act2Wood: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, hasTorch: false, l20Piece: false, l25Piece: false, introSeen: seen, mute: mute
     });
   }
+  function loadMuseum() {
+    var d = { maxLv: 0, tipSeen: false, kingDown: false };
+    try {
+      var raw = localStorage.getItem(MUSEUM_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        d.maxLv = Math.max(0, o.maxLv | 0);
+        d.tipSeen = !!o.tipSeen;
+        d.kingDown = !!o.kingDown;
+      }
+    } catch (e) {}
+    try {
+      if (localStorage.getItem(SAVE_KEY)) {
+        var s = loadSave();
+        d.maxLv = Math.max(d.maxLv, s.level | 0);
+        if (s.act1Held) d.maxLv = Math.max(d.maxLv, 6);
+        if (s.act2Held) d.maxLv = Math.max(d.maxLv, 11);
+        if (s.act3Held) d.maxLv = Math.max(d.maxLv, 16);
+        if (s.act4Held) d.maxLv = Math.max(d.maxLv, 21);
+        if (s.act5Held) { d.maxLv = Math.max(d.maxLv, 25); d.kingDown = true; }
+      }
+    } catch (e2) {}
+    return d;
+  }
+  function saveMuseum(p) {
+    var m = loadMuseum();
+    if (p && (p.maxLv | 0) > 0) m.maxLv = Math.max(m.maxLv, p.maxLv | 0);
+    if (p && p.tipSeen) m.tipSeen = true;
+    if (p && p.kingDown) m.kingDown = true;
+    try {
+      localStorage.setItem(MUSEUM_KEY, JSON.stringify({
+        maxLv: m.maxLv, tipSeen: !!m.tipSeen, kingDown: !!m.kingDown
+      }));
+    } catch (e) {}
+    return m;
+  }
+  function cardUnlocked(card, mus) {
+    if (!card) return false;
+    if (card.id === "bober" || card.lv === 0) return true;
+    if (card.king) return !!mus.kingDown;
+    if (card.buddy) return !!mus.tipSeen || mus.maxLv >= 1;
+    return mus.maxLv >= (card.lv | 0);
+  }
+  function paintMuseum() {
+    var grid = document.getElementById("museum-grid");
+    if (!grid) return;
+    var mus = loadMuseum();
+    var list = musTab === "miles" ? MILES : ROSTER;
+    var html = "";
+    var i, c, on, title, body, tag;
+    for (i = 0; i < list.length; i++) {
+      c = list[i];
+      on = cardUnlocked(c, mus);
+      title = on ? c.name : "???";
+      body = on ? c.blurb : (c.tease || "Not yet.");
+      tag = (c.buddy && on) ? "<span class=\"mus-tag\">TIP ONLY</span>" : "";
+      html += "<article class=\"mus-card" + (musTab === "miles" ? " mile" : "") + (on ? "" : " locked") + "\">" +
+        "<div class=\"mus-art\"><img src=\"" + c.art + "\" alt=\"\" /></div>" +
+        "<div class=\"mus-body\">" + tag + "<h3>" + title + "</h3><p>" + body + "</p></div></article>";
+    }
+    if (!html) {
+      html = "<article class=\"mus-card\"><div class=\"mus-art\"><img src=\"assets/sprites/bober-idle.png\" alt=\"\" /></div>" +
+        "<div class=\"mus-body\"><h3>Bober</h3><p>Square-headed hero. Chop, slash, roll. End the frost.</p></div></article>";
+    }
+    grid.innerHTML = html;
+  }
+  function openMuseum(from) {
+    museumFrom = from || "splash";
+    var musEl = document.getElementById("museum");
+    if (musEl) musEl.classList.remove("hidden");
+    paintMuseum();
+  }
+  function closeMuseum() {
+    var musEl = document.getElementById("museum");
+    if (musEl) musEl.classList.add("hidden");
+    if (museumFrom === "paused") document.getElementById("paused").classList.remove("hidden");
+  }
+  function setMusTab(tab) {
+    musTab = tab === "miles" ? "miles" : "roster";
+    document.getElementById("mus-tab-roster").classList.toggle("on", musTab === "roster");
+    document.getElementById("mus-tab-miles").classList.toggle("on", musTab === "miles");
+    paintMuseum();
+  }
   function patchSave(p) {
     var s = loadSave(), k;
     for (k in p) if (Object.prototype.hasOwnProperty.call(p, k)) s[k] = p[k];
@@ -918,6 +1151,7 @@
     else cam.classList.add("hidden");
   }
   function showBuddyTip(fromHover, line) {
+    saveMuseum({ tipSeen: true });
     var el = document.getElementById("elon-tip");
     var p = document.getElementById("elon-line");
     var cam = document.getElementById("elon-cameo");
@@ -1441,6 +1675,7 @@
     else showBuddyTip();
     showStartGate();
     patchSave({ level: n, chips: chips, hp: player.hp, bombs: bombs, iceSeen: iceSeen, boneSeen: boneSeen, keepSeen: keepSeen, crownSeen: crownSeen, act2Wood: act2Wood, hasTorch: hasTorch, act1Held: n >= 6, act2Held: n >= 11 || act2Held, act3Held: n >= 16 || act3Held, act4Held: n >= 21 || act4Held });
+    saveMuseum({ maxLv: n });
   }
 
   function allBraziersLit() {
@@ -1821,7 +2056,7 @@
     hideStartGate();
     hideBuddyAll();
     endAct = act | 0;
-    if (act === 5) act5Held = true;
+    if (act === 5) { act5Held = true; saveMuseum({ kingDown: true, maxLv: 25 }); }
     else if (act === 4) act4Held = true;
     else if (act === 3) act3Held = true;
     else if (act === 2) act2Held = true;
@@ -2759,12 +2994,17 @@
   }
   function togglePause() {
     if (mode !== "play") return;
+    var mus = document.getElementById("museum");
+    if (mus && !mus.classList.contains("hidden")) {
+      closeMuseum();
+      return;
+    }
     paused = !paused;
     document.getElementById("paused").classList.toggle("hidden", !paused);
   }
 
   function hideMenus() {
-    ["splash", "paused", "shop", "dead", "endcard"].forEach(function (id) {
+    ["splash", "paused", "shop", "dead", "endcard", "museum"].forEach(function (id) {
       document.getElementById(id).classList.add("hidden");
     });
     hideBuddyAll();
@@ -2797,6 +3037,7 @@
 
   function playIntro(after) {
     histPlaying = true; histI = -1; introAfter = after || null;
+    document.getElementById("museum").classList.add("hidden");
     document.getElementById("history").classList.remove("hidden");
     var skip = document.getElementById("hist-skip");
     skip.disabled = true; histSkipArmed = 0;
@@ -2809,6 +3050,7 @@
     if (histI >= INTRO.length) { stopIntro(); return; }
     var b = INTRO[histI];
     document.getElementById("hist-img").src = b.src;
+    document.getElementById("hist-sub").textContent = b.sub || "";
     document.getElementById("hist-line").textContent = b.line;
     clearTimeout(histTimer);
     histTimer = setTimeout(nextIntro, 3200);
@@ -2850,6 +3092,11 @@
     startPlay(lv, true);
   });
   document.getElementById("btn-intro").addEventListener("click", function () { Sfx.ensure(); playIntro(null); });
+  document.getElementById("btn-museum").addEventListener("click", function () { openMuseum("splash"); });
+  document.getElementById("btn-museum2").addEventListener("click", function () { openMuseum("paused"); });
+  document.getElementById("btn-museum-back").addEventListener("click", closeMuseum);
+  document.getElementById("mus-tab-roster").addEventListener("click", function () { setMusTab("roster"); });
+  document.getElementById("mus-tab-miles").addEventListener("click", function () { setMusTab("miles"); });
   document.getElementById("btn-shop").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
   document.getElementById("btn-shop2").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
   document.getElementById("btn-shop-close").addEventListener("click", function () { document.getElementById("shop").classList.add("hidden"); });
