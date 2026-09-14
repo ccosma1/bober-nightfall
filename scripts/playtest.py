@@ -436,6 +436,30 @@ def main() -> int:
     if "Reach this act to unlock." not in text:
         errors.append("locked detail tease missing")
 
+    if "d < 82 && player.roll <= 0" in text:
+        errors.append("Ice Brute slam still 82px")
+    if "d < 86 && player.roll <= 0" in text:
+        errors.append("Captain bash still 86px")
+    if "swipeD < 92" in text:
+        errors.append("Warden swipe still 92px")
+    slam_fn = text.split("function slamR")[1][:80] if "function slamR" in text else ""
+    bash_fn = text.split("function bashR")[1][:80] if "function bashR" in text else ""
+    swipe_fn = text.split("function swipeR")[1][:80] if "function swipeR" in text else ""
+    if "118" not in slam_fn:
+        errors.append("slam radius not ~118")
+    if "112" not in bash_fn:
+        errors.append("bash radius not ~112")
+    if "118" not in swipe_fn:
+        errors.append("swipe radius not ~118")
+    if "function drawSprSwing" not in text or "function swingRot" not in text:
+        errors.append("weapon swing draw missing")
+    if 'e.state = "poke"' not in text:
+        errors.append("halberd/grunt poke swing missing")
+    if "function addStamp" not in text:
+        errors.append("stamp ground ring VFX missing")
+    if "endless" in text.lower() or "rematch" in text.lower():
+        errors.append("must not add rematch/endless modes")
+
     if errors:
         print("FAIL")
         for e in errors:

@@ -920,7 +920,7 @@
   var lvBannerT = 0;
   var chips = 0, hpMax = 6, heartPieces = 0, pieceBought = false, l5Piece = false, l10Piece = false;
   var restMask = 0, warmMask = 0, bombs = 0, act2Held = false, act3Held = false, act4Held = false, act5Held = false, act6Held = false, iceSeen = false, boneSeen = false, keepSeen = false, crownSeen = false, belowSeen = false, gateSeen = false, act2Wood = false;
-  var liveBomb = null, hasHat = false, introAfter = null, hasTorch = false, torchHeld = false, torchDmgCd = 0, puddles = [];
+  var liveBomb = null, hasHat = false, introAfter = null, hasTorch = false, torchHeld = false, torchDmgCd = 0, puddles = [], stamps = [];
   var endAct = 0, l25Piece = false, allyClock = 0, thaw = null;
   var l20Piece = false, l33Piece = false, l40Piece = false;
   var waitingStart = false, chopHintDone = false, calmT = 0;
@@ -982,6 +982,45 @@
   function scaleChips(n) { return Math.max(1, Math.round((n | 0) * chipScale())); }
   function diffLabel() { return difficulty === "hard" ? "HARD" : difficulty === "normal" ? "NORMAL" : "EASY"; }
   function diffBlurb() { return difficulty === "hard" ? "No mercy. Still fair." : difficulty === "normal" ? "Sharper frost." : "Lodge pace."; }
+  function aoeScale() { return difficulty === "easy" ? 0.94 : 1; }
+  function slamR() { return Math.round(118 * aoeScale()); }
+  function bashR() { return Math.round(112 * aoeScale()); }
+  function swipeR() { return Math.round(118 * aoeScale()); }
+  function swipeArc() { return difficulty === "easy" ? 1.22 : 1.38; }
+  function addStamp(x, y, r, rgb) {
+    stamps.push({ x: x, y: y, r: r, t: 0.4, max: 0.4, rgb: rgb || "168,196,232" });
+  }
+  function aoeHit(e, r, arc) {
+    if (player.roll > 0) return false;
+    if (Math.hypot(player.x - e.x, player.y - e.y) >= r) return false;
+    if (arc == null) return true;
+    return angDiff(Math.atan2(player.y - e.y, player.x - e.x), Math.atan2(e.dy, e.dx)) < arc;
+  }
+  function swingRot(e) {
+    var st = e.state, max = e.atkMax || 0.3, p, k;
+    if (st === "tele") {
+      p = max > 0 ? 1 - Math.max(0, e.st) / max : 1;
+      return -0.7 * p;
+    }
+    if (st === "swipe" || st === "bash" || st === "poke") {
+      p = max > 0 ? 1 - Math.max(0, e.st) / max : 1;
+      k = p < 0.5 ? p / 0.5 : 1;
+      return -0.72 + 1.72 * k;
+    }
+    if (st === "slam") {
+      p = max > 0 ? 1 - Math.max(0, e.st) / max : 1;
+      return p < 0.35 ? -0.08 + 0.32 * (p / 0.35) : 0.2;
+    }
+    if (st === "dash") return 0.28;
+    return 0;
+  }
+  function slamSquash(e) {
+    if (!e || e.state !== "slam") return 1;
+    var max = e.atkMax || 0.26;
+    var p = max > 0 ? 1 - Math.max(0, e.st) / max : 1;
+    if (p < 0.3) return 1 - 0.24 * (p / 0.3);
+    return 0.76 + 0.24 * Math.min(1, (p - 0.3) / 0.45);
+  }
   function defaultSave() {
     return {
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
@@ -1112,7 +1151,7 @@
     try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
     restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false; keepSeen = false; crownSeen = false; belowSeen = false; gateSeen = false; act2Wood = false;
-    act2Held = false; act3Held = false; act4Held = false; act5Held = false; act6Held = false; hasTorch = false; l20Piece = false; l25Piece = false; l33Piece = false; l40Piece = false; liveBomb = null; torchHeld = false; puddles = []; allyClock = 0; thaw = null;
+    act2Held = false; act3Held = false; act4Held = false; act5Held = false; act6Held = false; hasTorch = false; l20Piece = false; l25Piece = false; l33Piece = false; l40Piece = false; liveBomb = null; torchHeld = false; puddles = []; stamps = []; allyClock = 0; thaw = null;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
@@ -1755,14 +1794,14 @@
     var e = { kind: kind, x: x, y: y, dead: false, kx: 0, ky: 0, flash: 0, t: 0, fx: 0, fy: 1, stagger: 0 };
     if (kind === "rat") { e.hp = 1; e.r = 14; e.spd = 92; }
     else if (kind === "spit") { e.hp = 2; e.r = 18; e.spd = 38; e.cd = 0.6; }
-    else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 2.6; }
+    else if (kind === "grunt") { e.hp = 3; e.r = 20; e.spd = 48; e.fx = 0; e.fy = 1; e.turn = 2.6; e.state = "chase"; e.cool = 0; }
     else if (kind === "hound") { e.hp = 9; e.r = 26; e.spd = 86; e.state = "idle"; e.st = 0.7; e.dx = 1; e.dy = 0; }
     else if (kind === "skull") { e.hp = 2; e.r = 15; e.spd = 44; e.state = "drift"; e.st = 0.45 + Math.random() * 0.4; e.bob = Math.random() * 6; e.dx = 1; e.dy = 0; }
-    else if (kind === "rib") { e.hp = 4; e.r = 22; e.spd = 34; e.fx = 0; e.fy = 1; e.turn = 1.9; }
+    else if (kind === "rib") { e.hp = 4; e.r = 22; e.spd = 34; e.fx = 0; e.fy = 1; e.turn = 1.9; e.state = "chase"; e.cool = 0; }
     else if (kind === "ash") { e.hp = 3; e.r = 18; e.spd = 32; e.cd = 0.9; }
     else if (kind === "warden") { e.hp = 14; e.r = 32; e.spd = 40; e.state = "idle"; e.st = 0.8; e.summoned = false; e.hit = false; e.dx = 0; e.dy = 1; }
     else if (kind === "imp") { e.hp = 2; e.r = 14; e.spd = 70; e.state = "wind"; e.st = 0.2 + Math.random() * 0.2; e.hopY = 0; e.dx = 0; e.dy = 1; }
-    else if (kind === "halb") { e.hp = 4; e.r = 22; e.spd = 40; e.fx = 0; e.fy = 1; e.turn = 2.0; }
+    else if (kind === "halb") { e.hp = 4; e.r = 22; e.spd = 40; e.fx = 0; e.fy = 1; e.turn = 2.0; e.state = "chase"; e.cool = 0; }
     else if (kind === "captain") { e.hp = 14; e.r = 32; e.spd = 42; e.state = "idle"; e.st = 0.85; e.summoned = false; e.hit = false; e.dx = 0; e.dy = 1; }
     else if (kind === "king") { e.hp = 20; e.maxHp = 20; e.r = 36; e.spd = 44; e.state = "idle"; e.st = 0.7; e.summoned = false; e.raged = false; e.hit = false; e.dx = 0; e.dy = 1; }
     else if (kind === "iward") { e.hp = 10; e.r = 30; e.spd = 36; e.state = "idle"; e.st = 0.85; e.hit = false; e.dx = 0; e.dy = 1; }
@@ -1844,7 +1883,7 @@
     levelTransit = false;
     n = Math.max(1, Math.min(MAX_LV, n | 0 || 1));
     liveBomb = null;
-    enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = [];
+    enemies = []; props = []; shots = []; pickups = []; solids = []; trails = []; pops = []; stamps = [];
     john = null; thaw = null; cleared = false; clearFade = 0; hideSay(); ghostEl.classList.add("hidden");
     hideClearSpend();
     hideBuddyAll();
@@ -2024,6 +2063,7 @@
     var i, granted = false;
     flakes = [];
     puddles = [];
+    stamps = [];
     torchHeld = !!(keys.KeyF && hasTorch); torchDmgCd = 0; allyClock = 0;
     for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
     if (n === 6 && !act2Wood) {
@@ -2310,10 +2350,28 @@
         shots.push({ x: e.x, y: e.y, vx: ux * 132, vy: uy * 132, r: 8, t: 2.4, dead: false });
       }
     } else if (e.kind === "grunt" || e.kind === "rib" || e.kind === "halb") {
-      e.turn -= dt;
-      if (e.turn <= 0) { e.turn = e.kind === "rib" ? 2.05 : e.kind === "halb" ? 2.0 : 2.6; e.fx = ux; e.fy = uy; }
-      moveEnt(e, e.fx * e.spd * dt, e.fy * e.spd * dt);
-      if (d < e.r + player.r - 2) hurtPlayer(e, 210);
+      if (e.state !== "tele" && e.state !== "poke") {
+        e.turn -= dt;
+        if (e.turn <= 0) { e.turn = e.kind === "rib" ? 2.05 : e.kind === "halb" ? 2.0 : 2.6; e.fx = ux; e.fy = uy; }
+      }
+      if (e.cool > 0) e.cool -= dt;
+      if (e.state === "tele") {
+        e.st -= dt;
+        if (e.st <= 0) { e.state = "poke"; e.st = 0.28; e.atkMax = 0.28; Sfx.slash(false); }
+      } else if (e.state === "poke") {
+        var pokeR = e.kind === "halb" ? 68 : 52;
+        var pokeA = angDiff(Math.atan2(player.y - e.y, player.x - e.x), Math.atan2(e.fy, e.fx));
+        var pokeArc = e.kind === "halb" ? 0.95 : 1.1;
+        if (d < pokeR && pokeA < pokeArc && player.roll <= 0) hurtPlayer(e, 210);
+        e.st -= dt;
+        if (e.st <= 0) { e.state = "chase"; e.cool = 0.38; }
+      } else {
+        moveEnt(e, e.fx * e.spd * dt, e.fy * e.spd * dt);
+        var reach = e.kind === "halb" ? 56 : 42;
+        if ((e.cool || 0) <= 0 && d < reach) {
+          e.state = "tele"; e.st = e.kind === "halb" ? 0.24 : 0.18; e.atkMax = e.st;
+        }
+      }
     } else if (e.kind === "skull") {
       e.bob += dt * 5;
       e.fx = ux; e.fy = uy;
@@ -2348,11 +2406,11 @@
         if (e.st <= 0) { e.state = "chase"; }
       } else if (e.state === "chase") {
         moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
-        if (d < 96 || e.t > 2.2) { e.state = "tele"; e.st = 0.78; }
+        if (d < 96 || e.t > 2.2) { e.state = "tele"; e.st = 0.78; e.atkMax = 0.78; }
       } else if (e.state === "tele") {
-        if (e.st <= 0) { e.state = "slam"; e.st = 0.26; shake = 0.28; Sfx.slam(); }
+        if (e.st <= 0) { e.state = "slam"; e.st = 0.26; e.atkMax = 0.26; shake = 0.28; Sfx.slam(); addStamp(e.x, e.y, slamR()); }
       } else if (e.state === "slam") {
-        if (d < 82 && player.roll <= 0) hurtPlayer(e, 260);
+        if (aoeHit(e, slamR())) hurtPlayer(e, 260);
         if (e.st <= 0) { e.state = "stun"; e.st = 1.28; }
       } else if (e.state === "stun") {
         if (e.st <= 0) { e.state = "chase"; e.t = 0; }
@@ -2365,11 +2423,11 @@
       } else if (e.state === "chase") {
         moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
         if (d < 108 || e.t > 1.7) {
-          e.state = "tele"; e.st = 0.55; e.dx = ux; e.dy = uy; e.hit = false;
+          e.state = "tele"; e.st = 0.55; e.atkMax = 0.55; e.dx = ux; e.dy = uy; e.hit = false;
         }
         if (d < e.r + player.r - 2) hurtPlayer(e, 200);
       } else if (e.state === "tele") {
-        if (e.st <= 0) { e.state = "dash"; e.st = 0.28; Sfx.slam(); }
+        if (e.st <= 0) { e.state = "dash"; e.st = 0.28; e.atkMax = 0.28; Sfx.slam(); }
       } else if (e.state === "dash") {
         moveEnt(e, e.dx * 340 * dt, e.dy * 340 * dt);
         if (Math.hypot(player.x - e.x, player.y - e.y) < e.r + player.r) {
@@ -2397,15 +2455,13 @@
       } else if (e.state === "chase") {
         moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
         if (d < 88 || e.t > 2.0) {
-          e.state = "tele"; e.st = 0.72; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
+          e.state = "tele"; e.st = 0.72; e.atkMax = 0.72; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
         }
         if (d < e.r + player.r - 2) hurtPlayer(e, 200);
       } else if (e.state === "tele") {
-        if (e.st <= 0) { e.state = "swipe"; e.st = 0.3; Sfx.slam(); }
+        if (e.st <= 0) { e.state = "swipe"; e.st = 0.3; e.atkMax = 0.3; Sfx.slam(); }
       } else if (e.state === "swipe") {
-        var swipeD = Math.hypot(player.x - e.x, player.y - e.y);
-        var swipeA = angDiff(Math.atan2(player.y - e.y, player.x - e.x), Math.atan2(e.dy, e.dx));
-        if (swipeD < 92 && swipeA < 1.15 && player.roll <= 0) { e.hit = true; hurtPlayer(e, 250); }
+        if (aoeHit(e, swipeR(), swipeArc())) { e.hit = true; hurtPlayer(e, 250); }
         if (e.st <= 0) {
           if (!e.hit) { e.state = "stun"; e.st = 1.35; }
           else { e.state = "chase"; e.t = 0; }
@@ -2449,13 +2505,13 @@
       } else if (e.state === "chase") {
         moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
         if (d < 92 || e.t > 2.05) {
-          e.state = "tele"; e.st = 0.72; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
+          e.state = "tele"; e.st = 0.72; e.atkMax = 0.72; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
         }
         if (d < e.r + player.r - 2) hurtPlayer(e, 210);
       } else if (e.state === "tele") {
-        if (e.st <= 0) { e.state = "bash"; e.st = 0.28; shake = 0.26; Sfx.slam(); }
+        if (e.st <= 0) { e.state = "bash"; e.st = 0.28; e.atkMax = 0.28; shake = 0.26; Sfx.slam(); addStamp(e.x, e.y, bashR(), "232,154,60"); }
       } else if (e.state === "bash") {
-        if (d < 86 && player.roll <= 0) { e.hit = true; hurtPlayer(e, 255); }
+        if (aoeHit(e, bashR())) { e.hit = true; hurtPlayer(e, 255); }
         if (e.st <= 0) { e.state = "stun"; e.st = 1.28; }
       } else if (e.state === "stun") {
         if (e.st <= 0) { e.state = "chase"; e.t = 0; }
@@ -2477,16 +2533,16 @@
       } else if (e.state === "chase") {
         moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
         if (d < (late ? 108 : 96) || e.t > (late ? 1.35 : 2.0)) {
-          e.state = "tele"; e.st = late ? 0.48 : 0.55; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
+          e.state = "tele"; e.st = late ? 0.48 : 0.55; e.atkMax = e.st; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
         }
         if (d < e.r + player.r - 2) hurtPlayer(e, 220);
       } else if (e.state === "tele") {
         if (e.st <= 0) {
-          if (late) { e.state = "dash"; e.st = 0.34; Sfx.slam(); }
-          else { e.state = "swipe"; e.st = 0.32; shake = 0.24; Sfx.slam(); }
+          if (late) { e.state = "dash"; e.st = 0.34; e.atkMax = 0.34; Sfx.slam(); }
+          else { e.state = "swipe"; e.st = 0.32; e.atkMax = 0.32; shake = 0.24; Sfx.slam(); addStamp(e.x, e.y, swipeR()); }
         }
       } else if (e.state === "swipe") {
-        if (d < 92 && player.roll <= 0) { e.hit = true; hurtPlayer(e, 260); }
+        if (aoeHit(e, swipeR())) { e.hit = true; hurtPlayer(e, 260); }
         if (e.st <= 0) { e.state = "stun"; e.st = 1.22; }
       } else if (e.state === "dash") {
         moveEnt(e, e.dx * 360 * dt, e.dy * 360 * dt);
@@ -2507,13 +2563,13 @@
       } else if (e.state === "chase") {
         moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
         if (d < 86 || e.t > 2.1) {
-          e.state = "tele"; e.st = 0.78; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
+          e.state = "tele"; e.st = 0.78; e.atkMax = 0.78; e.dx = ux; e.dy = uy; e.hit = false; e.t = 0;
         }
         if (d < e.r + player.r - 2) hurtPlayer(e, 200);
       } else if (e.state === "tele") {
-        if (e.st <= 0) { e.state = "swipe"; e.st = 0.3; Sfx.slam(); }
+        if (e.st <= 0) { e.state = "swipe"; e.st = 0.3; e.atkMax = 0.3; Sfx.slam(); }
       } else if (e.state === "swipe") {
-        if (d < 88 && player.roll <= 0) { e.hit = true; hurtPlayer(e, 240); }
+        if (aoeHit(e, swipeR())) { e.hit = true; hurtPlayer(e, 240); }
         if (e.st <= 0) {
           if (!e.hit) { e.state = "stun"; e.st = 1.22; }
           else { e.state = "chase"; e.t = 0; }
@@ -2980,6 +3036,7 @@
     if (shake > 0) shake -= dt;
     for (i = trails.length - 1; i >= 0; i--) { trails[i].t -= dt; if (trails[i].t <= 0) trails.splice(i, 1); }
     for (i = pops.length - 1; i >= 0; i--) { pops[i].t -= dt; if (pops[i].t <= 0) pops.splice(i, 1); }
+    for (i = stamps.length - 1; i >= 0; i--) { stamps[i].t -= dt; if (stamps[i].t <= 0) stamps.splice(i, 1); }
     for (i = 0; i < flakes.length; i++) {
       flakes[i].y += flakes[i].v * dt; flakes[i].x += Math.sin(flakes[i].y * 0.02) * 8 * dt;
       if (flakes[i].y > H) { flakes[i].y = -6; flakes[i].x = Math.random() * W; }
@@ -3004,6 +3061,61 @@
     if (flip) ctx.scale(-1, 1);
     ctx.drawImage(img, -w / 2, -h, w, h);
     ctx.restore();
+  }
+  function drawSprSwing(img, x, y, w, h, flip, alpha, rot, sy) {
+    if (!img || !img.naturalWidth) return;
+    ctx.save();
+    if (alpha != null) ctx.globalAlpha = alpha;
+    ctx.translate(x, y - h * 0.45);
+    if (flip) ctx.scale(-1, 1);
+    if (rot) ctx.rotate(rot);
+    if (sy && sy !== 1) ctx.scale(1.08 / sy, sy);
+    ctx.drawImage(img, -w / 2, -h * 0.55, w, h);
+    ctx.restore();
+  }
+  function drawPokeTrail(e, r, rgb) {
+    var ang = Math.atan2(e.fy, e.fx);
+    var max = e.atkMax || 0.28;
+    var p = max > 0 ? 1 - Math.max(0, e.st) / max : 1;
+    var spread = e.kind === "halb" ? 0.85 : 1.05;
+    ctx.save();
+    ctx.translate(e.x, e.y - 12);
+    if (e.state === "tele") {
+      ctx.strokeStyle = "rgba(" + rgb + "," + (0.45 + Math.sin(performance.now() / 70) * 0.25) + ")";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(8, 0);
+      ctx.lineTo(Math.cos(ang) * r * 0.88, Math.sin(ang) * r * 0.88);
+      ctx.stroke();
+    } else {
+      var k = Math.min(1, p / 0.55);
+      var a0 = ang - spread;
+      var a1 = ang - spread + spread * 2 * k;
+      ctx.fillStyle = "rgba(" + rgb + "," + (0.3 + (1 - p) * 0.14) + ")";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, r, a0, a1);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawAoeCone(x, y, r, ang, arc, fillRgba, strokeRgba) {
+    if (fillRgba) {
+      ctx.fillStyle = fillRgba;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.arc(x, y, r, ang - arc, ang + arc);
+      ctx.closePath();
+      ctx.fill();
+    }
+    if (strokeRgba) {
+      ctx.strokeStyle = strokeRgba;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y - 8, r, ang - arc, ang + arc);
+      ctx.stroke();
+    }
   }
   function themeT() {
     if (levelN >= 6) return 0.84 + (levelN - 6) * 0.03;
@@ -3177,7 +3289,19 @@
     if (shake > 0) { ox = (Math.random() - 0.5) * 8; oy = (Math.random() - 0.5) * 8; }
     ctx.setTransform(1, 0, 0, 1, ox, oy);
     paintFloor();
-    var list = [], i, p, e, img, w, h, flip, alpha;
+    var list = [], i, p, e, img, w, h, flip, alpha, rot;
+    for (i = 0; i < stamps.length; i++) {
+      p = stamps[i];
+      var sk = p.t / p.max;
+      ctx.save();
+      ctx.strokeStyle = "rgba(" + p.rgb + "," + (0.22 + sk * 0.55) + ")";
+      ctx.fillStyle = "rgba(" + p.rgb + "," + (0.07 + sk * 0.12) + ")";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y + 6, p.r, p.r * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
     function push(y, fn) { list.push({ y: y, fn: fn }); }
     push(exitDoor.y, function () {
       img = exitDoor.locked ? SPR.doorLock : SPR.door;
@@ -3331,9 +3455,24 @@
           else if (e.kind === "moth") drawSpr(SPR.moth, e.x, e.y + Math.sin(e.bob || 0) * 5, 48, 42, flip, alpha);
           else if (e.kind === "imp") drawSpr(SPR.imp, e.x, e.y - (e.hopY || 0), 44, 42, flip, alpha);
           else if (e.kind === "spit") drawSpr(e.cd < 0.2 ? SPR.spitAtk : SPR.spit, e.x, e.y, 48, 46, flip, alpha);
-          else if (e.kind === "grunt") drawSpr(SPR.grunt, e.x, e.y, 58, 56, flip, alpha);
-          else if (e.kind === "halb") drawSpr(SPR.halb, e.x, e.y, 64, 66, flip, alpha);
-          else if (e.kind === "rib") drawSpr(SPR.rib, e.x, e.y, 64, 62, flip, alpha);
+          else if (e.kind === "grunt") {
+            if (e.state === "tele" || e.state === "poke") drawPokeTrail(e, 52, "232,154,60");
+            rot = swingRot(e);
+            if (rot) drawSprSwing(SPR.grunt, e.x, e.y, 58, 56, flip, alpha, rot);
+            else drawSpr(SPR.grunt, e.x, e.y, 58, 56, flip, alpha);
+          }
+          else if (e.kind === "halb") {
+            if (e.state === "tele" || e.state === "poke") drawPokeTrail(e, 68, "168,196,232");
+            rot = swingRot(e);
+            if (rot) drawSprSwing(SPR.halb, e.x, e.y, 64, 66, flip, alpha, rot);
+            else drawSpr(SPR.halb, e.x, e.y, 64, 66, flip, alpha);
+          }
+          else if (e.kind === "rib") {
+            if (e.state === "tele" || e.state === "poke") drawPokeTrail(e, 52, "244,230,195");
+            rot = swingRot(e);
+            if (rot) drawSprSwing(SPR.rib, e.x, e.y, 64, 62, flip, alpha, rot);
+            else drawSpr(SPR.rib, e.x, e.y, 64, 62, flip, alpha);
+          }
           else if (e.kind === "ash") drawSpr(e.cd < 0.35 ? SPR.ashDraw : SPR.ash, e.x, e.y, 58, 64, flip, alpha);
           else if (e.kind === "skull") {
             var bobY = Math.sin(e.bob || 0) * 5;
@@ -3356,16 +3495,18 @@
             ctx.fillRect(e.x - 22, e.y - 78, 44 * (e.hp / 9), 6);
           }
           else if (e.kind === "warden") {
+            var wAng = Math.atan2(e.dy, e.dx);
             if (e.state === "tele") {
-              ctx.strokeStyle = "rgba(232,93,76," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")";
-              ctx.lineWidth = 4; ctx.beginPath();
-              ctx.arc(e.x, e.y - 8, 84, 0, Math.PI * 2); ctx.stroke();
+              drawAoeCone(e.x, e.y, swipeR(), wAng, swipeArc(), null,
+                "rgba(232,93,76," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")");
             }
             if (e.state === "swipe") {
-              ctx.fillStyle = "rgba(244,230,195,0.22)";
-              ctx.beginPath(); ctx.arc(e.x, e.y, 88, 0, Math.PI * 2); ctx.fill();
+              drawAoeCone(e.x, e.y, swipeR(), wAng, swipeArc(), "rgba(244,230,195,0.22)", null);
             }
-            drawSpr(e.state === "tele" || e.state === "swipe" ? SPR.wardenSwipe : SPR.warden, e.x, e.y, 96, 96, e.fx < 0, alpha);
+            rot = swingRot(e);
+            img = e.state === "tele" || e.state === "swipe" ? SPR.wardenSwipe : SPR.warden;
+            if (rot) drawSprSwing(img, e.x, e.y, 96, 96, e.fx < 0, alpha, rot);
+            else drawSpr(img, e.x, e.y, 96, 96, e.fx < 0, alpha);
             ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 26, e.y - 108, 52, 6);
             ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
             ctx.fillRect(e.x - 26, e.y - 108, 52 * (e.hp / 14), 6);
@@ -3373,13 +3514,16 @@
           else if (e.kind === "captain") {
             if (e.state === "tele") {
               ctx.strokeStyle = "rgba(232,154,60," + (0.45 + Math.sin(performance.now() / 80) * 0.3) + ")";
-              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, 80, 0, Math.PI * 2); ctx.stroke();
+              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, bashR(), 0, Math.PI * 2); ctx.stroke();
             }
             if (e.state === "bash") {
               ctx.fillStyle = "rgba(232,154,60,0.28)";
-              ctx.beginPath(); ctx.arc(e.x, e.y, 82, 0, Math.PI * 2); ctx.fill();
+              ctx.beginPath(); ctx.arc(e.x, e.y, bashR(), 0, Math.PI * 2); ctx.fill();
             }
-            drawSpr(e.state === "tele" || e.state === "bash" ? SPR.captainBash : SPR.captain, e.x, e.y, 96, 100, e.fx < 0, alpha);
+            rot = swingRot(e);
+            img = e.state === "tele" || e.state === "bash" ? SPR.captainBash : SPR.captain;
+            if (rot) drawSprSwing(img, e.x, e.y, 96, 100, e.fx < 0, alpha, rot);
+            else drawSpr(img, e.x, e.y, 96, 100, e.fx < 0, alpha);
             ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 26, e.y - 110, 52, 6);
             ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
             ctx.fillRect(e.x - 26, e.y - 110, 52 * (e.hp / 14), 6);
@@ -3387,13 +3531,16 @@
           else if (e.kind === "iward") {
             if (e.state === "tele") {
               ctx.strokeStyle = "rgba(168,196,232," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")";
-              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, 80, 0, Math.PI * 2); ctx.stroke();
+              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, swipeR(), 0, Math.PI * 2); ctx.stroke();
             }
             if (e.state === "swipe") {
               ctx.fillStyle = "rgba(168,196,232,0.22)";
-              ctx.beginPath(); ctx.arc(e.x, e.y, 84, 0, Math.PI * 2); ctx.fill();
+              ctx.beginPath(); ctx.arc(e.x, e.y, swipeR(), 0, Math.PI * 2); ctx.fill();
             }
-            drawSpr(SPR.iward, e.x, e.y, 88, 96, e.fx < 0, alpha);
+            rot = swingRot(e);
+            img = e.state === "tele" || e.state === "swipe" ? SPR.wardenSwipe : SPR.iward;
+            if (rot) drawSprSwing(img, e.x, e.y, 88, 96, e.fx < 0, alpha, rot);
+            else drawSpr(img, e.x, e.y, 88, 96, e.fx < 0, alpha);
             ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 24, e.y - 104, 48, 6);
             ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
             ctx.fillRect(e.x - 24, e.y - 104, 48 * (e.hp / 10), 6);
@@ -3421,13 +3568,16 @@
           else if (e.kind === "king") {
             if (e.state === "tele") {
               ctx.strokeStyle = "rgba(168,196,232," + (0.5 + Math.sin(performance.now() / 80) * 0.3) + ")";
-              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, 88, 0, Math.PI * 2); ctx.stroke();
+              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, swipeR(), 0, Math.PI * 2); ctx.stroke();
             }
             if (e.state === "swipe" || e.state === "dash") {
               ctx.fillStyle = "rgba(168,196,232,0.28)";
-              ctx.beginPath(); ctx.arc(e.x, e.y, 90, 0, Math.PI * 2); ctx.fill();
+              ctx.beginPath(); ctx.arc(e.x, e.y, swipeR(), 0, Math.PI * 2); ctx.fill();
             }
-            drawSpr(e.state === "tele" || e.state === "swipe" || e.state === "dash" ? SPR.captainBash : SPR.captain, e.x, e.y, 110, 116, e.fx < 0, alpha);
+            rot = swingRot(e);
+            img = e.state === "tele" || e.state === "swipe" || e.state === "dash" ? SPR.captainBash : SPR.captain;
+            if (rot) drawSprSwing(img, e.x, e.y, 110, 116, e.fx < 0, alpha, rot);
+            else drawSpr(img, e.x, e.y, 110, 116, e.fx < 0, alpha);
             ctx.save();
             ctx.translate(e.x, e.y - 108);
             ctx.fillStyle = "#F5C400"; ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 2;
@@ -3441,13 +3591,17 @@
           else {
             if (e.state === "tele") {
               ctx.strokeStyle = "rgba(232,93,76," + (0.4 + Math.sin(performance.now() / 80) * 0.3) + ")";
-              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, 78, 0, Math.PI * 2); ctx.stroke();
+              ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y - 8, slamR(), 0, Math.PI * 2); ctx.stroke();
             }
             if (e.state === "slam") {
               ctx.fillStyle = "rgba(168,196,232,0.28)";
-              ctx.beginPath(); ctx.arc(e.x, e.y, 80, 0, Math.PI * 2); ctx.fill();
+              ctx.beginPath(); ctx.arc(e.x, e.y, slamR(), 0, Math.PI * 2); ctx.fill();
             }
-            drawSpr(e.state === "tele" || e.state === "slam" ? SPR.bruteSlam : SPR.brute, e.x, e.y, 96, 100, false, alpha);
+            rot = swingRot(e);
+            img = e.state === "tele" || e.state === "slam" ? SPR.bruteSlam : SPR.brute;
+            if (e.state === "slam") drawSprSwing(img, e.x, e.y, 96, 100, false, alpha, rot, slamSquash(e));
+            else if (rot) drawSprSwing(img, e.x, e.y, 96, 100, false, alpha, rot);
+            else drawSpr(img, e.x, e.y, 96, 100, false, alpha);
             ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 24, e.y - 108, 48, 6);
             ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
             ctx.fillRect(e.x - 24, e.y - 108, 48 * (e.hp / 12), 6);
