@@ -165,9 +165,11 @@ NEED = [
     "Warm Flask",
     "Snow Shield",
     "Ember Oil",
-    "Sheath",
-    "Map Scrap",
     "Soft Boots",
+    "Warm tunic",
+    "commitExit",
+    "reopenClearedDoor",
+    "doorPass",
     "Rime Tick",
     "Drift Wisp",
     "spawnEnemy(\"tick\"",
@@ -537,8 +539,21 @@ def main() -> int:
         errors.append("$BOBER weapon costs missing")
     if "cost: 25" not in text or "cost: 35" not in text or "cost: 45" not in text:
         errors.append("$BOBER aid costs missing")
-    if "cost: 30" not in text or "cost: 55" not in text:
-        errors.append("$BOBER utility costs missing")
+    if "cost: 55" not in text:
+        errors.append("$BOBER Soft Boots cost missing")
+    if "Map Scrap" in text:
+        errors.append("Map Scrap still in game")
+    if "function useSheath" in text or "function useMapScrap" in text:
+        errors.append("cut Sheath/Map Scrap functions still present")
+    if "id: \"sheath\"" in text or "id: \"map\"" in text:
+        errors.append("Sheath or Map Scrap SKU still in catalog")
+    tex = text.split("function tryExit")[1].split("function commitExit")[0] if "function commitExit" in text else ""
+    if "open = false" in tex or "locked = true" in tex:
+        errors.append("tryExit still closes/locks door before buildLevel")
+    if "&& !exitDoor.locked" in text.split("function syncKeepDoor")[1].split("function inLight")[0]:
+        errors.append("L19 syncKeepDoor still refuses to reopen when locked")
+    if "function reopenClearedDoor" not in text:
+        errors.append("cleared-door reopen helper missing")
 
     if errors:
         print("FAIL")

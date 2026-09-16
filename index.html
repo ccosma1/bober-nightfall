@@ -682,7 +682,6 @@
         <div id="shop-gear"></div>
         <button type="button" class="shop-item" id="shop-piece">Heart Piece<small>25W · 2 pieces → +1 heart max</small></button>
         <button type="button" class="shop-item" id="shop-bomb">Bomb<small>25W · carry 1–3</small></button>
-        <div class="shop-item locked">Warm tunic<small>Act III · 60W · cosmetic</small></div>
         <button class="play" id="btn-shop-close" type="button">CLOSE</button>
       </div>
     </div>
@@ -905,23 +904,20 @@
       blurb: "Heavier slash, bigger hit. Trades speed.",
       tease: "A crown-weight blade in the shop." },
     { id: "flask", name: "Warm Flask", art: "assets/sprites/heart.png", gear: true,
-      blurb: "Heal a chunk mid-run. One use per run.",
+      blurb: "Ember Flask. Heal a chunk mid-run. One use per run.",
       tease: "Warmth in a bottle." },
     { id: "shield", name: "Guard", art: "assets/sprites/ice-block.png", gear: true,
       blurb: "Snow Shield. One hit absorb and a blink of i-frames.",
       tease: "A crust of snow that holds once." },
-    { id: "sheath", name: "Sheath", art: "assets/sprites/bober-slash.png", gear: true,
-      blurb: "Temp graze. Brief i-frames on use. Not permanent DPS.",
-      tease: "A wrap for one cold minute." },
     { id: "oil", name: "Ember Oil", art: "assets/sprites/torch.png", gear: true,
-      blurb: "Next three hits leave a burn.",
+      blurb: "Next three hits leave a burn. Blade Oil. Thaw Oil.",
       tease: "Oil that remembers the lodge fire." },
-    { id: "map", name: "Map Scrap", art: "assets/sprites/door.png", gear: true,
-      blurb: "Briefly reveal the door this room.",
-      tease: "A scrap that knows the way out." },
     { id: "boots", name: "Soft Boots", art: "assets/sprites/bober-roll.png", gear: true,
       blurb: "Move speed bump for the run.",
-      tease: "Quiet feet on snow." }
+      tease: "Quiet feet on snow." },
+    { id: "tunic", name: "Warm tunic", art: "assets/sprites/bober-idle.png", gear: true,
+      blurb: "Act III wrap. Cream on the cold. Cosmetic.",
+      tease: "A warmer wrap waits in Bone Camp." }
   ];
   var MILES = [
     { id: "woods", name: "Ember Woods", art: "assets/intro/n1.jpg?v=8", lv: 1,
@@ -998,12 +994,11 @@
     { id: "reed", name: "Reed Blade", cost: 40, slot: "weapon", line: "Faster light swings." },
     { id: "pick", name: "Ice Pick", cost: 70, slot: "weapon", line: "Bonus chip vs armored/ice foes." },
     { id: "cleaver", name: "Crown Cleaver", cost: 120, slot: "weapon", line: "Heavier slash, bigger hit. Slower." },
-    { id: "flask", name: "Warm Flask", cost: 25, slot: "aid", line: "Heal a chunk mid-run." },
-    { id: "shield", name: "Guard", cost: 35, slot: "aid", line: "Snow Shield · one hit absorb / brief i-frames." },
-    { id: "oil", name: "Ember Oil", cost: 45, slot: "aid", line: "Next 3 hits leave a burn." },
-    { id: "sheath", name: "Sheath", cost: 38, slot: "aid", line: "Temp graze. Brief i-frames on use." },
-    { id: "map", name: "Map Scrap", cost: 30, slot: "util", line: "Briefly reveal the door this room." },
-    { id: "boots", name: "Soft Boots", cost: 55, slot: "util", line: "Move speed bump for the run." }
+    { id: "flask", name: "Warm Flask", cost: 25, slot: "aid", line: "Ember Flask · heal a chunk this run." },
+    { id: "shield", name: "Guard", cost: 35, slot: "aid", line: "Snow Shield · survive one hit / brief i-frames." },
+    { id: "oil", name: "Ember Oil", cost: 45, slot: "aid", line: "Blade Oil · next 3 hits leave a burn." },
+    { id: "boots", name: "Soft Boots", cost: 55, slot: "util", line: "Move speed bump this run." },
+    { id: "tunic", name: "Warm tunic", cost: 60, slot: "cosmetic", line: "Act III · cream wrap. Cosmetic." }
   ];
   var GEAR_MIN = 25;
   var ICE_FOE = { grunt: 1, rib: 1, halb: 1, brute: 1, king: 1, captain: 1, iward: 1, hound: 1, skull: 1, slush: 1, warden: 1, tick: 1, wisp: 1 };
@@ -1027,12 +1022,12 @@
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
   var gear = emptyGear();
-  var flaskReady = false, shieldReady = false, oilHits = 0, sheathReady = false, mapReady = false, mapT = 0;
+  var flaskReady = false, shieldReady = false, oilHits = 0;
   var shopHeldPause = false, shopPulseOn = false;
   var PRE = { total: 0, ready: 0, failed: 0, done: false, blocked: false };
 
   function emptyGear() {
-    return { reed: false, pick: false, cleaver: false, flask: false, shield: false, oil: false, sheath: false, map: false, boots: false, wep: "", pulse: false };
+    return { reed: false, pick: false, cleaver: false, flask: false, shield: false, oil: false, boots: false, tunic: false, wep: "", pulse: false };
   }
   function cheapestGearCost() {
     var i, n = GEAR_MIN;
@@ -1260,7 +1255,7 @@
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
       bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, mute: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: false, diff: "easy",
-      gear: emptyGear(), flaskReady: false, shieldReady: false, oilHits: 0, sheathReady: false, mapReady: false
+      gear: emptyGear(), flaskReady: false, shieldReady: false, oilHits: 0
     };
   }
   function loadSave() {
@@ -1306,16 +1301,13 @@
       if (s.gear && typeof s.gear === "object") {
         d.gear.reed = !!s.gear.reed; d.gear.pick = !!s.gear.pick; d.gear.cleaver = !!s.gear.cleaver;
         d.gear.flask = !!s.gear.flask; d.gear.shield = !!s.gear.shield; d.gear.oil = !!s.gear.oil;
-        d.gear.sheath = !!s.gear.sheath;
-        d.gear.map = !!s.gear.map; d.gear.boots = !!s.gear.boots;
+        d.gear.boots = !!s.gear.boots; d.gear.tunic = !!s.gear.tunic;
         d.gear.wep = s.gear.wep === "pick" || s.gear.wep === "cleaver" || s.gear.wep === "reed" ? s.gear.wep : "";
         d.gear.pulse = !!s.gear.pulse;
       }
       d.flaskReady = !!s.flaskReady;
       d.shieldReady = !!s.shieldReady;
       d.oilHits = Math.max(0, s.oilHits | 0);
-      d.sheathReady = !!s.sheathReady;
-      d.mapReady = !!s.mapReady;
       return d;
     } catch (e) {
       return defaultSave();
@@ -1355,8 +1347,6 @@
     flaskReady = !!s.flaskReady;
     shieldReady = !!s.shieldReady;
     oilHits = Math.max(0, s.oilHits | 0);
-    sheathReady = !!s.sheathReady;
-    mapReady = !!s.mapReady;
   }
   function persist() {
     var s = loadSave();
@@ -1398,8 +1388,6 @@
         flaskReady: !!flaskReady,
         shieldReady: !!shieldReady,
         oilHits: oilHits | 0,
-        sheathReady: !!sheathReady,
-        mapReady: !!mapReady
       }));
     } catch (e) {}
   }
@@ -1414,7 +1402,7 @@
     chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
     restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false; keepSeen = false; crownSeen = false; belowSeen = false; gateSeen = false; act2Wood = false;
     act2Held = false; act3Held = false; act4Held = false; act5Held = false; act6Held = false; hasTorch = false; l20Piece = false; l25Piece = false; l33Piece = false; l40Piece = false; liveBomb = null; torchHeld = false; puddles = []; stamps = []; allyClock = 0; thaw = null;
-    flaskReady = !!gear.flask; shieldReady = !!gear.shield; oilHits = gear.oil ? 3 : 0; sheathReady = !!gear.sheath; mapReady = !!gear.map; mapT = 0;
+    flaskReady = !!gear.flask; shieldReady = !!gear.shield; oilHits = gear.oil ? 3 : 0;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
@@ -1425,7 +1413,7 @@
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
       bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: seen, mute: mute, diff: diffId(difficulty),
-      gear: gear, flaskReady: !!flaskReady, shieldReady: !!shieldReady, oilHits: oilHits | 0, sheathReady: !!sheathReady, mapReady: !!mapReady
+      gear: gear, flaskReady: !!flaskReady, shieldReady: !!shieldReady, oilHits: oilHits | 0
     });
   }
   function loadMuseum() {
@@ -1589,8 +1577,19 @@
     var d = Math.abs(a - b) % (Math.PI * 2);
     return d > Math.PI ? Math.PI * 2 - d : d;
   }
+  function doorOpen() {
+    return !!(exitDoor && exitDoor.open && !exitDoor.locked);
+  }
+  function inDoorLane(x) {
+    return !!(exitDoor && Math.abs(x - exitDoor.x) < 26);
+  }
+  function doorPass() {
+    return (doorOpen() || levelTransit) && exitDoor;
+  }
   function inWall(x, y, r) {
-    if (x - r < WALL || x + r > W - WALL || y - r < WALL || y + r > H - WALL) return true;
+    var pass = doorPass() && inDoorLane(x);
+    var hitTop = y - r < WALL && !pass;
+    if (x - r < WALL || x + r > W - WALL || hitTop || y + r > H - WALL) return true;
     var i, s;
     for (i = 0; i < solids.length; i++) {
       s = solids[i];
@@ -1603,7 +1602,9 @@
     if (!inWall(e.x + dx, e.y, e.r)) e.x += dx;
     if (!inWall(e.x, e.y + dy, e.r)) e.y += dy;
     e.x = clamp(e.x, WALL + e.r, W - WALL - e.r);
-    e.y = clamp(e.y, WALL + e.r, H - WALL - e.r);
+    var minY = WALL + e.r;
+    if (doorPass() && inDoorLane(e.x)) minY = 10;
+    e.y = clamp(e.y, minY, H - WALL - e.r);
   }
 
   function hud() {
@@ -1704,6 +1705,9 @@
     Sfx.pick();
     persist(); hud(); syncClearBtns();
   }
+  function tunicUnlocked() {
+    return !!(act3Held || boneSeen || levelN >= 11 || (loadSave().level | 0) >= 11);
+  }
   function gearById(id) {
     var i;
     for (i = 0; i < GEAR_CAT.length; i++) if (GEAR_CAT[i].id === id) return GEAR_CAT[i];
@@ -1717,9 +1721,8 @@
     if (it.id === "flask") return gear.flask ? (flaskReady ? "Owned · Ready to use" : "Owned · Used this run") : "Buy once. Heal in run.";
     if (it.id === "shield") return gear.shield ? (shieldReady ? "Owned · Ready" : "Owned · Spent this run") : "Buy once. One absorb.";
     if (it.id === "oil") return gear.oil ? (oilHits > 0 ? "Owned · " + oilHits + " burns left" : "Owned · Used this run") : "Buy once. Next 3 hits burn.";
-    if (it.id === "sheath") return gear.sheath ? (sheathReady ? "Owned · Ready to use" : "Owned · Used this run") : "Buy once. Brief graze.";
-    if (it.id === "map") return gear.map ? (mapReady ? "Owned · Reveal this room" : "Owned · Used this room") : "Buy once. Reveal the door.";
     if (it.id === "boots") return gear.boots ? "Owned · Speed on" : "Buy once. Speed for the run.";
+    if (it.id === "tunic") return gear.tunic ? "Owned · cream wrap on" : (tunicUnlocked() ? "Buy once. Cosmetic wrap." : "Act III · 60W");
     return "";
   }
   function renderShop() {
@@ -1728,7 +1731,7 @@
     var bombBtn = document.getElementById("shop-bomb");
     var box = document.getElementById("shop-gear");
     var i, it, html = "", owned, locked, extra, label;
-    if (how) how.textContent = "$BOBER " + chips + " · " + diffLabel() + " · prices fixed. Flask/Guard/Oil/Sheath are temp caps.";
+    if (how) how.textContent = "$BOBER " + chips + " · " + diffLabel() + " · prices fixed. Flask/Guard/Oil heal, survive, or burn.";
     if (box) {
       for (i = 0; i < GEAR_CAT.length; i++) {
         it = GEAR_CAT[i];
@@ -1737,8 +1740,11 @@
         if (it.slot === "weapon" && owned) {
           locked = false;
           label = it.name;
-        } else if (owned && (it.id === "flask" || it.id === "shield" || it.id === "oil" || it.id === "sheath" || it.id === "map")) {
-          locked = (it.id === "flask" && !flaskReady) || (it.id === "shield" && !shieldReady) || (it.id === "oil" && oilHits <= 0) || (it.id === "sheath" && !sheathReady) || (it.id === "map" && !mapReady);
+        } else if (it.id === "tunic" && !owned) {
+          locked = !tunicUnlocked() || chips < it.cost;
+          label = it.name;
+        } else if (owned && (it.id === "flask" || it.id === "shield" || it.id === "oil")) {
+          locked = (it.id === "flask" && !flaskReady) || (it.id === "shield" && !shieldReady) || (it.id === "oil" && oilHits <= 0);
           label = it.name;
         } else if (owned) {
           locked = true;
@@ -1804,13 +1810,12 @@
     if (gear.flask) flaskReady = true;
     if (gear.shield) shieldReady = true;
     if (gear.oil) oilHits = 3;
-    if (gear.sheath) sheathReady = true;
-    if (gear.map) mapReady = true;
   }
   function onGearTap(id) {
     var it = gearById(id);
     if (!it) return;
     if (!gear[it.id]) {
+      if (it.id === "tunic" && !tunicUnlocked()) return;
       if (chips < it.cost) return;
       chips -= it.cost;
       gear[it.id] = true;
@@ -1818,8 +1823,6 @@
       if (it.id === "flask") flaskReady = true;
       if (it.id === "shield") shieldReady = true;
       if (it.id === "oil") oilHits = 3;
-      if (it.id === "sheath") sheathReady = true;
-      if (it.id === "map") mapReady = true;
       Sfx.pick();
       persist(); hud(); renderShop();
       return;
@@ -1833,8 +1836,6 @@
     if (it.id === "flask") { useFlask(); return; }
     if (it.id === "shield") { renderShop(); return; }
     if (it.id === "oil") { renderShop(); return; }
-    if (it.id === "sheath") { useSheath(); return; }
-    if (it.id === "map") { useMapScrap(); return; }
   }
   function useFlask() {
     if (!gear.flask || !flaskReady || !player || mode !== "play") {
@@ -1845,25 +1846,6 @@
     flaskReady = false;
     Sfx.pick();
     persist(); hud(); renderShop();
-  }
-  function useSheath() {
-    if (!gear.sheath || !sheathReady || !player || mode !== "play") {
-      renderShop();
-      return;
-    }
-    sheathReady = false;
-    player.iframes = Math.max(player.iframes || 0, 0.7);
-    addStamp(player.x, player.y, 26, "244,230,195");
-    Sfx.block();
-    persist(); hud(); renderShop();
-  }
-  function useMapScrap() {
-    if (!gear.map || !mapReady) { renderShop(); return; }
-    if (mode !== "play") { renderShop(); return; }
-    mapReady = false;
-    mapT = 2.8;
-    Sfx.door();
-    persist(); renderShop();
   }
   function buyPiece() {
     if (pieceBought || chips < 25) return;
@@ -2576,8 +2558,6 @@
     puddles = [];
     stamps = [];
     torchHeld = !!(keys.KeyF && hasTorch); torchDmgCd = 0; allyClock = 0;
-    if (gear.map) mapReady = true;
-    mapT = 0;
     addDensity(n);
     for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
     if (n === 6 && !act2Wood) {
@@ -2717,14 +2697,26 @@
     hud();
   }
   function syncKeepDoor() {
-    if (!exitDoor) return;
+    if (!exitDoor || levelTransit) return;
     if (levelN === 16) {
       if (cleared && allBraziersLit()) { exitDoor.locked = false; exitDoor.open = true; }
     } else if (levelN === 19) {
-      if (cleared && allBraziersLit() && iceLeft() === 0 && !exitDoor.locked) exitDoor.open = true;
+      if (cleared && allBraziersLit() && iceLeft() === 0) { exitDoor.locked = false; exitDoor.open = true; }
     } else if (levelN === 24) {
       if (cleared && allBraziersLit() && iceLeft() === 0) { exitDoor.locked = false; exitDoor.open = true; }
     }
+  }
+  function reopenClearedDoor() {
+    if (!exitDoor || !cleared || levelTransit) return;
+    if (levelN === 16 || levelN === 19 || levelN === 24) {
+      syncKeepDoor();
+      return;
+    }
+    if (keyDoor(levelN) && exitDoor.needKey && exitDoor.locked) return;
+    if (iceOrKey(levelN) && iceLeft() > 0) return;
+    if (doorHeld(levelN) && exitDoor.locked) return;
+    exitDoor.open = true;
+    exitDoor.locked = false;
   }
   function inLight(x, y) {
     if (levelN !== 17 && levelN !== 18) return true;
@@ -2786,6 +2778,7 @@
       exitDoor.locked = false; exitDoor.open = true;
     }
     syncKeepDoor();
+    reopenClearedDoor();
   }
   function doorHeld(n) {
     return n === 4 || n === 9 || n === 14 || n === 16 || n === 18 || n === 19 || n === 20 || n === 23 || n === 24 || n === 25 || n === 28 || n === 29 || n === 32 || n === 36 || n === 39 || n === 40;
@@ -2816,27 +2809,30 @@
     if (levelTransit || !exitArmed) return;
     if (!exitDoor || !exitDoor.open || exitDoor.locked) return;
     if (Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 30) return;
+    if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = true;
     exitArmed = false;
-    exitDoor.open = false;
-    exitDoor.locked = true;
-    if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     var next = levelN + 1;
     Sfx.door();
     fadeEl.classList.add("on");
+    fadeT = 0.28;
     levelTimer = setTimeout(function () {
       levelTimer = null;
-      if (next > MAX_LV) {
-        showActEnd(6);
-      } else {
-        if (next === 6) patchSave({ act1Held: true });
-        if (next === 11) patchSave({ act2Held: true });
-        if (next === 16) patchSave({ act3Held: true });
-        if (next === 21) patchSave({ act4Held: true });
-        if (next === 26) patchSave({ act5Held: true });
-        buildLevel(next);
-      }
+      commitExit(next);
     }, 280);
+  }
+  function commitExit(next) {
+    next = next | 0;
+    if (next > MAX_LV) {
+      showActEnd(6);
+      return;
+    }
+    if (next === 6) patchSave({ act1Held: true });
+    if (next === 11) patchSave({ act2Held: true });
+    if (next === 16) patchSave({ act3Held: true });
+    if (next === 21) patchSave({ act4Held: true });
+    if (next === 26) patchSave({ act5Held: true });
+    buildLevel(next);
   }
 
   function updateEnemy(e, dt) {
@@ -3299,9 +3295,7 @@
       gear: gear,
       flaskReady: !!flaskReady,
       shieldReady: !!shieldReady,
-      oilHits: oilHits | 0,
-      sheathReady: !!sheathReady,
-      mapReady: !!mapReady
+      oilHits: oilHits | 0
     };
     if (act === 6) patchSave(Object.assign(held, { act6Held: true, act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, belowSeen: true, gateSeen: true, level: 40 }));
     else if (act === 5) patchSave(Object.assign(held, { act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, level: 26 }));
@@ -3571,6 +3565,7 @@
     if (Math.abs(stick.x) > 0.18 || Math.abs(stick.y) > 0.18) { mx = stick.x; my = stick.y; }
     var ml = Math.hypot(mx, my);
     if (ml > 1) { mx /= ml; my /= ml; ml = 1; }
+    if (levelTransit) { mx = 0; my = 0; ml = 0; swordHeld = false; }
     if (ml > 0.18 && player.roll <= 0) { player.ax = mx; player.ay = my; player.facing = mx < 0 ? -1 : (mx > 0 ? 1 : player.facing); }
     if (finePointer && mouse.on && player.roll <= 0) {
       var adx = mouse.x - player.x, ady = mouse.y - player.y;
@@ -3581,7 +3576,6 @@
     }
     if (swordHeld) holdT += dt;
     if (player.slashing > 0) player.slashing -= dt;
-    if (mapT > 0) mapT = Math.max(0, mapT - dt);
     if (player.roll > 0) player.roll -= dt;
     if (player.rollCd > 0) player.rollCd -= dt;
     if (player.iframes > 0) player.iframes -= dt;
@@ -3699,8 +3693,9 @@
         if (cf) cf.classList.add("hidden");
       }
     }
-    if (!exitArmed && exitDoor && player && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 64) {
+    if (!levelTransit && !exitArmed && exitDoor && player && Math.hypot(player.x - exitDoor.x, player.y - exitDoor.y) > 64) {
       exitArmed = true;
+      if (cleared) reopenClearedDoor();
     }
     if ((levelN === 10 || levelN === 15 || levelN === 20 || levelN === 25 || levelN === 40) && cleared) {
       clearFade -= dt;
@@ -3958,6 +3953,13 @@
     ctx.fillRect(-8, -6, 16, 10); ctx.strokeRect(-8, -6, 16, 10);
     ctx.restore();
   }
+  function drawTunic(x, y) {
+    if (!gear.tunic) return;
+    ctx.save(); ctx.translate(x, y - 20);
+    ctx.fillStyle = "#F4E6C3"; ctx.strokeStyle = "#1A1028"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 2, 13, 9, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
 
   function draw() {
     var ox = 0, oy = 0;
@@ -3982,11 +3984,6 @@
       img = exitDoor.locked ? SPR.doorLock : SPR.door;
       shadow(exitDoor.x, exitDoor.y + 4, 22, 8);
       drawSpr(img, exitDoor.x, exitDoor.y + 8, 52, 58, false, exitDoor.open ? 1 : 0.7);
-      if (mapT > 0) {
-        ctx.strokeStyle = "#F5C400"; ctx.lineWidth = 4;
-        ctx.globalAlpha = 0.55 + Math.sin(performance.now() / 120) * 0.4;
-        ctx.strokeRect(exitDoor.x - 30, exitDoor.y - 52, 60, 66); ctx.globalAlpha = 1;
-      }
       if (exitDoor.open && !exitDoor.locked) {
         ctx.strokeStyle = "#F5C400"; ctx.globalAlpha = 0.55 + Math.sin(performance.now() / 180) * 0.25;
         ctx.strokeRect(exitDoor.x - 28, exitDoor.y - 50, 56, 62); ctx.globalAlpha = 1;
@@ -4327,6 +4324,7 @@
       w = player.roll > 0 ? 50 : 52; h = player.roll > 0 ? 40 : 54;
       var bob = player.roll > 0 ? 0 : Math.sin(player.bob) * 1.5;
       drawSpr(img, player.x, player.y + bob, w, h, player.facing < 0, alpha);
+      drawTunic(player.x, player.y + bob);
       drawHat(player.x, player.y + bob, player.facing < 0);
       if (torchHeld && hasTorch) {
         var tAng = Math.atan2(player.ay, player.ax);

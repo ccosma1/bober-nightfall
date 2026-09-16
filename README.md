@@ -8,7 +8,7 @@ Mission: fight through winter stages, end the Frost King, bring the summer. Swor
 
 Splash is short: title, one tagline, one mission line, FACE THE FROST, then INTRO · Museum · SHOP. No corner shop. Bober stays visible.
 
-Difficulty scales enemies only (shop prices fixed): Easy 0.85× HP / 0.9× dmg; Normal 1.0; Hard 1.2× HP, 1.25× fodder density, 1.1× dmg. Flask / Guard / Oil / Sheath are temp caps — Easy Act I–II does not need the shop. Normal adds 0–1 fodder on L8–15; Hard adds 1–2 fodder and +1 specialty mid-acts.
+Difficulty scales enemies only (shop prices fixed): Easy 0.85× HP / 0.9× dmg; Normal 1.0; Hard 1.2× HP, 1.25× fodder density, 1.1× dmg. Flask / Guard / Oil are temp caps — Easy Act I–II does not need the shop. Normal adds 0–1 fodder on L8–15; Hard adds 1–2 fodder and +1 specialty mid-acts.
 
 New foes: **Rime Tick** (L7, latches; roll/bomb shakes off) and **Drift Wisp** (L12, floats; torch makes it honest).
 
@@ -36,7 +36,9 @@ Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1` (l
 
 **Museum** (splash or pause) is a play-card gallery: roster + act milestones. Tap a card for the large still. Locked cards still open (silhouette + tease). Back from a card returns to the grid. Cards unlock as you reach the level that introduces that foe (Frost King after the finale). Soft save `bober-nightfall-museum-v1`. Always at least Bober.
 
-**Shop** is on the HUD (and splash). $BOBER (woodchips from kills) buys real gear: Reed Blade, Ice Pick, Crown Cleaver, Warm Flask, Snow Shield, Ember Oil, Map Scrap, Soft Boots. Heart Piece / Bomb still spend wood. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
+**Shop** is on the HUD (and splash). $BOBER (woodchips from kills) buys real gear: Reed Blade, Ice Pick, Crown Cleaver, Warm Flask, Guard (Snow Shield), Ember Oil, Soft Boots, Warm tunic (Act III). Heart Piece / Bomb / REST / WARM still spend wood. No Map Scrap. One i-frames buy (Guard), not a duplicate Sheath. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
+
+Cleared doors stay open and walkable. Transit does not lock the door behind you.
 
 Art preloads before **FACE THE FROST**. Loading never drops into shadow-only play.
 
