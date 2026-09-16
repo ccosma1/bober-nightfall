@@ -295,6 +295,15 @@
       background: linear-gradient(to top, #1a1028ee 0%, #1a102866 40%, #3A2A6A22 100%);
       text-align: center;
     }
+    #splash {
+      justify-content: flex-end; padding: 12px 14px 16px;
+      background: linear-gradient(to top, #1a1028f2 0%, #1a102888 22%, #1a102822 38%, #3A2A6A00 58%);
+    }
+    #splash h1 { margin: 0 0 4px; }
+    #splash .tagline { margin: 0 0 4px; font-size: 14px; }
+    #splash .how { margin: 0 0 8px; font-size: 13px; max-width: 22em; }
+    #splash .end-actions { margin-top: 2px; }
+    #splash #hat-tip { margin: 8px 0 0; font-size: 10px; font-weight: 700; }
     .overlay.hidden { display: none !important; }
     .overlay img.hero {
       position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;
@@ -489,14 +498,7 @@
     #app.booting #hud, #app.booting #dock, #app.booting footer { visibility: hidden; }
     #hat-tip { margin: 0 0 10px; font-size: 12px; font-weight: 800; color: var(--yellow); text-shadow: 0 2px 6px #000; }
     #hat-tip.hidden, #winter-line.hidden { display: none; }
-    .mission {
-      margin: 0 0 10px; max-width: 24em; text-align: center;
-      background: #1a1028cc; border: 2px solid var(--yellow); border-radius: 12px;
-      padding: 8px 10px 6px;
-    }
-    .mission .how { margin: 0 0 6px; font-size: 12px; }
-    .mission .how:last-child { margin-bottom: 0; }
-    .mission b { color: var(--yellow); letter-spacing: 0.04em; }
+    #mission-panel { margin: 0 0 8px; }
     #btn-play:disabled, #btn-continue:disabled {
       opacity: 0.4; cursor: default; filter: grayscale(0.45); box-shadow: none;
     }
@@ -512,20 +514,11 @@
       padding: 0 10px; font-size: 12px; letter-spacing: 0.04em;
       background: var(--yellow); color: var(--ink); border-color: var(--yellow);
     }
-    .shop-fab {
-      appearance: none; position: absolute; top: 10px; right: 10px; z-index: 25;
-      min-width: 52px; min-height: 52px; padding: 0 12px;
-      border: 3px solid #1A1028; border-radius: 14px;
-      background: var(--yellow); color: var(--ink);
-      font-family: inherit; font-weight: 900; font-size: 14px; letter-spacing: 0.06em;
-      cursor: pointer; box-shadow: 0 4px 0 #8a6a00, 0 8px 18px #0007;
-    }
-    #app:not(.booting) .shop-fab { display: none; }
+    .shop-pulse { animation: shoppulse 1.15s ease-out 1; }
     @keyframes shoppulse {
       0%, 100% { box-shadow: 0 4px 0 #8a6a00, 0 0 0 0 #F5C40000; }
       40% { box-shadow: 0 4px 0 #8a6a00, 0 0 0 10px #F5C40099; }
     }
-    .shop-pulse { animation: shoppulse 1.15s ease-out 1; }
     #boot-load {
       z-index: 40; justify-content: center; align-items: center; gap: 10px;
       background: #1A1028; color: var(--cream); padding: 24px 18px;
@@ -605,28 +598,19 @@
 
     <div id="splash" class="overlay">
       <img class="hero" src="assets/splash.jpg" alt="" />
-      <button class="shop-fab" id="btn-shop-fab" type="button" aria-label="Shop">SHOP</button>
       <h1>BOBER NIGHTFALL</h1>
-      <p class="tagline">Face the Frost King.</p>
-      <p class="tagline">Blade up. Crown down. Summer returns.</p>
-      <div class="mission" id="mission-panel">
-        <p class="how"><b>Mission</b> Fight through winter stages. End the Frost King. Bring the summer.</p>
-        <p class="how">Sword through winter ruins to the Frost King — clear 25 rooms, then end the Nightfall.</p>
-        <p class="how">Action run — levels to the crown. John Snow assists on the king. Not a farm sim.</p>
-      </div>
-      <p class="how">Lodge fire held. Now end the winter.</p>
+      <p class="tagline">Face the Frost King. Blade up. Crown down. Summer returns.</p>
+      <p class="how" id="mission-panel">Fight through winter stages. End the Frost King. Bring the summer.</p>
       <p class="how hidden" id="winter-line">Winter isn’t the whole story.</p>
-      <p class="how">Desktop: WASD · LMB slash · RMB roll</p>
-      <p class="how">Fan game by a holder.</p>
-      <p id="hat-tip" class="hidden">Lodge fire remembered — yellow hat on.</p>
       <div class="end-actions">
         <button class="play" id="btn-play" type="button" disabled>FACE THE FROST</button>
         <button class="play ghost" id="btn-continue" type="button" hidden disabled>CONTINUE</button>
         <div class="ghost-row">
           <button class="play ghost" id="btn-intro" type="button">INTRO</button>
           <button class="play ghost" id="btn-museum" type="button">Museum</button>
-          <button class="play" id="btn-shop" type="button">SHOP</button>
+          <button class="play ghost" id="btn-shop" type="button">SHOP</button>
         </div>
+        <p id="hat-tip" class="hidden">Lodge fire remembered — yellow hat on.</p>
       </div>
       <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/">More games · Green Home Games</a></p>
     </div>
@@ -678,7 +662,9 @@
       <div class="tip-card">
         <h2>PAUSED</h2>
         <p class="how" id="pause-diff">EASY · Lodge pace.</p>
-        <p class="how">WASD · LMB slash · RMB roll. Stick on phone.</p>
+        <p class="how">Desktop: WASD · LMB slash · RMB roll. Stick on phone.</p>
+        <p class="how">Lodge fire held. Now end the winter. Not a farm sim.</p>
+        <p class="how">Sword through winter ruins — clear 25 rooms, then end the Nightfall.</p>
         <div class="end-actions">
           <button class="play" id="btn-resume" type="button">RESUME</button>
           <div class="ghost-row">
@@ -800,12 +786,14 @@
     slush: "assets/sprites/slush-brute.png",
     bell: "assets/sprites/chill-bell.png",
     toss: "assets/sprites/icicle-toss.png",
-    moth: "assets/sprites/keymoth.png"
+    moth: "assets/sprites/keymoth.png",
+    tick: "assets/sprites/rime-tick.png",
+    wisp: "assets/sprites/drift-wisp.png"
   };
   var SPR = {}, snowTile = new Image();
 
   var INTRO = [
-    { src: "assets/intro/n0.jpg?v=8", sub: "Lodge fire.", line: "The fire held. Now the woods." },
+    { src: "assets/intro/n0.jpg?v=8", sub: "Lodge fire.", line: "The fire held. Now the woods. Desktop: WASD · LMB slash · RMB roll." },
     { src: "assets/intro/n1.jpg?v=8", sub: "Ember Woods.", line: "Twigs and spit. Chop a path." },
     { src: "assets/intro/n2.jpg?v=8", sub: "Ice Approaches.", line: "Ice wants a bomb. The hound waits." },
     { src: "assets/intro/n3.jpg?v=8", sub: "Bone Camp.", line: "Ice that used to walk." },
@@ -898,6 +886,12 @@
     { id: "toss", name: "Icicle Toss", art: "assets/sprites/icicle-toss.png", lv: 7,
       blurb: "Back-row lobber; quiet arcs, sharp landings.",
       tease: "Something waits in the back row." },
+    { id: "tick", name: "Rime Tick", art: "assets/sprites/rime-tick.png", lv: 7,
+      blurb: "Latches on. Slow drip of cold. Roll or bomb shakes it off.",
+      tease: "Something wants a ride." },
+    { id: "wisp", name: "Drift Wisp", art: "assets/sprites/drift-wisp.png", lv: 12,
+      blurb: "Floats over pits. Torch makes it honest.",
+      tease: "A light that isn’t yours." },
     { id: "moth", name: "Keymoth", art: "assets/sprites/keymoth.png", lv: 28,
       blurb: "Flutters the dark, eats lockpicks, laughs wrong.",
       tease: "A laugh with wings under the keep." },
@@ -913,9 +907,12 @@
     { id: "flask", name: "Warm Flask", art: "assets/sprites/heart.png", gear: true,
       blurb: "Heal a chunk mid-run. One use per run.",
       tease: "Warmth in a bottle." },
-    { id: "shield", name: "Snow Shield", art: "assets/sprites/ice-block.png", gear: true,
-      blurb: "One hit absorb and a blink of i-frames.",
+    { id: "shield", name: "Guard", art: "assets/sprites/ice-block.png", gear: true,
+      blurb: "Snow Shield. One hit absorb and a blink of i-frames.",
       tease: "A crust of snow that holds once." },
+    { id: "sheath", name: "Sheath", art: "assets/sprites/bober-slash.png", gear: true,
+      blurb: "Temp graze. Brief i-frames on use. Not permanent DPS.",
+      tease: "A wrap for one cold minute." },
     { id: "oil", name: "Ember Oil", art: "assets/sprites/torch.png", gear: true,
       blurb: "Next three hits leave a burn.",
       tease: "Oil that remembers the lodge fire." },
@@ -961,12 +958,12 @@
     "Key in a pot. Flank the shield — or charge slash.",
     "Ice Brute slams. Wait, then punish. Act I almost held.",
     "Act II. Ice wants a bomb. Chill Bell rings — foes get braver.",
-    "Icicle Toss lobs arcs. Frost bushes laugh at slash.",
+    "Rime Tick latches. Roll or bomb shakes it. Toss still lobs.",
     "Roll past the shield. Hit his back. No bomb needed.",
     "Bomb the ice OR grab the key. Don’t sit in the door.",
     "Hound dashes. Sidestep. CONTINUE on Held — don’t camp it.",
     "Act III. Ice that used to walk. Move, fight, gather.",
-    "Skulls drift. Don’t get boxed. Smash pots for wood.",
+    "Drift Wisp floats the blocks. Torch makes it honest.",
     "Rib Guard faces you. Flank. Charge if you’re brave.",
     "Ash Archer. Bomb ice or key. Don’t softlock the door.",
     "Tomb Warden. Punish the swipe. CONTINUE on Held.",
@@ -1002,13 +999,14 @@
     { id: "pick", name: "Ice Pick", cost: 70, slot: "weapon", line: "Bonus chip vs armored/ice foes." },
     { id: "cleaver", name: "Crown Cleaver", cost: 120, slot: "weapon", line: "Heavier slash, bigger hit. Slower." },
     { id: "flask", name: "Warm Flask", cost: 25, slot: "aid", line: "Heal a chunk mid-run." },
-    { id: "shield", name: "Snow Shield", cost: 35, slot: "aid", line: "One hit absorb / brief i-frames." },
+    { id: "shield", name: "Guard", cost: 35, slot: "aid", line: "Snow Shield · one hit absorb / brief i-frames." },
     { id: "oil", name: "Ember Oil", cost: 45, slot: "aid", line: "Next 3 hits leave a burn." },
+    { id: "sheath", name: "Sheath", cost: 38, slot: "aid", line: "Temp graze. Brief i-frames on use." },
     { id: "map", name: "Map Scrap", cost: 30, slot: "util", line: "Briefly reveal the door this room." },
     { id: "boots", name: "Soft Boots", cost: 55, slot: "util", line: "Move speed bump for the run." }
   ];
   var GEAR_MIN = 25;
-  var ICE_FOE = { grunt: 1, rib: 1, halb: 1, brute: 1, king: 1, captain: 1, iward: 1, hound: 1, skull: 1, slush: 1, warden: 1 };
+  var ICE_FOE = { grunt: 1, rib: 1, halb: 1, brute: 1, king: 1, captain: 1, iward: 1, hound: 1, skull: 1, slush: 1, warden: 1, tick: 1, wisp: 1 };
 
   var keys = Object.create(null);
   var stick = { x: 0, y: 0, id: null, lastTap: 0 };
@@ -1029,12 +1027,12 @@
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
   var gear = emptyGear();
-  var flaskReady = false, shieldReady = false, oilHits = 0, mapReady = false, mapT = 0;
+  var flaskReady = false, shieldReady = false, oilHits = 0, sheathReady = false, mapReady = false, mapT = 0;
   var shopHeldPause = false, shopPulseOn = false;
   var PRE = { total: 0, ready: 0, failed: 0, done: false, blocked: false };
 
   function emptyGear() {
-    return { reed: false, pick: false, cleaver: false, flask: false, shield: false, oil: false, map: false, boots: false, wep: "", pulse: false };
+    return { reed: false, pick: false, cleaver: false, flask: false, shield: false, oil: false, sheath: false, map: false, boots: false, wep: "", pulse: false };
   }
   function cheapestGearCost() {
     var i, n = GEAR_MIN;
@@ -1209,9 +1207,11 @@
     if (s === "normal" || s === "hard") return s;
     return "easy";
   }
-  function hpScale() { return difficulty === "hard" ? 1.6 : difficulty === "normal" ? 1.3 : 1; }
-  function spdScale() { return difficulty === "hard" ? 1.22 : difficulty === "normal" ? 1.12 : 1; }
-  function chipScale() { return difficulty === "hard" ? 0.65 : difficulty === "normal" ? 0.85 : 1; }
+  function hpScale() { return difficulty === "hard" ? 1.2 : difficulty === "easy" ? 0.85 : 1; }
+  function spdScale() { return difficulty === "hard" ? 1.05 : 1; }
+  function dmgScale() { return difficulty === "hard" ? 1.1 : difficulty === "easy" ? 0.9 : 1; }
+  function densScale() { return difficulty === "hard" ? 1.25 : 1; }
+  function chipScale() { return 1; }
   function scaleHp(n) { return Math.max(1, Math.round((n | 0) * hpScale())); }
   function scaleChips(n) { return Math.max(1, Math.round((n | 0) * chipScale())); }
   function diffLabel() { return difficulty === "hard" ? "HARD" : difficulty === "normal" ? "NORMAL" : "EASY"; }
@@ -1260,7 +1260,7 @@
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
       bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, mute: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: false, diff: "easy",
-      gear: emptyGear(), flaskReady: false, shieldReady: false, oilHits: 0, mapReady: false
+      gear: emptyGear(), flaskReady: false, shieldReady: false, oilHits: 0, sheathReady: false, mapReady: false
     };
   }
   function loadSave() {
@@ -1306,6 +1306,7 @@
       if (s.gear && typeof s.gear === "object") {
         d.gear.reed = !!s.gear.reed; d.gear.pick = !!s.gear.pick; d.gear.cleaver = !!s.gear.cleaver;
         d.gear.flask = !!s.gear.flask; d.gear.shield = !!s.gear.shield; d.gear.oil = !!s.gear.oil;
+        d.gear.sheath = !!s.gear.sheath;
         d.gear.map = !!s.gear.map; d.gear.boots = !!s.gear.boots;
         d.gear.wep = s.gear.wep === "pick" || s.gear.wep === "cleaver" || s.gear.wep === "reed" ? s.gear.wep : "";
         d.gear.pulse = !!s.gear.pulse;
@@ -1313,6 +1314,7 @@
       d.flaskReady = !!s.flaskReady;
       d.shieldReady = !!s.shieldReady;
       d.oilHits = Math.max(0, s.oilHits | 0);
+      d.sheathReady = !!s.sheathReady;
       d.mapReady = !!s.mapReady;
       return d;
     } catch (e) {
@@ -1353,6 +1355,7 @@
     flaskReady = !!s.flaskReady;
     shieldReady = !!s.shieldReady;
     oilHits = Math.max(0, s.oilHits | 0);
+    sheathReady = !!s.sheathReady;
     mapReady = !!s.mapReady;
   }
   function persist() {
@@ -1395,6 +1398,7 @@
         flaskReady: !!flaskReady,
         shieldReady: !!shieldReady,
         oilHits: oilHits | 0,
+        sheathReady: !!sheathReady,
         mapReady: !!mapReady
       }));
     } catch (e) {}
@@ -1410,7 +1414,7 @@
     chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
     restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false; keepSeen = false; crownSeen = false; belowSeen = false; gateSeen = false; act2Wood = false;
     act2Held = false; act3Held = false; act4Held = false; act5Held = false; act6Held = false; hasTorch = false; l20Piece = false; l25Piece = false; l33Piece = false; l40Piece = false; liveBomb = null; torchHeld = false; puddles = []; stamps = []; allyClock = 0; thaw = null;
-    flaskReady = !!gear.flask; shieldReady = !!gear.shield; oilHits = gear.oil ? 3 : 0; mapReady = !!gear.map; mapT = 0;
+    flaskReady = !!gear.flask; shieldReady = !!gear.shield; oilHits = gear.oil ? 3 : 0; sheathReady = !!gear.sheath; mapReady = !!gear.map; mapT = 0;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
@@ -1421,7 +1425,7 @@
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
       bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: seen, mute: mute, diff: diffId(difficulty),
-      gear: gear, flaskReady: !!flaskReady, shieldReady: !!shieldReady, oilHits: oilHits | 0, mapReady: !!mapReady
+      gear: gear, flaskReady: !!flaskReady, shieldReady: !!shieldReady, oilHits: oilHits | 0, sheathReady: !!sheathReady, mapReady: !!mapReady
     });
   }
   function loadMuseum() {
@@ -1713,6 +1717,7 @@
     if (it.id === "flask") return gear.flask ? (flaskReady ? "Owned · Ready to use" : "Owned · Used this run") : "Buy once. Heal in run.";
     if (it.id === "shield") return gear.shield ? (shieldReady ? "Owned · Ready" : "Owned · Spent this run") : "Buy once. One absorb.";
     if (it.id === "oil") return gear.oil ? (oilHits > 0 ? "Owned · " + oilHits + " burns left" : "Owned · Used this run") : "Buy once. Next 3 hits burn.";
+    if (it.id === "sheath") return gear.sheath ? (sheathReady ? "Owned · Ready to use" : "Owned · Used this run") : "Buy once. Brief graze.";
     if (it.id === "map") return gear.map ? (mapReady ? "Owned · Reveal this room" : "Owned · Used this room") : "Buy once. Reveal the door.";
     if (it.id === "boots") return gear.boots ? "Owned · Speed on" : "Buy once. Speed for the run.";
     return "";
@@ -1723,7 +1728,7 @@
     var bombBtn = document.getElementById("shop-bomb");
     var box = document.getElementById("shop-gear");
     var i, it, html = "", owned, locked, extra, label;
-    if (how) how.textContent = "$BOBER " + chips + " · " + diffLabel() + " · coins from kills. Costs stay if you’re broke.";
+    if (how) how.textContent = "$BOBER " + chips + " · " + diffLabel() + " · prices fixed. Flask/Guard/Oil/Sheath are temp caps.";
     if (box) {
       for (i = 0; i < GEAR_CAT.length; i++) {
         it = GEAR_CAT[i];
@@ -1732,8 +1737,8 @@
         if (it.slot === "weapon" && owned) {
           locked = false;
           label = it.name;
-        } else if (owned && (it.id === "flask" || it.id === "shield" || it.id === "oil" || it.id === "map")) {
-          locked = (it.id === "flask" && !flaskReady) || (it.id === "shield" && !shieldReady) || (it.id === "oil" && oilHits <= 0) || (it.id === "map" && !mapReady);
+        } else if (owned && (it.id === "flask" || it.id === "shield" || it.id === "oil" || it.id === "sheath" || it.id === "map")) {
+          locked = (it.id === "flask" && !flaskReady) || (it.id === "shield" && !shieldReady) || (it.id === "oil" && oilHits <= 0) || (it.id === "sheath" && !sheathReady) || (it.id === "map" && !mapReady);
           label = it.name;
         } else if (owned) {
           locked = true;
@@ -1770,7 +1775,7 @@
     if (chips < cheapestGearCost()) return;
     gear.pulse = true;
     shopPulseOn = true;
-    ["btn-shop-hud", "btn-shop-fab", "btn-shop"].forEach(function (id) {
+    ["btn-shop-hud", "btn-shop"].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       el.classList.remove("shop-pulse");
@@ -1799,6 +1804,7 @@
     if (gear.flask) flaskReady = true;
     if (gear.shield) shieldReady = true;
     if (gear.oil) oilHits = 3;
+    if (gear.sheath) sheathReady = true;
     if (gear.map) mapReady = true;
   }
   function onGearTap(id) {
@@ -1812,6 +1818,7 @@
       if (it.id === "flask") flaskReady = true;
       if (it.id === "shield") shieldReady = true;
       if (it.id === "oil") oilHits = 3;
+      if (it.id === "sheath") sheathReady = true;
       if (it.id === "map") mapReady = true;
       Sfx.pick();
       persist(); hud(); renderShop();
@@ -1826,6 +1833,7 @@
     if (it.id === "flask") { useFlask(); return; }
     if (it.id === "shield") { renderShop(); return; }
     if (it.id === "oil") { renderShop(); return; }
+    if (it.id === "sheath") { useSheath(); return; }
     if (it.id === "map") { useMapScrap(); return; }
   }
   function useFlask() {
@@ -1836,6 +1844,17 @@
     player.hp = Math.min(hpMax, player.hp + 4);
     flaskReady = false;
     Sfx.pick();
+    persist(); hud(); renderShop();
+  }
+  function useSheath() {
+    if (!gear.sheath || !sheathReady || !player || mode !== "play") {
+      renderShop();
+      return;
+    }
+    sheathReady = false;
+    player.iframes = Math.max(player.iframes || 0, 0.7);
+    addStamp(player.x, player.y, 26, "244,230,195");
+    Sfx.block();
     persist(); hud(); renderShop();
   }
   function useMapScrap() {
@@ -2002,8 +2021,11 @@
       persist(); hud();
       return;
     }
-    player.hp = Math.max(0, player.hp - 2);
-    if (difficulty === "hard") force = (force || 220) * 1.12;
+    player.hurtPool = (player.hurtPool || 0) + 2 * dmgScale();
+    var take = Math.max(1, Math.floor(player.hurtPool));
+    player.hurtPool -= take;
+    player.hp = Math.max(0, player.hp - take);
+    force = (force || 220) * dmgScale();
     player.iframes = INVULN;
     player.hurt = 0.2;
     var dx = player.x - src.x, dy = player.y - src.y, L = Math.hypot(dx, dy) || 1;
@@ -2077,6 +2099,7 @@
       return;
     }
     if (e.kind === "lockw" && torchHeld) dmg += 1;
+    if (e.kind === "wisp" && wispHonest(e)) dmg += 1;
     if (gear.wep === "pick" && ICE_FOE[e.kind]) dmg += 1;
     if (oilHits > 0) {
       oilHits -= 1;
@@ -2097,6 +2120,8 @@
     addPop(e.x, e.y, e.kind);
     var chip0 = chips;
     if (e.kind === "rat") { chips += 2; drop(e.x, e.y, "chip"); }
+    else if (e.kind === "tick") { chips += 2; drop(e.x, e.y, "chip"); }
+    else if (e.kind === "wisp") { chips += 3; drop(e.x, e.y, "chip"); }
     else if (e.kind === "spit") { chips += 3; drop(e.x, e.y, "chip"); }
     else if (e.kind === "grunt") {
       chips += 3; drop(e.x, e.y, "chip");
@@ -2205,6 +2230,7 @@
     player.rdx = player.ax / L; player.rdy = player.ay / L;
     player.roll = ROLL_T; player.rollCd = ROLL_CD; player.iframes = ROLL_T;
     player.slashing = 0; swordHeld = false; holdT = 0;
+    shakeTicks(player.rdx * 220, player.rdy * 220);
     Sfx.roll();
   }
 
@@ -2231,6 +2257,8 @@
     else if (kind === "bell") { e.hp = 2; e.r = 16; e.spd = 22; e.state = "idle"; e.st = 0.8; e.ring = 0; }
     else if (kind === "toss") { e.hp = 2; e.r = 16; e.spd = 30; e.cd = 1.1; e.state = "back"; }
     else if (kind === "moth") { e.hp = 2; e.r = 14; e.spd = 72; e.state = "flutter"; e.bob = Math.random() * 6; e.ate = false; e.st = 0.3; }
+    else if (kind === "tick") { e.hp = 2; e.r = 12; e.spd = 78; e.latched = false; e.drip = 0; }
+    else if (kind === "wisp") { e.hp = 3; e.r = 16; e.spd = 52; e.state = "drift"; e.bob = Math.random() * 6; e.cd = 0.4; }
     else { e.hp = 12; e.r = 34; e.spd = 46; e.state = "idle"; e.st = 0.9; }
     e.hp = scaleHp(e.hp);
     if (e.maxHp) e.maxHp = e.hp;
@@ -2245,6 +2273,69 @@
     if (kind === "pine" || kind === "block" || kind === "ice" || kind === "fence" || kind === "bones" || kind === "web" || kind === "brazier") solids.push(p);
     else if (kind === "bush" || kind === "pot" || kind === "frostBush") solids.push(p);
     return p;
+  }
+  function isBossRoom(n) {
+    return n === 5 || n === 10 || n === 15 || n === 20 || n === 25 || n === 40;
+  }
+  function fodderKind(n) {
+    if (n >= 16) return "imp";
+    if (n >= 12) return n % 2 ? "wisp" : "skull";
+    if (n >= 11) return "skull";
+    if (n >= 7) return n % 2 ? "tick" : "rat";
+    return n >= 2 ? "runr" : "rat";
+  }
+  function specialtyKind(n) {
+    if (n >= 16) return "halb";
+    if (n >= 14) return "ash";
+    if (n >= 12) return "wisp";
+    if (n >= 8) return "spit";
+    if (n >= 6) return "toss";
+    return "runr";
+  }
+  function addDensity(n) {
+    if (difficulty === "easy" || isBossRoom(n) || n <= 1) return;
+    var spots = [[86, 168], [274, 176], [72, 292], [288, 286], [168, 248], [110, 214], [250, 226]];
+    function at(i) {
+      var s = spots[i % spots.length];
+      return { x: clamp(s[0], WALL + 24, W - WALL - 24), y: clamp(s[1], WALL + 50, H - WALL - 50) };
+    }
+    var i, p, extra = 0;
+    if (difficulty === "normal" && n >= 8 && n <= 15) extra = n % 2;
+    if (difficulty === "hard") extra = Math.max(1, Math.round(densScale()));
+    if (difficulty === "hard") extra += (n % 2);
+    for (i = 0; i < extra; i++) {
+      p = at(i);
+      spawnEnemy(fodderKind(n), p.x, p.y);
+    }
+    if (difficulty === "hard" && n >= 8 && n <= 24 && !isBossRoom(n)) {
+      p = at(4);
+      spawnEnemy(specialtyKind(n), p.x, p.y);
+    }
+  }
+  function tickLatched() {
+    var i, n = 0;
+    for (i = 0; i < enemies.length; i++) if (enemies[i].kind === "tick" && enemies[i].latched && !enemies[i].dead) n++;
+    return n;
+  }
+  function shakeTicks(fx, fy) {
+    var i, e;
+    for (i = 0; i < enemies.length; i++) {
+      e = enemies[i];
+      if (e.kind !== "tick" || !e.latched || e.dead) continue;
+      e.latched = false;
+      e.drip = 0;
+      e.kx = fx || 180;
+      e.ky = fy || -90;
+      e.stagger = 0.32;
+      addPop(e.x, e.y, "spark");
+    }
+  }
+  function wispHonest(e) {
+    return !!(torchHeld && hasTorch && player && Math.hypot(e.x - player.x, e.y - player.y) < TORCH_R + 8);
+  }
+  function moveGhost(e, dx, dy) {
+    e.x = clamp(e.x + dx, WALL + e.r, W - WALL - e.r);
+    e.y = clamp(e.y + dy, WALL + e.r, H - WALL - e.r);
   }
 
   function flashLevel(n) {
@@ -2359,6 +2450,7 @@
       addSolid("bush", 120, 250, 16, 14); addSolid("bush", 240, 250, 16, 14);
       addSolid("bush", 180, 300, 16, 14); addSolid("frostBush", 180, 200, 16, 14);
       spawnEnemy("spit", 80, 140); spawnEnemy("toss", 280, 150);
+      spawnEnemy("tick", 180, 240);
     } else if (n === 8) {
       addSolid("fence", 90, 220, 28, 8); addSolid("fence", 270, 220, 28, 8);
       addSolid("pot", 56, 368, 14, 14);
@@ -2381,6 +2473,7 @@
       addSolid("pot", 56, 340, 14, 14);
       spawnEnemy("skull", 90, 155); spawnEnemy("toss", 270, 165);
       spawnEnemy("bell", 180, 130);
+      spawnEnemy("wisp", 180, 250);
     } else if (n === 13) {
       addSolid("bones", 64, 250, 22, 16); addSolid("bones", 296, 255, 22, 16);
       addSolid("pot", 300, 350, 14, 14);
@@ -2485,6 +2578,7 @@
     torchHeld = !!(keys.KeyF && hasTorch); torchDmgCd = 0; allyClock = 0;
     if (gear.map) mapReady = true;
     mapT = 0;
+    addDensity(n);
     for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
     if (n === 6 && !act2Wood) {
       act2Wood = true;
@@ -2760,6 +2854,42 @@
       e.fx = ux; e.fy = uy;
       moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
       if (d < e.r + player.r - 2) hurtPlayer(e, 200);
+    } else if (e.kind === "tick") {
+      e.fx = ux; e.fy = uy;
+      if (e.latched) {
+        e.x = player.x + (e.fx < 0 ? -14 : 14);
+        e.y = player.y - 18;
+        e.drip = (e.drip || 0) + dt;
+        if (e.drip >= 1.7) {
+          e.drip = 0;
+          if (player.iframes <= 0 && player.roll <= 0 && player.hp > 0) {
+            player.hp = Math.max(0, player.hp - 1);
+            player.iframes = 0.22;
+            Sfx.hurt();
+            hud();
+            if (player.hp <= 0) die();
+          }
+        }
+        if (player.roll > 0) shakeTicks(player.rdx * 220, player.rdy * 220);
+      } else {
+        moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+        if (d < e.r + player.r + 2) {
+          e.latched = true;
+          e.drip = 0.4;
+          addPop(player.x, player.y - 16, "spark");
+        }
+      }
+    } else if (e.kind === "wisp") {
+      e.bob = (e.bob || 0) + dt * 3.2;
+      e.fx = ux; e.fy = uy;
+      if (wispHonest(e)) {
+        e.spd = (e.baseSpd || 52) * 0.72;
+        moveEnt(e, ux * e.spd * dt, uy * e.spd * dt);
+      } else {
+        e.spd = e.baseSpd || 52;
+        moveGhost(e, ux * e.spd * dt * 0.85, uy * e.spd * dt * 0.85);
+      }
+      if (d < e.r + player.r - 2) hurtPlayer(e, 160);
     } else if (e.kind === "spit") {
       e.fx = ux; e.fy = uy;
       if (d < 120) moveEnt(e, -ux * e.spd * dt, -uy * e.spd * dt);
@@ -3127,9 +3257,11 @@
         e.flash = 0.12;
         e.kx = (e.x - b.x) / (d || 1) * 180;
         e.ky = (e.y - b.y) / (d || 1) * 180;
+        if (e.kind === "tick" && e.latched) { e.latched = false; e.stagger = 0.28; }
         if (e.hp <= 0) killEnemy(e);
       }
     }
+    shakeTicks(40, -120);
     if (iceOrKey(levelN)) {
       if (iceLeft() === 0) { exitDoor.locked = false; if (cleared) exitDoor.open = true; Sfx.door(); }
     }
@@ -3168,6 +3300,7 @@
       flaskReady: !!flaskReady,
       shieldReady: !!shieldReady,
       oilHits: oilHits | 0,
+      sheathReady: !!sheathReady,
       mapReady: !!mapReady
     };
     if (act === 6) patchSave(Object.assign(held, { act6Held: true, act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, belowSeen: true, gateSeen: true, level: 40 }));
@@ -3458,6 +3591,7 @@
 
     var spd = SPEED;
     if (gear.boots) spd *= 1.16;
+    if (tickLatched()) spd *= 0.7;
     if (player.roll > 0) {
       spd = ROLL_SPD;
       mx = player.rdx; my = player.rdy;
@@ -4008,6 +4142,8 @@
           alpha = e.flash > 0 ? 0.55 : 1;
           if ((levelN === 17 || levelN === 18) && !inLight(e.x, e.y)) alpha *= 0.42;
           if (e.kind === "rat") drawSpr(SPR.rat, e.x, e.y, 42, 34, flip, alpha);
+          else if (e.kind === "tick") drawSpr(SPR.tick, e.x, e.y, 40, 34, flip, alpha);
+          else if (e.kind === "wisp") drawSpr(SPR.wisp, e.x, e.y + Math.sin(e.bob || 0) * 6, 34, 50, flip, wispHonest(e) ? alpha : alpha * 0.7);
           else if (e.kind === "runr") drawSpr(SPR.runr, e.x, e.y, 54, 38, flip, alpha);
           else if (e.kind === "slush") drawSpr(SPR.slush, e.x, e.y, 72, 70, flip, alpha);
           else if (e.kind === "bell") {
@@ -4585,8 +4721,6 @@
   document.getElementById("btn-shop2").addEventListener("click", openShop);
   var shopHud = document.getElementById("btn-shop-hud");
   if (shopHud) shopHud.addEventListener("click", openShop);
-  var shopFab = document.getElementById("btn-shop-fab");
-  if (shopFab) shopFab.addEventListener("click", openShop);
   document.getElementById("btn-shop-close").addEventListener("click", closeShop);
   var shopGear = document.getElementById("shop-gear");
   if (shopGear) shopGear.addEventListener("click", function (ev) {
@@ -4693,7 +4827,7 @@
   goSplash();
   setTimeout(function () {
     if (mode !== "splash") return;
-    ["btn-shop-fab", "btn-shop"].forEach(function (id) {
+    ["btn-shop"].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       el.classList.remove("shop-pulse");

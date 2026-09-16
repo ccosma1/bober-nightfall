@@ -6,6 +6,12 @@ Fan game by a holder. Not affiliated with any token, studio, or official Bober p
 
 Mission: fight through winter stages, end the Frost King, bring the summer. Sword through winter ruins — clear 25 rooms, then end the Nightfall. Action run to the crown; John Snow assists on the king; not a farm sim. Blade up. Crown down. Summer returns.
 
+Splash is short: title, one tagline, one mission line, FACE THE FROST, then INTRO · Museum · SHOP. No corner shop. Bober stays visible.
+
+Difficulty scales enemies only (shop prices fixed): Easy 0.85× HP / 0.9× dmg; Normal 1.0; Hard 1.2× HP, 1.25× fodder density, 1.1× dmg. Flask / Guard / Oil / Sheath are temp caps — Easy Act I–II does not need the shop. Normal adds 0–1 fodder on L8–15; Hard adds 1–2 fodder and +1 specialty mid-acts.
+
+New foes: **Rime Tick** (L7, latches; roll/bomb shakes off) and **Drift Wisp** (L12, floats; torch makes it honest).
+
 A Zelda-like top-down room-clear. Forty discrete levels through Act VI **The Quiet Below** — not an open world. After the Frost King, the campaign continues.
 
 No install. No wallet. No login. No ads. No gacha. No PvP.

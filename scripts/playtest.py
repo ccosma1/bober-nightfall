@@ -159,15 +159,22 @@ NEED = [
     "Loading…",
     "id=\"boot-load\"",
     "id=\"btn-shop-hud\"",
-    "id=\"btn-shop-fab\"",
     "Reed Blade",
     "Ice Pick",
     "Crown Cleaver",
     "Warm Flask",
     "Snow Shield",
     "Ember Oil",
+    "Sheath",
     "Map Scrap",
     "Soft Boots",
+    "Rime Tick",
+    "Drift Wisp",
+    "spawnEnemy(\"tick\"",
+    "spawnEnemy(\"wisp\"",
+    "addDensity",
+    "dmgScale",
+    "0.85",
     "$BOBER",
     "startAllyBeat",
     "assistHit",
@@ -306,6 +313,7 @@ def main() -> int:
         "chain-choir.png", "lady-thaw.png",
         "rime-runner.png", "slush-brute.png", "chill-bell.png",
         "icicle-toss.png", "keymoth.png",
+        "rime-tick.png", "drift-wisp.png",
     ]
     for name in sprites_extra:
         if not (ROOT / "assets" / "sprites" / name).exists():
@@ -492,6 +500,26 @@ def main() -> int:
         errors.append("mission panel missing on splash")
     if splash.find("id=\"mission-panel\"") > splash.find("id=\"btn-play\""):
         errors.append("mission must appear before FACE THE FROST")
+    if "shop-fab" in splash or 'id="btn-shop-fab"' in splash:
+        errors.append("floating corner SHOP still on splash")
+    if splash.count('id="btn-shop"') != 1:
+        errors.append("splash must have exactly one SHOP")
+    if 'class="mission"' in splash:
+        errors.append("yellow mission box still on splash")
+    if "Desktop: WASD" in splash:
+        errors.append("desktop lecture still on splash")
+    if "Lodge fire held. Now end the winter." in splash:
+        errors.append("lodge-fire clutter still on splash")
+    if "0.85" not in (text.split("function hpScale")[1][:160] if "function hpScale" in text else ""):
+        errors.append("Easy HP scale not 0.85x")
+    if "function dmgScale" not in text or "0.9" not in text.split("function dmgScale")[1][:160]:
+        errors.append("Easy dmg scale not 0.9x")
+    if "function addDensity" not in text:
+        errors.append("Normal/Hard density helper missing")
+    if 'spawnEnemy("tick"' not in text:
+        errors.append("Rime Tick spawn missing")
+    if 'spawnEnemy("wisp"' not in text:
+        errors.append("Drift Wisp spawn missing")
     if 'id="btn-play"' in splash and "disabled" not in splash.split('id="btn-play"')[0][-80:] and "disabled" not in splash.split('id="btn-play"')[1][:80]:
         errors.append("FACE THE FROST not disabled until preload")
     if "function startPlay" in text and "assetsPlayable" not in text.split("function startPlay")[1].split("function playIntro")[0]:
