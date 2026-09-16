@@ -4,6 +4,8 @@ Fan game by a holder. Not affiliated with any token, studio, or official Bober p
 
 **Bober Nightfall · Face the Frost King.**
 
+Mission: fight through winter stages, end the Frost King, bring the summer. Sword through winter ruins — clear 25 rooms, then end the Nightfall. Action run to the crown; John Snow assists on the king; not a farm sim. Blade up. Crown down. Summer returns.
+
 A Zelda-like top-down room-clear. Forty discrete levels through Act VI **The Quiet Below** — not an open world. After the Frost King, the campaign continues.
 
 No install. No wallet. No login. No ads. No gacha. No PvP.
@@ -28,7 +30,9 @@ Death restarts the level and keeps woodchips. Soft save: `bober-nightfall-v1` (l
 
 **Museum** (splash or pause) is a play-card gallery: roster + act milestones. Tap a card for the large still. Locked cards still open (silhouette + tease). Back from a card returns to the grid. Cards unlock as you reach the level that introduces that foe (Frost King after the finale). Soft save `bober-nightfall-museum-v1`. Always at least Bober.
 
-Shop is a stub in Act I. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
+**Shop** is on the HUD (and splash). $BOBER (woodchips from kills) buys real gear: Reed Blade, Ice Pick, Crown Cleaver, Warm Flask, Snow Shield, Ember Oil, Map Scrap, Soft Boots. Heart Piece / Bomb still spend wood. A yellow hat is a free cosmetic if a Lodge / History flag already exists in shared boberverse storage — it never gates play.
+
+Art preloads before **FACE THE FROST**. Loading never drops into shadow-only play.
 
 ## GitHub Pages
 

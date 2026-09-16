@@ -489,6 +489,57 @@
     #app.booting #hud, #app.booting #dock, #app.booting footer { visibility: hidden; }
     #hat-tip { margin: 0 0 10px; font-size: 12px; font-weight: 800; color: var(--yellow); text-shadow: 0 2px 6px #000; }
     #hat-tip.hidden, #winter-line.hidden { display: none; }
+    .mission {
+      margin: 0 0 10px; max-width: 24em; text-align: center;
+      background: #1a1028cc; border: 2px solid var(--yellow); border-radius: 12px;
+      padding: 8px 10px 6px;
+    }
+    .mission .how { margin: 0 0 6px; font-size: 12px; }
+    .mission .how:last-child { margin-bottom: 0; }
+    .mission b { color: var(--yellow); letter-spacing: 0.04em; }
+    #btn-play:disabled, #btn-continue:disabled {
+      opacity: 0.4; cursor: default; filter: grayscale(0.45); box-shadow: none;
+    }
+    #shop { z-index: 24; align-items: center; }
+    #shop .tip-card {
+      width: min(22em, 100%); max-height: min(86dvh, 640px);
+      overflow: auto; -webkit-overflow-scrolling: touch;
+    }
+    .shop-item.eq { border-color: var(--yellow); background: #5C3A1A; }
+    .shop-item .own { color: var(--yellow); font-size: 11px; font-weight: 800; }
+    #btn-shop-hud {
+      width: auto; min-width: 52px; min-height: 48px; height: 48px;
+      padding: 0 10px; font-size: 12px; letter-spacing: 0.04em;
+      background: var(--yellow); color: var(--ink); border-color: var(--yellow);
+    }
+    .shop-fab {
+      appearance: none; position: absolute; top: 10px; right: 10px; z-index: 25;
+      min-width: 52px; min-height: 52px; padding: 0 12px;
+      border: 3px solid #1A1028; border-radius: 14px;
+      background: var(--yellow); color: var(--ink);
+      font-family: inherit; font-weight: 900; font-size: 14px; letter-spacing: 0.06em;
+      cursor: pointer; box-shadow: 0 4px 0 #8a6a00, 0 8px 18px #0007;
+    }
+    #app:not(.booting) .shop-fab { display: none; }
+    @keyframes shoppulse {
+      0%, 100% { box-shadow: 0 4px 0 #8a6a00, 0 0 0 0 #F5C40000; }
+      40% { box-shadow: 0 4px 0 #8a6a00, 0 0 0 10px #F5C40099; }
+    }
+    .shop-pulse { animation: shoppulse 1.15s ease-out 1; }
+    #boot-load {
+      z-index: 40; justify-content: center; align-items: center; gap: 10px;
+      background: #1A1028; color: var(--cream); padding: 24px 18px;
+    }
+    #boot-load h2 { margin: 0; color: var(--cream); text-shadow: none; }
+    #boot-load .how { color: var(--cream); }
+    .load-bar {
+      width: min(260px, 78%); height: 12px; border: 2px solid var(--cream);
+      border-radius: 999px; background: #3A2A6A; overflow: hidden;
+    }
+    .load-bar i { display: block; height: 100%; width: 0; background: var(--cream); }
+    #load-err { color: var(--danger); font-weight: 800; }
+    #load-err.hidden, #btn-load-retry.hidden { display: none !important; }
+    .chip.wood { letter-spacing: 0.02em; }
   </style>
 </head>
 <body>
@@ -497,13 +548,14 @@
       <header>
         <div class="chips">
           <div id="hearts" aria-label="Hearts"></div>
-          <div class="chip wood" id="chip-wood">W 0</div>
+          <div class="chip wood" id="chip-wood">$B 0</div>
           <div class="chip wood hidden" id="chip-bomb">B 0</div>
           <div class="chip" id="chip-lv">L 1/40</div>
           <div class="chip" id="chip-diff">EASY</div>
           <div class="chip" id="chip-act">Ember Woods</div>
         </div>
         <div class="btns">
+          <button class="icon-btn" id="btn-shop-hud" type="button" title="Shop" aria-label="Shop">SHOP</button>
           <button class="icon-btn" id="btn-mute" title="Mute" aria-label="Mute">🔊</button>
           <button class="icon-btn" id="btn-pause" title="Pause" aria-label="Pause">⏸</button>
         </div>
@@ -553,20 +605,27 @@
 
     <div id="splash" class="overlay">
       <img class="hero" src="assets/splash.jpg" alt="" />
+      <button class="shop-fab" id="btn-shop-fab" type="button" aria-label="Shop">SHOP</button>
       <h1>BOBER NIGHTFALL</h1>
       <p class="tagline">Face the Frost King.</p>
+      <p class="tagline">Blade up. Crown down. Summer returns.</p>
+      <div class="mission" id="mission-panel">
+        <p class="how"><b>Mission</b> Fight through winter stages. End the Frost King. Bring the summer.</p>
+        <p class="how">Sword through winter ruins to the Frost King — clear 25 rooms, then end the Nightfall.</p>
+        <p class="how">Action run — levels to the crown. John Snow assists on the king. Not a farm sim.</p>
+      </div>
       <p class="how">Lodge fire held. Now end the winter.</p>
       <p class="how hidden" id="winter-line">Winter isn’t the whole story.</p>
       <p class="how">Desktop: WASD · LMB slash · RMB roll</p>
       <p class="how">Fan game by a holder.</p>
       <p id="hat-tip" class="hidden">Lodge fire remembered — yellow hat on.</p>
       <div class="end-actions">
-        <button class="play" id="btn-play" type="button">FACE THE FROST</button>
-        <button class="play ghost" id="btn-continue" type="button" hidden>CONTINUE</button>
+        <button class="play" id="btn-play" type="button" disabled>FACE THE FROST</button>
+        <button class="play ghost" id="btn-continue" type="button" hidden disabled>CONTINUE</button>
         <div class="ghost-row">
           <button class="play ghost" id="btn-intro" type="button">INTRO</button>
           <button class="play ghost" id="btn-museum" type="button">Museum</button>
-          <button class="play ghost" id="btn-shop" type="button">SHOP</button>
+          <button class="play" id="btn-shop" type="button">SHOP</button>
         </div>
       </div>
       <p class="hub-link"><a href="https://ccosma1.github.io/green-home-games/">More games · Green Home Games</a></p>
@@ -633,12 +692,20 @@
     <div id="shop" class="overlay hidden">
       <div class="tip-card">
         <h2>WOODCHIP SHOP</h2>
-        <p class="how" id="shop-how">Spend wood. Ember Woods through The Quiet Below.</p>
+        <p class="how" id="shop-how">$BOBER buys gear. Farm kills if you’re short.</p>
+        <div id="shop-gear"></div>
         <button type="button" class="shop-item" id="shop-piece">Heart Piece<small>25W · 2 pieces → +1 heart max</small></button>
         <button type="button" class="shop-item" id="shop-bomb">Bomb<small>25W · carry 1–3</small></button>
-        <div class="shop-item locked">Warm tunic<small>Act III · 60W</small></div>
+        <div class="shop-item locked">Warm tunic<small>Act III · 60W · cosmetic</small></div>
         <button class="play" id="btn-shop-close" type="button">CLOSE</button>
       </div>
+    </div>
+    <div id="boot-load" class="overlay" role="status" aria-live="polite">
+      <h2>Loading…</h2>
+      <div class="load-bar" aria-hidden="true"><i id="load-fill"></i></div>
+      <p class="how" id="load-pct">0%</p>
+      <p class="how hidden" id="load-err">Art failed to load. Stay here — never shadow-only.</p>
+      <button class="play hidden" id="btn-load-retry" type="button">RETRY</button>
     </div>
     <div id="dead" class="overlay hidden">
       <div class="tip-card">
@@ -651,7 +718,7 @@
       <img class="hero" src="assets/endcard.jpg" alt="" />
       <h2 id="end-title">ACT I HELD</h2>
       <p class="tagline" id="end-tag">Ember Woods. The Ice Brute is down. The crown still waits.</p>
-      <p class="how" id="end-how">No wallet. No gacha.</p>
+      <p class="how" id="end-how">Fan game by a holder. No wallet. No gacha.</p>
       <div class="end-actions">
         <button class="play" id="btn-end-ok" type="button">SPLASH</button>
         <button class="play ghost" id="btn-end-replay" type="button">REPLAY</button>
@@ -696,6 +763,7 @@
     brute: "assets/sprites/ice-brute.png",
     bruteSlam: "assets/sprites/ice-brute-slam.png",
     john: "assets/sprites/john-snow.png",
+    king: "assets/museum/frost-king.jpg",
     bush: "assets/sprites/bush.png",
     pot: "assets/sprites/pot.png",
     key: "assets/sprites/key.png",
@@ -735,10 +803,6 @@
     moth: "assets/sprites/keymoth.png"
   };
   var SPR = {}, snowTile = new Image();
-  snowTile.src = "assets/tiles/snow.png";
-  Object.keys(SPR_SRC).forEach(function (k) {
-    var im = new Image(); im.src = SPR_SRC[k]; SPR[k] = im;
-  });
 
   var INTRO = [
     { src: "assets/intro/n0.jpg?v=8", sub: "Lodge fire.", line: "The fire held. Now the woods." },
@@ -766,7 +830,7 @@
       blurb: "Square-headed hero. Chop, slash, roll. End the frost.",
       tease: "A beaver with a stick." },
     { id: "buddy", name: "Buddy", art: "assets/sprites/john-snow.png", lv: 1, buddy: true,
-      blurb: "Tip face from the white. Not a fighter — a whisper.",
+      blurb: "Tip face from the white. Assists on the Frost King — Bober owns the kill.",
       tease: "A face from the white has a tip." },
     { id: "rat", name: "Twig Rat", art: "assets/sprites/twig-rat.png", lv: 2,
       blurb: "Ice on a stick. First nibble of Ember Woods.",
@@ -836,7 +900,31 @@
       tease: "Something waits in the back row." },
     { id: "moth", name: "Keymoth", art: "assets/sprites/keymoth.png", lv: 28,
       blurb: "Flutters the dark, eats lockpicks, laughs wrong.",
-      tease: "A laugh with wings under the keep." }
+      tease: "A laugh with wings under the keep." },
+    { id: "reed", name: "Reed Blade", art: "assets/sprites/bober-slash.png", gear: true,
+      blurb: "Faster light swings. Bought with $BOBER.",
+      tease: "A quicker stick waits in the shop." },
+    { id: "pick", name: "Ice Pick", art: "assets/sprites/ice-block.png", gear: true,
+      blurb: "Bonus chip vs armored and ice foes.",
+      tease: "A pick for ice that still stands." },
+    { id: "cleaver", name: "Crown Cleaver", art: "assets/sprites/bober-slash.png", gear: true,
+      blurb: "Heavier slash, bigger hit. Trades speed.",
+      tease: "A crown-weight blade in the shop." },
+    { id: "flask", name: "Warm Flask", art: "assets/sprites/heart.png", gear: true,
+      blurb: "Heal a chunk mid-run. One use per run.",
+      tease: "Warmth in a bottle." },
+    { id: "shield", name: "Snow Shield", art: "assets/sprites/ice-block.png", gear: true,
+      blurb: "One hit absorb and a blink of i-frames.",
+      tease: "A crust of snow that holds once." },
+    { id: "oil", name: "Ember Oil", art: "assets/sprites/torch.png", gear: true,
+      blurb: "Next three hits leave a burn.",
+      tease: "Oil that remembers the lodge fire." },
+    { id: "map", name: "Map Scrap", art: "assets/sprites/door.png", gear: true,
+      blurb: "Briefly reveal the door this room.",
+      tease: "A scrap that knows the way out." },
+    { id: "boots", name: "Soft Boots", art: "assets/sprites/bober-roll.png", gear: true,
+      blurb: "Move speed bump for the run.",
+      tease: "Quiet feet on snow." }
   ];
   var MILES = [
     { id: "woods", name: "Ember Woods", art: "assets/intro/n1.jpg?v=8", lv: 1,
@@ -909,6 +997,19 @@
     "Not a crown. A person. Winter kept her. We don’t."
   ];
 
+  var GEAR_CAT = [
+    { id: "reed", name: "Reed Blade", cost: 40, slot: "weapon", line: "Faster light swings." },
+    { id: "pick", name: "Ice Pick", cost: 70, slot: "weapon", line: "Bonus chip vs armored/ice foes." },
+    { id: "cleaver", name: "Crown Cleaver", cost: 120, slot: "weapon", line: "Heavier slash, bigger hit. Slower." },
+    { id: "flask", name: "Warm Flask", cost: 25, slot: "aid", line: "Heal a chunk mid-run." },
+    { id: "shield", name: "Snow Shield", cost: 35, slot: "aid", line: "One hit absorb / brief i-frames." },
+    { id: "oil", name: "Ember Oil", cost: 45, slot: "aid", line: "Next 3 hits leave a burn." },
+    { id: "map", name: "Map Scrap", cost: 30, slot: "util", line: "Briefly reveal the door this room." },
+    { id: "boots", name: "Soft Boots", cost: 55, slot: "util", line: "Move speed bump for the run." }
+  ];
+  var GEAR_MIN = 25;
+  var ICE_FOE = { grunt: 1, rib: 1, halb: 1, brute: 1, king: 1, captain: 1, iward: 1, hound: 1, skull: 1, slush: 1, warden: 1 };
+
   var keys = Object.create(null);
   var stick = { x: 0, y: 0, id: null, lastTap: 0 };
   var swordHeld = false, holdT = 0;
@@ -927,6 +1028,139 @@
   var difficulty = "easy";
   var histI = -1, histTimer = 0, histSkipArmed = 0, histPlaying = false;
   var mouse = { x: 180, y: 240, on: false }, finePointer = false, clearFlashT = 0;
+  var gear = emptyGear();
+  var flaskReady = false, shieldReady = false, oilHits = 0, mapReady = false, mapT = 0;
+  var shopHeldPause = false, shopPulseOn = false;
+  var PRE = { total: 0, ready: 0, failed: 0, done: false, blocked: false };
+
+  function emptyGear() {
+    return { reed: false, pick: false, cleaver: false, flask: false, shield: false, oil: false, map: false, boots: false, wep: "", pulse: false };
+  }
+  function cheapestGearCost() {
+    var i, n = GEAR_MIN;
+    for (i = 0; i < GEAR_CAT.length; i++) if (GEAR_CAT[i].cost < n) n = GEAR_CAT[i].cost;
+    return n;
+  }
+  function coreArtOk() {
+    var need = ["idle", "slash", "door", "king", "john"];
+    var i, im;
+    if (!snowTile || !snowTile.naturalWidth) return false;
+    for (i = 0; i < need.length; i++) {
+      im = SPR[need[i]];
+      if (!im || !im.naturalWidth) return false;
+    }
+    return true;
+  }
+  function assetsPlayable() {
+    return PRE.done && !PRE.blocked && PRE.failed === 0 && PRE.ready === PRE.total && coreArtOk();
+  }
+  function setPlayLocked(on) {
+    var play = document.getElementById("btn-play");
+    var cont = document.getElementById("btn-continue");
+    if (play) play.disabled = !!on;
+    if (cont) cont.disabled = !!on;
+  }
+  function syncBoot() {
+    var pct = PRE.total ? Math.round(100 * PRE.ready / PRE.total) : 0;
+    var fill = document.getElementById("load-fill");
+    var lab = document.getElementById("load-pct");
+    var err = document.getElementById("load-err");
+    var retry = document.getElementById("btn-load-retry");
+    var overlay = document.getElementById("boot-load");
+    if (fill) fill.style.width = pct + "%";
+    if (lab) lab.textContent = PRE.failed ? (PRE.ready + "/" + PRE.total) : (pct + "%");
+    if (PRE.ready + PRE.failed < PRE.total) return;
+    PRE.done = true;
+    if (PRE.failed > 0 || !coreArtOk()) {
+      PRE.blocked = true;
+      setPlayLocked(true);
+      if (lab) lab.textContent = "Failed";
+      if (err) err.classList.remove("hidden");
+      if (retry) retry.classList.remove("hidden");
+      if (overlay) overlay.classList.remove("hidden");
+      return;
+    }
+    PRE.blocked = false;
+    setPlayLocked(false);
+    if (err) err.classList.add("hidden");
+    if (retry) retry.classList.add("hidden");
+    if (overlay) overlay.classList.add("hidden");
+  }
+  function loadTracked(img, url) {
+    PRE.total += 1;
+    var attempt = 0;
+    var stallTimer = 0;
+    var settled = false;
+    function settleOk() {
+      if (settled) return;
+      if (!img.naturalWidth) { bump(); return; }
+      settled = true;
+      clearTimeout(stallTimer);
+      PRE.ready += 1;
+      syncBoot();
+    }
+    function settleFail() {
+      if (settled) return;
+      settled = true;
+      clearTimeout(stallTimer);
+      PRE.failed += 1;
+      syncBoot();
+    }
+    function bump() {
+      if (settled) return;
+      attempt += 1;
+      if (attempt > 2) { settleFail(); return; }
+      img.src = url + (url.indexOf("?") >= 0 ? "&" : "?") + "boot=" + attempt + "&t=" + Date.now();
+      armStall();
+    }
+    function armStall() {
+      clearTimeout(stallTimer);
+      stallTimer = setTimeout(function () {
+        if (settled) return;
+        if (img.naturalWidth) settleOk();
+        else bump();
+      }, 3000);
+    }
+    img.onload = settleOk;
+    img.onerror = bump;
+    if (img.complete && img.naturalWidth) {
+      settleOk();
+      return;
+    }
+    img.src = url;
+    armStall();
+  }
+  function bootPreload() {
+    var i, im, src, hero;
+    PRE = { total: 0, ready: 0, failed: 0, done: false, blocked: false };
+    setPlayLocked(true);
+    var overlay = document.getElementById("boot-load");
+    var err = document.getElementById("load-err");
+    var retry = document.getElementById("btn-load-retry");
+    var fill = document.getElementById("load-fill");
+    if (overlay) overlay.classList.remove("hidden");
+    if (err) err.classList.add("hidden");
+    if (retry) retry.classList.add("hidden");
+    if (fill) fill.style.width = "0%";
+    Object.keys(SPR_SRC).forEach(function (key) {
+      im = SPR[key] || new Image();
+      SPR[key] = im;
+      im._done = false;
+      loadTracked(im, SPR_SRC[key]);
+    });
+    loadTracked(snowTile, "assets/tiles/snow.png");
+    for (i = 0; i < INTRO.length; i++) {
+      src = INTRO[i].src;
+      im = new Image();
+      loadTracked(im, src);
+    }
+    hero = document.querySelector("#splash img.hero");
+    if (hero) loadTracked(hero, "assets/splash.jpg");
+    else {
+      im = new Image();
+      loadTracked(im, "assets/splash.jpg");
+    }
+  }
 
   var Sfx = {
     ctx: null, muted: false,
@@ -1025,7 +1259,8 @@
     return {
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
-      bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, mute: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: false, diff: "easy"
+      bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, mute: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: false, diff: "easy",
+      gear: emptyGear(), flaskReady: false, shieldReady: false, oilHits: 0, mapReady: false
     };
   }
   function loadSave() {
@@ -1067,6 +1302,18 @@
       d.l40Piece = !!s.l40Piece;
       d.introSeen = !!s.introSeen;
       d.diff = diffId(s.diff);
+      d.gear = emptyGear();
+      if (s.gear && typeof s.gear === "object") {
+        d.gear.reed = !!s.gear.reed; d.gear.pick = !!s.gear.pick; d.gear.cleaver = !!s.gear.cleaver;
+        d.gear.flask = !!s.gear.flask; d.gear.shield = !!s.gear.shield; d.gear.oil = !!s.gear.oil;
+        d.gear.map = !!s.gear.map; d.gear.boots = !!s.gear.boots;
+        d.gear.wep = s.gear.wep === "pick" || s.gear.wep === "cleaver" || s.gear.wep === "reed" ? s.gear.wep : "";
+        d.gear.pulse = !!s.gear.pulse;
+      }
+      d.flaskReady = !!s.flaskReady;
+      d.shieldReady = !!s.shieldReady;
+      d.oilHits = Math.max(0, s.oilHits | 0);
+      d.mapReady = !!s.mapReady;
       return d;
     } catch (e) {
       return defaultSave();
@@ -1101,6 +1348,12 @@
     l40Piece = !!s.l40Piece;
     Sfx.muted = !!s.mute;
     difficulty = diffId(s.diff);
+    gear = s.gear && typeof s.gear === "object" ? s.gear : emptyGear();
+    if (!gear.wep) gear.wep = "";
+    flaskReady = !!s.flaskReady;
+    shieldReady = !!s.shieldReady;
+    oilHits = Math.max(0, s.oilHits | 0);
+    mapReady = !!s.mapReady;
   }
   function persist() {
     var s = loadSave();
@@ -1137,7 +1390,12 @@
         l33Piece: !!l33Piece,
         l40Piece: !!l40Piece,
         introSeen: !!s.introSeen,
-        diff: diffId(difficulty)
+        diff: diffId(difficulty),
+        gear: gear,
+        flaskReady: !!flaskReady,
+        shieldReady: !!shieldReady,
+        oilHits: oilHits | 0,
+        mapReady: !!mapReady
       }));
     } catch (e) {}
   }
@@ -1152,6 +1410,7 @@
     chips = 0; hpMax = 6; heartPieces = 0; pieceBought = false; l5Piece = false; l10Piece = false;
     restMask = 0; warmMask = 0; bombs = 0; iceSeen = false; boneSeen = false; keepSeen = false; crownSeen = false; belowSeen = false; gateSeen = false; act2Wood = false;
     act2Held = false; act3Held = false; act4Held = false; act5Held = false; act6Held = false; hasTorch = false; l20Piece = false; l25Piece = false; l33Piece = false; l40Piece = false; liveBomb = null; torchHeld = false; puddles = []; stamps = []; allyClock = 0; thaw = null;
+    flaskReady = !!gear.flask; shieldReady = !!gear.shield; oilHits = gear.oil ? 3 : 0; mapReady = !!gear.map; mapT = 0;
     Sfx.muted = mute;
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
@@ -1161,7 +1420,8 @@
     patchSave({
       level: 1, chips: 0, hp: 6, hpMax: 6, heartPieces: 0,
       pieceBought: false, l5Piece: false, l10Piece: false, restMask: 0, warmMask: 0,
-      bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: seen, mute: mute, diff: diffId(difficulty)
+      bombs: 0, iceSeen: false, boneSeen: false, keepSeen: false, crownSeen: false, belowSeen: false, gateSeen: false, act2Wood: false, act1Held: false, act2Held: false, act3Held: false, act4Held: false, act5Held: false, act6Held: false, hasTorch: false, l20Piece: false, l25Piece: false, l33Piece: false, l40Piece: false, introSeen: seen, mute: mute, diff: diffId(difficulty),
+      gear: gear, flaskReady: !!flaskReady, shieldReady: !!shieldReady, oilHits: oilHits | 0, mapReady: !!mapReady
     });
   }
   function loadMuseum() {
@@ -1209,6 +1469,7 @@
     if (card.king) return !!mus.kingDown;
     if (card.thaw) return !!mus.thawFreed || mus.maxLv >= 40;
     if (card.buddy) return !!mus.tipSeen || mus.maxLv >= 1;
+    if (card.gear) return !!(gear && gear[card.id]);
     return mus.maxLv >= (card.lv | 0);
   }
   function paintMuseum() {
@@ -1249,7 +1510,8 @@
     if (kind === "miles") return on ? "Act reached." : "Reach this act to unlock.";
     if (card.king) return on ? "Mid-story · King down. Stairs wait." : "Beat the Frost King to unlock.";
     if (card.thaw) return on ? "Nightfall = how they met (winter). Crown = how they reigned (summer)." : "Free her under the keep.";
-    if (card.buddy) return on ? "Tip only · not a fighter." : "See a tip, or reach L1.";
+    if (card.buddy) return on ? "Tips, plus king assist on L25." : "See a tip, or reach L1.";
+    if (card.gear) return on ? "Owned · $BOBER shop." : "Buy with $BOBER in the shop.";
     if (card.id === "bober" || card.lv === 0) return "Hero of the Long Night.";
     if (on) return "First seen L" + (card.lv | 0) + ".";
     return "Reach this act to unlock.";
@@ -1347,7 +1609,8 @@
       h += '<i class="' + (v >= 2 ? "full" : v === 1 ? "half" : "") + '"></i>';
     }
     heartsEl.innerHTML = h;
-    chipWood.textContent = "W " + chips;
+    chipWood.textContent = "$B " + chips;
+    maybePulseShop();
     chipLv.textContent = "L " + levelN + "/" + MAX_LV;
     var act = document.getElementById("chip-act");
     var actName = levelN >= 34 ? "Queen’s Gate" : levelN >= 26 ? "The Quiet Below" : levelN >= 21 ? "Crown Approach" : levelN >= 16 ? "Frost Keep" : levelN >= 11 ? "Bone Camp" : levelN >= 6 ? "Ice Approaches" : "Ember Woods";
@@ -1437,11 +1700,55 @@
     Sfx.pick();
     persist(); hud(); syncClearBtns();
   }
+  function gearById(id) {
+    var i;
+    for (i = 0; i < GEAR_CAT.length; i++) if (GEAR_CAT[i].id === id) return GEAR_CAT[i];
+    return null;
+  }
+  function gearStateLine(it) {
+    if (it.slot === "weapon") {
+      if (!gear[it.id]) return "Buy once. Equip in run.";
+      return gear.wep === it.id ? "Owned · Equipped" : "Owned · Tap to equip";
+    }
+    if (it.id === "flask") return gear.flask ? (flaskReady ? "Owned · Ready to use" : "Owned · Used this run") : "Buy once. Heal in run.";
+    if (it.id === "shield") return gear.shield ? (shieldReady ? "Owned · Ready" : "Owned · Spent this run") : "Buy once. One absorb.";
+    if (it.id === "oil") return gear.oil ? (oilHits > 0 ? "Owned · " + oilHits + " burns left" : "Owned · Used this run") : "Buy once. Next 3 hits burn.";
+    if (it.id === "map") return gear.map ? (mapReady ? "Owned · Reveal this room" : "Owned · Used this room") : "Buy once. Reveal the door.";
+    if (it.id === "boots") return gear.boots ? "Owned · Speed on" : "Buy once. Speed for the run.";
+    return "";
+  }
   function renderShop() {
     var btn = document.getElementById("shop-piece");
     var how = document.getElementById("shop-how");
     var bombBtn = document.getElementById("shop-bomb");
-    if (how) how.textContent = "W " + chips + " · " + diffLabel() + " · Woods through Quiet Below.";
+    var box = document.getElementById("shop-gear");
+    var i, it, html = "", owned, locked, extra, label;
+    if (how) how.textContent = "$BOBER " + chips + " · " + diffLabel() + " · coins from kills. Costs stay if you’re broke.";
+    if (box) {
+      for (i = 0; i < GEAR_CAT.length; i++) {
+        it = GEAR_CAT[i];
+        owned = !!gear[it.id];
+        extra = gearStateLine(it);
+        if (it.slot === "weapon" && owned) {
+          locked = false;
+          label = it.name;
+        } else if (owned && (it.id === "flask" || it.id === "shield" || it.id === "oil" || it.id === "map")) {
+          locked = (it.id === "flask" && !flaskReady) || (it.id === "shield" && !shieldReady) || (it.id === "oil" && oilHits <= 0) || (it.id === "map" && !mapReady);
+          label = it.name;
+        } else if (owned) {
+          locked = true;
+          label = it.name;
+        } else {
+          locked = chips < it.cost;
+          label = it.name;
+        }
+        html += "<button type=\"button\" class=\"shop-item" + (locked ? " locked" : "") + (it.slot === "weapon" && gear.wep === it.id ? " eq" : "") +
+          "\" data-gear=\"" + it.id + "\"" + (locked && !owned ? " disabled" : "") + ">" +
+          label + "<small>$BOBER " + it.cost + " · " + it.line + "</small>" +
+          "<span class=\"own\">" + extra + "</span></button>";
+      }
+      box.innerHTML = html;
+    }
     if (btn) {
       if (pieceBought) {
         btn.disabled = true; btn.classList.add("locked");
@@ -1457,6 +1764,87 @@
       bombBtn.classList.toggle("locked", bombs >= 3 || chips < BOMB_COST);
       bombBtn.innerHTML = bombs >= 3 ? "Bomb<small>Full · 3/3</small>" : "Bomb<small>" + BOMB_COST + "W · carry " + bombs + "/3</small>";
     }
+  }
+  function maybePulseShop() {
+    if (gear.pulse || shopPulseOn) return;
+    if (chips < cheapestGearCost()) return;
+    gear.pulse = true;
+    shopPulseOn = true;
+    ["btn-shop-hud", "btn-shop-fab", "btn-shop"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("shop-pulse");
+      void el.offsetWidth;
+      el.classList.add("shop-pulse");
+    });
+    persist();
+  }
+  function openShop() {
+    renderShop();
+    document.getElementById("shop").classList.remove("hidden");
+    if (mode === "play" && !paused) {
+      paused = true;
+      shopHeldPause = true;
+      document.getElementById("paused").classList.add("hidden");
+    }
+  }
+  function closeShop() {
+    document.getElementById("shop").classList.add("hidden");
+    if (shopHeldPause) {
+      paused = false;
+      shopHeldPause = false;
+    }
+  }
+  function stockOwnedAids() {
+    if (gear.flask) flaskReady = true;
+    if (gear.shield) shieldReady = true;
+    if (gear.oil) oilHits = 3;
+    if (gear.map) mapReady = true;
+  }
+  function onGearTap(id) {
+    var it = gearById(id);
+    if (!it) return;
+    if (!gear[it.id]) {
+      if (chips < it.cost) return;
+      chips -= it.cost;
+      gear[it.id] = true;
+      if (it.slot === "weapon") gear.wep = it.id;
+      if (it.id === "flask") flaskReady = true;
+      if (it.id === "shield") shieldReady = true;
+      if (it.id === "oil") oilHits = 3;
+      if (it.id === "map") mapReady = true;
+      Sfx.pick();
+      persist(); hud(); renderShop();
+      return;
+    }
+    if (it.slot === "weapon") {
+      gear.wep = it.id;
+      Sfx.beep(520, 0.06, "square", 0.05);
+      persist(); renderShop();
+      return;
+    }
+    if (it.id === "flask") { useFlask(); return; }
+    if (it.id === "shield") { renderShop(); return; }
+    if (it.id === "oil") { renderShop(); return; }
+    if (it.id === "map") { useMapScrap(); return; }
+  }
+  function useFlask() {
+    if (!gear.flask || !flaskReady || !player || mode !== "play") {
+      renderShop();
+      return;
+    }
+    player.hp = Math.min(hpMax, player.hp + 4);
+    flaskReady = false;
+    Sfx.pick();
+    persist(); hud(); renderShop();
+  }
+  function useMapScrap() {
+    if (!gear.map || !mapReady) { renderShop(); return; }
+    if (mode !== "play") { renderShop(); return; }
+    mapReady = false;
+    mapT = 2.8;
+    Sfx.door();
+    persist(); renderShop();
   }
   function buyPiece() {
     if (pieceBought || chips < 25) return;
@@ -1605,6 +1993,15 @@
 
   function hurtPlayer(src, force) {
     if (waitingStart || player.iframes > 0 || player.roll > 0 || player.hp <= 0) return;
+    if (gear.shield && shieldReady) {
+      shieldReady = false;
+      player.iframes = 0.55;
+      addPop(player.x, player.y, "spark");
+      addStamp(player.x, player.y, 28, "244,230,195");
+      Sfx.block();
+      persist(); hud();
+      return;
+    }
     player.hp = Math.max(0, player.hp - 2);
     if (difficulty === "hard") force = (force || 220) * 1.12;
     player.iframes = INVULN;
@@ -1680,6 +2077,12 @@
       return;
     }
     if (e.kind === "lockw" && torchHeld) dmg += 1;
+    if (gear.wep === "pick" && ICE_FOE[e.kind]) dmg += 1;
+    if (oilHits > 0) {
+      oilHits -= 1;
+      e.burn = Math.max(e.burn || 0, 2.4);
+      e.burnCd = 0.8;
+    }
     e.hp -= dmg;
     e.kx = Math.cos(ang) * kforce;
     e.ky = Math.sin(ang) * kforce;
@@ -1747,15 +2150,30 @@
     persist();
   }
 
+  function slashRecFor(charge) {
+    if (!charge && gear.wep === "reed") return 0.1;
+    if (gear.wep === "cleaver") return 0.28;
+    return SLASH_REC;
+  }
+  function slashRangeFor(charge) {
+    var r = charge ? 58 : 44;
+    if (gear.wep === "cleaver") r += 16;
+    return r;
+  }
+  function slashDmgFor(charge) {
+    if (charge) return 2;
+    return gear.wep === "cleaver" ? 2 : 1;
+  }
   function doSlash(charge) {
     if (waitingStart || !player || player.slashing > 0 || player.roll > 0 || player.hp <= 0) return;
-    player.slashing = SLASH_REC;
+    player.slashMax = slashRecFor(charge);
+    player.slashing = player.slashMax;
     player.charged = !!charge;
     var ang = Math.atan2(player.ay, player.ax);
-    var range = charge ? 58 : 44;
-    var arc = charge ? 3.05 : 2.15;
-    var dmg = charge ? 2 : 1;
-    var kf = charge ? 280 : 160;
+    var range = slashRangeFor(charge);
+    var arc = charge ? 3.05 : (gear.wep === "cleaver" ? 2.45 : 2.15);
+    var dmg = slashDmgFor(charge);
+    var kf = charge ? 280 : (gear.wep === "cleaver" ? 210 : 160);
     Sfx.slash(charge);
     var i, e, d, a;
     for (i = 0; i < enemies.length; i++) {
@@ -2065,6 +2483,8 @@
     puddles = [];
     stamps = [];
     torchHeld = !!(keys.KeyF && hasTorch); torchDmgCd = 0; allyClock = 0;
+    if (gear.map) mapReady = true;
+    mapT = 0;
     for (i = 0; i < 18 + n * 6; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, s: 0.6 + Math.random() * 1.4, v: 18 + Math.random() * 28 });
     if (n === 6 && !act2Wood) {
       act2Wood = true;
@@ -2743,7 +3163,12 @@
       l40Piece: !!l40Piece,
       restMask: restMask,
       warmMask: warmMask,
-      pieceBought: !!pieceBought
+      pieceBought: !!pieceBought,
+      gear: gear,
+      flaskReady: !!flaskReady,
+      shieldReady: !!shieldReady,
+      oilHits: oilHits | 0,
+      mapReady: !!mapReady
     };
     if (act === 6) patchSave(Object.assign(held, { act6Held: true, act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, belowSeen: true, gateSeen: true, level: 40 }));
     else if (act === 5) patchSave(Object.assign(held, { act5Held: true, act4Held: true, act3Held: true, act2Held: true, hasTorch: true, keepSeen: true, crownSeen: true, level: 26 }));
@@ -2757,9 +3182,9 @@
     var how = document.getElementById("end-how");
     var ok = document.getElementById("btn-end-ok");
     var rp = document.getElementById("btn-end-replay");
-    if (t) t.textContent = act === 6 ? "ACT VI HELD" : act === 5 ? "ACT V HELD" : act === 4 ? "ACT IV HELD" : act === 3 ? "ACT III HELD" : act === 2 ? "ACT II HELD" : "ACT I HELD";
-    if (g) g.textContent = act === 6 ? "She walks out. Summer gets a date." : act === 5 ? "Frost King down. Not done. Stairs under the keep." : act === 4 ? "Frost Keep held. Stone colder than the dead. The crown still waits." : act === 3 ? "Bone Camp held. Ice that used to walk. The crown still waits." : act === 2 ? "Ice Approaches held. The crown still waits." : "Ember Woods. The Ice Brute is down. The crown still waits.";
-    if (how) how.textContent = act === 6 ? "Nightfall is how they met. Green Home Crown is how they reigned. No wallet. No gacha." : "No wallet. No gacha.";
+    if (t) t.textContent = act === 6 ? "ACT VI HELD" : act === 5 ? "NIGHTFALL HELD" : act === 4 ? "ACT IV HELD" : act === 3 ? "ACT III HELD" : act === 2 ? "ACT II HELD" : "ACT I HELD";
+    if (g) g.textContent = act === 6 ? "She walks out. Summer gets a date." : act === 5 ? "Nightfall held. King falls. Summer returns." : act === 4 ? "Frost Keep held. Stone colder than the dead. The crown still waits." : act === 3 ? "Bone Camp held. Ice that used to walk. The crown still waits." : act === 2 ? "Ice Approaches held. The crown still waits." : "Ember Woods. The Ice Brute is down. The crown still waits.";
+    if (how) how.textContent = act === 6 ? "Nightfall is how they met. Green Home Crown is how they reigned. Fan game by a holder. No wallet. No gacha." : "Fan game by a holder. No wallet. No gacha.";
     if (ok) ok.textContent = (act === 2 || act === 3 || act === 4 || act === 5) ? "CONTINUE" : "SPLASH";
     var hero = document.querySelector("#endcard img.hero");
     if (hero) hero.src = act === 6 ? "assets/endcard-thaw.jpg" : "assets/endcard.jpg";
@@ -2779,42 +3204,155 @@
     app.classList.add("booting");
   }
 
+  function tickBurn(dt) {
+    var i, e;
+    for (i = 0; i < enemies.length; i++) {
+      e = enemies[i];
+      if (e.dead || !(e.burn > 0)) continue;
+      e.burn -= dt;
+      e.burnCd = (e.burnCd || 0) - dt;
+      if (e.burnCd <= 0) {
+        e.burnCd = 0.8;
+        e.hp -= 1;
+        e.flash = 0.1;
+        addPop(e.x, e.y - 10, "spark");
+        if (e.hp <= 0) killEnemy(e);
+      }
+    }
+  }
   function slashConeHit(px, py) {
     if (player.slashing <= 0) return false;
     var ang = Math.atan2(player.ay, player.ax);
-    var range = player.charged ? 58 : 44;
-    var arc = player.charged ? 3.05 : 2.15;
+    var range = slashRangeFor(player.charged);
+    var arc = player.charged ? 3.05 : (gear.wep === "cleaver" ? 2.45 : 2.15);
     var d = Math.hypot(px - player.x, py - player.y);
     if (d > range) return false;
     return angDiff(Math.atan2(py - player.y, px - player.x), ang) <= arc / 2;
   }
 
+  function assistCap(king) {
+    return Math.max(1, Math.floor((king.maxHp || 20) * 0.18));
+  }
+  function assistHit(king, dmg) {
+    if (!john || !king || king.dead) return 0;
+    var cap = assistCap(king);
+    var left = cap - (john.dealt || 0);
+    if (left <= 0) return 0;
+    dmg = Math.min(dmg, left, Math.max(0, king.hp - 1));
+    if (dmg <= 0) return 0;
+    king.hp -= dmg;
+    king.flash = 0.12;
+    john.dealt = (john.dealt || 0) + dmg;
+    addPop((king.x + john.x) / 2, (king.y + john.y) / 2, "spark");
+    Sfx.hit();
+    return dmg;
+  }
+  function startAllyBeat(beat, wind) {
+    if (!john) return;
+    john.beat = beat;
+    john.wind = wind == null ? 0.2 : wind;
+    john.swing = 0;
+    john.hopY = 0;
+  }
   function updateAlly(dt) {
     if (levelN !== 25 || mode !== "play" || calmT > 0) return;
-    var king = null, i, e;
+    var king = null, kingDead = null, i, e, dx, dy, d, px, py, tx, ty, L, ratio;
     for (i = 0; i < enemies.length; i++) {
       e = enemies[i];
-      if (e.kind === "king" && !e.dead) { king = e; break; }
+      if (e.kind !== "king") continue;
+      if (e.dead) kingDead = e;
+      else king = e;
     }
     allyClock += dt;
     if (!john) {
-      if (allyClock >= 1.5 || (king && king.hp < 20)) {
-        john = { x: 72, y: 378, ally: true, said: true, chipCd: 0, r: 16, fx: 1 };
+      if (allyClock >= 0.9 || (king && king.hp / (king.maxHp || 20) < 0.95)) {
+        john = {
+          x: 72, y: 378, ally: true, said: true, r: 16, fx: 1,
+          dealt: 0, slashCd: 0.4, didDrop: false, didChip: false, pikeArmed: false,
+          lastTele: false, beat: "", wind: 0, swing: 0, hopY: 0, nod: false
+        };
         say("JOHN SNOW", "Together.", 2.2);
       }
       return;
     }
-    if (!john.ally || !king) return;
-    var dx = king.x - john.x, dy = king.y - john.y, d = Math.hypot(dx, dy) || 1;
+    if (!john.ally) return;
+    if (john.swing > 0) john.swing = Math.max(0, john.swing - dt);
+    if (kingDead && !king) {
+      john.fx = kingDead.x - john.x;
+      john.beat = "nod";
+      john.nod = true;
+      john.wind = 0;
+      john.hopY = 0;
+      return;
+    }
+    if (!king) return;
+    dx = king.x - john.x; dy = king.y - john.y; d = Math.hypot(dx, dy) || 1;
     john.fx = dx;
-    if (d > 38) moveEnt(john, dx / d * 62 * dt, dy / d * 62 * dt);
-    john.chipCd = (john.chipCd || 0) - dt;
-    if (d < 46 && john.chipCd <= 0 && king.hp > 1) {
-      john.chipCd = 1.2;
-      king.hp -= 1;
-      king.flash = 0.1;
-      addPop((king.x + john.x) / 2, (king.y + john.y) / 2, "spark");
-      if (king.hp <= 0) killEnemy(king);
+    john.aim = Math.atan2(dy, dx);
+    px = -(king.fy || 1); py = king.fx || 0;
+    L = Math.hypot(px, py) || 1;
+    px /= L; py /= L;
+    tx = king.x + px * 58; ty = king.y + py * 58;
+    if (john.wind > 0) {
+      john.wind -= dt;
+      if (john.wind <= 0) {
+        john.wind = 0;
+        john.swing = 0.28;
+        if (john.beat === "slash") {
+          assistHit(king, 1);
+          addStamp((king.x + john.x) / 2, (king.y + john.y) / 2, 36, "244,230,195");
+        } else if (john.beat === "pike") {
+          assistHit(king, 2);
+          addStamp(king.x, king.y, 22, "168,196,232");
+        } else if (john.beat === "drop") {
+          assistHit(king, 1);
+          king.state = "stun"; king.st = Math.max(king.st || 0, 0.4); king.atkMax = 0.4;
+          addStamp(king.x, king.y, 42, "168,196,232");
+          shake = 0.12;
+        } else if (john.beat === "chip") {
+          assistHit(king, 2);
+          addPop(king.x, king.y - 40, "spark");
+        }
+        if (john.beat === "drop") john.beat = "land";
+      }
+    } else if (john.beat === "land") {
+      john.hopY = 0;
+      john.beat = "";
+    } else if (john.swing <= 0 && john.beat && john.beat !== "nod") {
+      john.beat = "";
+    }
+    if (john.wind <= 0 && john.swing <= 0) {
+      dx = tx - john.x; dy = ty - john.y; d = Math.hypot(dx, dy) || 1;
+      if (d > 10) moveEnt(john, dx / d * 78 * dt, dy / d * 78 * dt);
+    }
+    if (king.state === "tele") john.lastTele = true;
+    else if (john.lastTele && (king.state === "swipe" || king.state === "dash" || king.state === "stun" || king.state === "bash")) {
+      john.lastTele = false;
+      john.pikeArmed = true;
+    }
+    ratio = king.hp / (king.maxHp || 20);
+    if (john.wind > 0 || john.swing > 0) return;
+    d = Math.hypot(king.x - john.x, king.y - john.y);
+    if (john.pikeArmed) {
+      john.pikeArmed = false;
+      startAllyBeat("pike");
+      return;
+    }
+    if (!john.didDrop && ratio <= 0.6) {
+      john.didDrop = true;
+      john.hopY = 18;
+      startAllyBeat("drop");
+      return;
+    }
+    if (!john.didChip && ratio <= 0.3) {
+      john.didChip = true;
+      startAllyBeat("chip");
+      return;
+    }
+    john.slashCd = (john.slashCd || 0) - dt;
+    if (john.slashCd <= 0 && d < 70) {
+      john.slashCd = 2.8 + Math.random() * 0.6;
+      startAllyBeat("slash");
     }
   }
   function updateThaw(dt) {
@@ -2910,6 +3448,7 @@
     }
     if (swordHeld) holdT += dt;
     if (player.slashing > 0) player.slashing -= dt;
+    if (mapT > 0) mapT = Math.max(0, mapT - dt);
     if (player.roll > 0) player.roll -= dt;
     if (player.rollCd > 0) player.rollCd -= dt;
     if (player.iframes > 0) player.iframes -= dt;
@@ -2918,6 +3457,7 @@
     player.kx *= Math.pow(0.0008, dt); player.ky *= Math.pow(0.0008, dt);
 
     var spd = SPEED;
+    if (gear.boots) spd *= 1.16;
     if (player.roll > 0) {
       spd = ROLL_SPD;
       mx = player.rdx; my = player.rdy;
@@ -2946,6 +3486,7 @@
 
     if (calmT > 0) calmT = Math.max(0, calmT - dt);
     tickTorch(dt);
+    tickBurn(dt);
     var i, s, p;
     for (i = puddles.length - 1; i >= 0; i--) { puddles[i].t -= dt; if (puddles[i].t <= 0) puddles.splice(i, 1); }
     for (i = 0; i < enemies.length; i++) updateEnemy(enemies[i], dt);
@@ -3264,9 +3805,9 @@
   function drawSlashArc() {
     if (player.slashing <= 0) return;
     var ang = Math.atan2(player.ay, player.ax);
-    var range = player.charged ? 58 : 44;
-    var arc = player.charged ? 3.05 : 2.15;
-    var a = 1 - player.slashing / SLASH_REC;
+    var range = slashRangeFor(player.charged);
+    var arc = player.charged ? 3.05 : (gear.wep === "cleaver" ? 2.45 : 2.15);
+    var a = 1 - player.slashing / (player.slashMax || SLASH_REC);
     ctx.save();
     ctx.translate(player.x, player.y - 10);
     ctx.fillStyle = player.charged ? "rgba(245,196,0," + (0.45 - a * 0.3) + ")" : "rgba(244,230,195," + (0.4 - a * 0.3) + ")";
@@ -3307,6 +3848,11 @@
       img = exitDoor.locked ? SPR.doorLock : SPR.door;
       shadow(exitDoor.x, exitDoor.y + 4, 22, 8);
       drawSpr(img, exitDoor.x, exitDoor.y + 8, 52, 58, false, exitDoor.open ? 1 : 0.7);
+      if (mapT > 0) {
+        ctx.strokeStyle = "#F5C400"; ctx.lineWidth = 4;
+        ctx.globalAlpha = 0.55 + Math.sin(performance.now() / 120) * 0.4;
+        ctx.strokeRect(exitDoor.x - 30, exitDoor.y - 52, 60, 66); ctx.globalAlpha = 1;
+      }
       if (exitDoor.open && !exitDoor.locked) {
         ctx.strokeStyle = "#F5C400"; ctx.globalAlpha = 0.55 + Math.sin(performance.now() / 180) * 0.25;
         ctx.strokeRect(exitDoor.x - 28, exitDoor.y - 50, 56, 62); ctx.globalAlpha = 1;
@@ -3318,8 +3864,28 @@
     });
     if (john) {
       push(john.y, function () {
+        var jy = john.y - (john.hopY || 0);
+        var rot = 0, ang, fade;
+        if (john.wind > 0 && john.beat === "drop") jy -= 8 + (0.2 - john.wind) * 50;
         shadow(john.x, john.y + 2, 16, 6);
-        drawSpr(SPR.john, john.x, john.y, 40, 72, (john.fx || 0) < 0, john.ally && john.chipCd > 1.0 ? 0.7 : 1);
+        if (john.wind > 0) rot = john.beat === "chip" ? -0.95 : john.beat === "pike" ? -0.35 : -0.5;
+        else if (john.swing > 0) rot = john.beat === "pike" ? 0.85 : john.beat === "chip" ? 0.7 : 1.15;
+        else if (john.nod) rot = 0.18;
+        if (rot) drawSprSwing(SPR.john, john.x, jy, 40, 72, (john.fx || 0) < 0, 1, rot);
+        else drawSpr(SPR.john, john.x, jy, 40, 72, (john.fx || 0) < 0, 1);
+        if (john.ally && (john.wind > 0 || john.swing > 0) && john.beat && john.beat !== "nod" && john.beat !== "land") {
+          ang = john.aim || 0;
+          fade = john.swing > 0 ? john.swing / 0.28 : 0.35;
+          ctx.save();
+          ctx.translate(john.x, jy - 18);
+          ctx.fillStyle = "rgba(244,230,195," + (0.22 + fade * 0.35) + ")";
+          ctx.strokeStyle = "rgba(168,196,232," + (0.4 + fade * 0.45) + ")";
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(0, 0);
+          ctx.arc(0, 0, john.beat === "slash" ? 54 : 40, ang - 1.1, ang + 1.1);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.restore();
+        }
       });
     }
     if (thaw) {
@@ -3586,7 +4152,7 @@
             ctx.restore();
             ctx.fillStyle = "#1A1028"; ctx.fillRect(e.x - 30, e.y - 122, 60, 6);
             ctx.fillStyle = e.state === "stun" ? "#7ED957" : "#E85D4C";
-            ctx.fillRect(e.x - 30, e.y - 122, 60 * (e.hp / 20), 6);
+            ctx.fillRect(e.x - 30, e.y - 122, 60 * (e.hp / (e.maxHp || 20)), 6);
           }
           else {
             if (e.state === "tele") {
@@ -3885,6 +4451,16 @@
     if (wl) wl.classList.toggle("hidden", !s.act5Held);
   }
   function startPlay(n, skipIntro) {
+    if (!assetsPlayable()) {
+      var overlay = document.getElementById("boot-load");
+      var err = document.getElementById("load-err");
+      var retry = document.getElementById("btn-load-retry");
+      if (overlay) overlay.classList.remove("hidden");
+      if (err) err.classList.remove("hidden");
+      if (retry) retry.classList.remove("hidden");
+      setPlayLocked(true);
+      return;
+    }
     Sfx.ensure();
     if (levelTimer) { clearTimeout(levelTimer); levelTimer = null; }
     levelTransit = false;
@@ -3954,6 +4530,7 @@
     else go();
   }
   document.getElementById("btn-play").addEventListener("click", function () {
+    if (!assetsPlayable()) return;
     Sfx.ensure();
     openDiffPick();
   });
@@ -4004,10 +4581,22 @@
   document.getElementById("mus-detail-inner").addEventListener("click", function (ev) {
     ev.stopPropagation();
   });
-  document.getElementById("btn-shop").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
-  document.getElementById("btn-shop2").addEventListener("click", function () { renderShop(); document.getElementById("shop").classList.remove("hidden"); });
-  document.getElementById("btn-shop-close").addEventListener("click", function () { document.getElementById("shop").classList.add("hidden"); });
+  document.getElementById("btn-shop").addEventListener("click", openShop);
+  document.getElementById("btn-shop2").addEventListener("click", openShop);
+  var shopHud = document.getElementById("btn-shop-hud");
+  if (shopHud) shopHud.addEventListener("click", openShop);
+  var shopFab = document.getElementById("btn-shop-fab");
+  if (shopFab) shopFab.addEventListener("click", openShop);
+  document.getElementById("btn-shop-close").addEventListener("click", closeShop);
+  var shopGear = document.getElementById("shop-gear");
+  if (shopGear) shopGear.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("[data-gear]") : null;
+    if (!b || !shopGear.contains(b)) return;
+    onGearTap(b.getAttribute("data-gear"));
+  });
   document.getElementById("shop-piece").addEventListener("click", buyPiece);
+  var bootRetry = document.getElementById("btn-load-retry");
+  if (bootRetry) bootRetry.addEventListener("click", function () { location.reload(); });
   var shopBomb = document.getElementById("shop-bomb");
   if (shopBomb) shopBomb.addEventListener("click", buyBomb);
   var bombBtn = document.getElementById("btn-bomb");
@@ -4098,8 +4687,20 @@
   hasHat = lodgeFlag();
   Sfx.muted = !!loadSave().mute;
   difficulty = diffId(loadSave().diff);
+  applySaveMeta(loadSave());
   hud();
+  bootPreload();
   goSplash();
+  setTimeout(function () {
+    if (mode !== "splash") return;
+    ["btn-shop-fab", "btn-shop"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("shop-pulse");
+      void el.offsetWidth;
+      el.classList.add("shop-pulse");
+    });
+  }, 3000);
   requestAnimationFrame(function (t) { lastTs = t; frame(t); });
 })();
   </script>

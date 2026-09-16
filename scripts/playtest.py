@@ -145,6 +145,33 @@ NEED = [
     "chopHintDone",
     "dismissStartTips",
     "calmT",
+    "id=\"mission-panel\"",
+    "Fight through winter stages. End the Frost King. Bring the summer.",
+    "clear 25 rooms, then end the Nightfall.",
+    "Not a farm sim.",
+    "Blade up. Crown down. Summer returns.",
+    "NIGHTFALL HELD",
+    "Nightfall held. King falls. Summer returns.",
+    "bootPreload",
+    "assetsPlayable",
+    "coreArtOk",
+    "loadTracked",
+    "Loading…",
+    "id=\"boot-load\"",
+    "id=\"btn-shop-hud\"",
+    "id=\"btn-shop-fab\"",
+    "Reed Blade",
+    "Ice Pick",
+    "Crown Cleaver",
+    "Warm Flask",
+    "Snow Shield",
+    "Ember Oil",
+    "Map Scrap",
+    "Soft Boots",
+    "$BOBER",
+    "startAllyBeat",
+    "assistHit",
+    "assistCap",
 ]
 
 FORBID_UI = [
@@ -459,6 +486,31 @@ def main() -> int:
         errors.append("stamp ground ring VFX missing")
     if "endless" in text.lower() or "rematch" in text.lower():
         errors.append("must not add rematch/endless modes")
+
+    splash = text.split('id="splash"')[1].split('id="diff-pick"')[0]
+    if "id=\"mission-panel\"" not in splash:
+        errors.append("mission panel missing on splash")
+    if splash.find("id=\"mission-panel\"") > splash.find("id=\"btn-play\""):
+        errors.append("mission must appear before FACE THE FROST")
+    if 'id="btn-play"' in splash and "disabled" not in splash.split('id="btn-play"')[0][-80:] and "disabled" not in splash.split('id="btn-play"')[1][:80]:
+        errors.append("FACE THE FROST not disabled until preload")
+    if "function startPlay" in text and "assetsPlayable" not in text.split("function startPlay")[1].split("function playIntro")[0]:
+        errors.append("startPlay must gate on assetsPlayable")
+    if "drawSpr" in text and "!img.naturalWidth" not in text:
+        errors.append("drawSpr must no-op without naturalWidth")
+    if "king.hp -= 1" in text.split("function updateAlly")[1].split("function updateThaw")[0]:
+        errors.append("ally still raw-chips king HP (must use assistHit cap)")
+    if "0.18" not in text.split("function assistCap")[1][:120]:
+        errors.append("assist cap not ~18% king max HP")
+    hud_shop = text.split("#btn-shop-hud")[1].split("#shop")[0] if "#btn-shop-hud" in text else ""
+    if "min-height: 48px" not in hud_shop and "min-height: 52px" not in hud_shop:
+        errors.append("HUD Shop tap target not ~48px")
+    if "cost: 40" not in text or "cost: 70" not in text or "cost: 120" not in text:
+        errors.append("$BOBER weapon costs missing")
+    if "cost: 25" not in text or "cost: 35" not in text or "cost: 45" not in text:
+        errors.append("$BOBER aid costs missing")
+    if "cost: 30" not in text or "cost: 55" not in text:
+        errors.append("$BOBER utility costs missing")
 
     if errors:
         print("FAIL")
