@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import sys
+import hashlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -554,6 +555,41 @@ def main() -> int:
         errors.append("L19 syncKeepDoor still refuses to reopen when locked")
     if "function reopenClearedDoor" not in text:
         errors.append("cleared-door reopen helper missing")
+
+    if "shop-thumb" not in text or "function shopThumb" not in text:
+        errors.append("shop rows missing thumbs")
+    if "var SHOP_ART" not in text or "Object.keys(SHOP_ART)" not in text:
+        errors.append("shop art not preloaded")
+    if "tunic-wrap.png" not in text:
+        errors.append("tunic wrap sprite not wired")
+    if not (ROOT / "assets" / "sprites" / "tunic-wrap.png").exists():
+        errors.append("missing sprite tunic-wrap.png")
+    tunic_fn = text.split("function drawTunic")[1].split("function draw()")[0] if "function drawTunic" in text else ""
+    if "ellipse" in tunic_fn:
+        errors.append("drawTunic still ellipse stub")
+    if "tunicWrap" not in tunic_fn:
+        errors.append("drawTunic not using wrap sprite")
+    gear_js = text.split('{ id: "reed"')[1].split("var MILES")[0] if '{ id: "reed"' in text else ""
+    for bad in ("bober-slash.png", "ice-block.png", "heart.png", "torch.png", "bober-roll.png", "bober-idle.png"):
+        if bad in gear_js:
+            errors.append("gear still reuses " + bad)
+    shop_stills = [
+        "reed.jpg", "cleaver.jpg", "pick.jpg", "shield.jpg", "flask.jpg",
+        "piece.jpg", "bomb.jpg", "oil.jpg", "boots.jpg", "tunic.jpg",
+        "rest.jpg", "warm.jpg",
+    ]
+    hashes: dict[str, str] = {}
+    for name in shop_stills:
+        p = ROOT / "assets" / "museum" / name
+        if not p.exists():
+            errors.append("missing shop still " + name)
+            continue
+        digest = hashlib.md5(p.read_bytes()).hexdigest()
+        if digest in hashes:
+            errors.append("shared shop still " + hashes[digest] + " / " + name)
+        hashes[digest] = name
+        if 'assets/museum/' + name not in text:
+            errors.append("shop still not wired: " + name)
 
     if errors:
         print("FAIL")
